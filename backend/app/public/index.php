@@ -31,4 +31,27 @@ $router->get('/api/health/db', function () {
     }
 });
 
+// Auth routes
+$auth = new \App\Controllers\AuthController();
+
+$router->post('/api/register', function () use ($auth) {
+    $auth->register();
+});
+
+$router->post('/api/login', function () use ($auth) {
+    $auth->login();
+});
+
+$router->post('/api/logout', function () use ($auth) {
+    $auth->logout();
+});
+
+$router->get('/api/users/me', function () use ($auth) {
+    $auth->getProfile();
+});
+
+$router->put('/api/users/me', function () use ($auth) {
+    $auth->updateProfile();
+});
+
 $router->run();

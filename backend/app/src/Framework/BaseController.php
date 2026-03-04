@@ -26,7 +26,6 @@ class BaseController
 
     protected function getAuthenticatedUserId(): int
     {
-        // Placeholder — will be wired in Phase 1
-        return 0;
+        return AuthMiddleware::authenticate();
     }
 }

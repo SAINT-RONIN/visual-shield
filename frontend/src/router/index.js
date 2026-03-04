@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuth } from '@/composables/useAuth.js'
 import LoginPage from '@/components/pages/LoginPage.vue'
 import RegisterPage from '@/components/pages/RegisterPage.vue'
 import DashboardPage from '@/components/pages/DashboardPage.vue'
@@ -27,23 +28,39 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardPage,
+      meta: { requiresAuth: true },
     },
     {
       path: '/upload',
       name: 'upload',
       component: UploadPage,
+      meta: { requiresAuth: true },
     },
     {
       path: '/videos/:id/report',
       name: 'report',
       component: ReportPage,
+      meta: { requiresAuth: true },
     },
     {
       path: '/profile',
       name: 'profile',
       component: ProfilePage,
+      meta: { requiresAuth: true },
     },
   ],
+})
+
+router.beforeEach((to) => {
+  const { isLoggedIn } = useAuth()
+
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
+    return { name: 'login' }
+  }
+
+  if ((to.name === 'login' || to.name === 'register') && isLoggedIn.value) {
+    return { name: 'dashboard' }
+  }
 })
 
 export default router
