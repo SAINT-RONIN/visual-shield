@@ -1,0 +1,11 @@
+{
+    "name": "visual-shield/backend",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "bramus/router": "^1.6"
+    }
+}
