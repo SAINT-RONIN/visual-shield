@@ -18,4 +18,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# PHP upload limits
+RUN echo "upload_max_filesize = 110M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 110M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini
+
 WORKDIR /app

@@ -24,6 +24,7 @@
   /* Status */
   --color-error: #f87171;
   --color-success: #4ade80;
+  --color-warning: #fbbf24;
 }
 
 /* To enable light mode later, override the CSS custom properties:
@@ -45,5 +46,6 @@
  *   --color-link-hover: #4338ca;
  *   --color-error: #ef4444;
  *   --color-success: #22c55e;
+ *   --color-warning: #f59e0b;
  * }
  */

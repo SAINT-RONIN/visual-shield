@@ -54,4 +54,23 @@ $router->put('/api/users/me', function () use ($auth) {
     $auth->updateProfile();
 });
 
+// Video routes
+$video = new \App\Controllers\VideoController();
+
+$router->post('/api/videos', function () use ($video) {
+    $video->upload();
+});
+
+$router->get('/api/videos', function () use ($video) {
+    $video->getAll();
+});
+
+$router->get('/api/videos/(\d+)', function ($id) use ($video) {
+    $video->getOne((int) $id);
+});
+
+$router->delete('/api/videos/(\d+)', function ($id) use ($video) {
+    $video->delete((int) $id);
+});
+
 $router->run();
