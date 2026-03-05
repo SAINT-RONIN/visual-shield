@@ -1,26 +1,27 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth.js'
 import NavLink from '@/components/molecules/NavLink.vue'
 import UserMenuDropdown from '@/components/molecules/UserMenuDropdown.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 
-const router = useRouter()
-const { user, isLoggedIn, logout } = useAuth()
+const { user, isLoggedIn } = useAuth()
+
+const emit = defineEmits(['logout'])
 
 const mobileMenuOpen = ref(false)
 
-async function handleLogout() {
-  await logout()
+const displayName = computed(() => user.value?.displayName || user.value?.username || 'User')
+
+function handleLogout() {
   mobileMenuOpen.value = false
-  router.push('/login')
+  emit('logout')
 }
 </script>
 
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 bg-surface border-b border-line">
-    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8 xl:px-10 h-14 flex items-center justify-between">
       <!-- Logo -->
       <router-link to="/dashboard" class="text-lg font-bold text-heading">
         Visual Shield
@@ -35,7 +36,7 @@ async function handleLogout() {
       <!-- User Menu (logged in) -->
       <div v-if="isLoggedIn" class="hidden md:block">
         <UserMenuDropdown
-          :display-name="user?.displayName || user?.username || 'User'"
+          :display-name="displayName"
           @logout="handleLogout"
         />
       </div>

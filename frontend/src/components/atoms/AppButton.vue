@@ -2,13 +2,14 @@
 defineProps({
   variant: { type: String, default: 'primary' },
   loading: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
   fullWidth: { type: Boolean, default: false },
 })
 </script>
 
 <template>
   <button
-    :disabled="loading"
+    :disabled="loading || disabled"
     class="px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     :class="[
       variant === 'primary' && 'bg-primary hover:bg-primary-hover text-heading',

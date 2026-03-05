@@ -51,7 +51,7 @@ async function handleDelete(id) {
       <p class="text-muted text-sm">Upload a video to get started with accessibility analysis</p>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
       <VideoCard
         v-for="video in videos"
         :key="video.id"
