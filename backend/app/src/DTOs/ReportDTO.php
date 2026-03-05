@@ -47,28 +47,38 @@ class ReportDTO
     private static function buildSummary(array $analysisResult, array $segments): array
     {
         $highestFreq = (float) ($analysisResult['highest_flash_frequency'] ?? 0);
+        $avgMotion = (float) ($analysisResult['average_motion_intensity'] ?? 0);
 
         return [
             'totalFlashEvents' => (int) ($analysisResult['total_flash_events'] ?? 0),
             'highestFlashFrequency' => $highestFreq,
-            'averageMotionIntensity' => (float) ($analysisResult['average_motion_intensity'] ?? 0),
-            'overallRiskLevel' => self::determineRiskLevel($highestFreq, $segments),
+            'averageMotionIntensity' => $avgMotion,
+            'overallRiskLevel' => self::determineRiskLevel($highestFreq, $avgMotion, $segments),
         ];
     }
 
-    private static function determineRiskLevel(float $highestFreq, array $segments): string
+    private static function determineRiskLevel(float $highestFreq, float $avgMotion, array $segments): string
     {
+        $hasHighSeverity = false;
+        $hasMediumSeverity = false;
+
         foreach ($segments as $seg) {
             if ($seg['severity'] === 'high') {
-                return 'high';
+                $hasHighSeverity = true;
+            } elseif ($seg['severity'] === 'medium') {
+                $hasMediumSeverity = true;
             }
         }
 
-        if ($highestFreq > 5) {
+        if ($hasHighSeverity || $highestFreq > 10 || $avgMotion > 120) {
+            return 'high';
+        }
+
+        if ($hasMediumSeverity || $highestFreq > 5 || $avgMotion > 60) {
             return 'medium';
         }
 
-        if ($highestFreq > 3 || !empty($segments)) {
+        if (!empty($segments) || $highestFreq > 3 || $avgMotion > 30) {
             return 'low';
         }
 
@@ -77,13 +87,19 @@ class ReportDTO
 
     private static function formatSegments(array $segments): array
     {
-        return array_map(fn(array $s): array => [
-            'startTime' => (float) $s['start_time'],
-            'endTime' => (float) $s['end_time'],
-            'type' => $s['segment_type'],
-            'severity' => $s['severity'],
-            'metricValue' => (float) ($s['metric_value'] ?? 0),
-        ], $segments);
+        $formatted = [];
+
+        foreach ($segments as $s) {
+            $formatted[] = [
+                'startTime' => (float) $s['start_time'],
+                'endTime' => (float) $s['end_time'],
+                'type' => $s['segment_type'],
+                'severity' => $s['severity'],
+                'metricValue' => (float) ($s['metric_value'] ?? 0),
+            ];
+        }
+
+        return $formatted;
     }
 
     private static function buildCharts(array $datapoints): array

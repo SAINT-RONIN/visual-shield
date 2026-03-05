@@ -44,33 +44,77 @@ class AnalysisService
         }
     }
 
+    // Runs flash + motion + luminance analysis in a single pass over frames.
     private function runAnalysis(int $videoId, array $framePaths, int $samplingRate): void
     {
-        $flashResult = $this->flashDetector->detect($framePaths, $samplingRate);
-        $motionResult = $this->motionDetector->detect($framePaths, $samplingRate);
-        $luminanceValues = $this->computeLuminanceTimeSeries($framePaths, $samplingRate);
+        $perFrameData = $this->computePerFrameData($framePaths);
 
-        $this->storeDatapoints($videoId, $flashResult, $motionResult, $luminanceValues);
+        $flashResult = $this->flashDetector->detectFromData($perFrameData, $samplingRate);
+        $motionResult = $this->motionDetector->detectFromData($perFrameData, $samplingRate);
+        $luminancePerSecond = $this->averageLuminancePerSecond($perFrameData, $samplingRate);
+
+        $this->storeDatapoints($videoId, $flashResult, $motionResult, $luminancePerSecond);
         $this->storeSegments($videoId, $flashResult, $motionResult);
         $this->storeSummary($videoId, count($framePaths), $flashResult, $motionResult, $samplingRate);
     }
 
-    private function computeLuminanceTimeSeries(array $framePaths, int $samplingRate): array
+    // Computes luminance, luminance-diff, and motion for each frame pair.
+    private function computePerFrameData(array $framePaths): array
     {
-        $totalFrames = count($framePaths);
-        $durationSeconds = (int) ceil($totalFrames / $samplingRate);
-        $luminancePerSecond = [];
+        $count = count($framePaths);
 
-        for ($sec = 0; $sec < $durationSeconds; $sec++) {
-            $frameIndex = min($sec * $samplingRate, $totalFrames - 1);
-            $luminance = ImageAnalyzer::calculateAverageLuminance($framePaths[$frameIndex]);
-            $luminancePerSecond[] = [
-                'second' => $sec,
-                'luminance' => round($luminance, 2),
+        if ($count === 0) {
+            return [];
+        }
+
+        // First frame: compute luminance standalone
+        $firstLuminance = ImageAnalyzer::calculateAverageLuminance($framePaths[0]);
+        $data = [
+            0 => [
+                'luminance' => $firstLuminance,
+                'luminanceDiff' => 0.0,
+                'motionIntensity' => 0.0,
+            ],
+        ];
+
+        // Subsequent frames: analyze in pairs (each image loaded once)
+        for ($i = 1; $i < $count; $i++) {
+            $pair = ImageAnalyzer::analyzeFramePair($framePaths[$i - 1], $framePaths[$i]);
+
+            $data[$i] = [
+                'luminance' => $pair['luminance2'],
+                'luminanceDiff' => abs($pair['luminance2'] - $pair['luminance1']),
+                'motionIntensity' => $pair['motionIntensity'],
             ];
         }
 
-        return $luminancePerSecond;
+        return $data;
+    }
+
+    private function averageLuminancePerSecond(array $perFrameData, int $samplingRate): array
+    {
+        $totalFrames = count($perFrameData);
+        $durationSeconds = (int) ceil($totalFrames / $samplingRate);
+        $result = [];
+
+        for ($sec = 0; $sec < $durationSeconds; $sec++) {
+            $startFrame = $sec * $samplingRate;
+            $endFrame = min(($sec + 1) * $samplingRate, $totalFrames);
+            $sum = 0.0;
+            $count = 0;
+
+            for ($f = $startFrame; $f < $endFrame; $f++) {
+                $sum += $perFrameData[$f]['luminance'];
+                $count++;
+            }
+
+            $result[] = [
+                'second' => $sec,
+                'luminance' => $count > 0 ? round($sum / $count, 2) : 0.0,
+            ];
+        }
+
+        return $result;
     }
 
     private function storeDatapoints(
@@ -79,17 +123,25 @@ class AnalysisService
         MotionAnalysisResult $motionResult,
         array $luminanceValues,
     ): void {
+        // Index each metric by second for easy lookup
+        $flashBySecond = [];
+        foreach ($flashResult->perSecondFrequencies as $entry) {
+            $flashBySecond[$entry['second']] = $entry['frequency'];
+        }
+
+        $motionBySecond = [];
+        foreach ($motionResult->perSecondIntensities as $entry) {
+            $motionBySecond[$entry['second']] = $entry['intensity'];
+        }
+
+        $lumBySecond = [];
+        foreach ($luminanceValues as $entry) {
+            $lumBySecond[$entry['second']] = $entry['luminance'];
+        }
+
+        $maxSecond = max(count($flashBySecond), count($motionBySecond), count($lumBySecond), 1);
+
         $datapoints = [];
-        $flashBySecond = $this->indexBySecond($flashResult->perSecondFrequencies, 'frequency');
-        $motionBySecond = $this->indexBySecond($motionResult->perSecondIntensities, 'intensity');
-        $lumBySecond = $this->indexBySecond($luminanceValues, 'luminance');
-
-        $maxSecond = max(
-            count($flashBySecond),
-            count($motionBySecond),
-            count($lumBySecond)
-        );
-
         for ($sec = 0; $sec < $maxSecond; $sec++) {
             $freq = $flashBySecond[$sec] ?? 0.0;
             $datapoints[] = [
@@ -102,17 +154,6 @@ class AnalysisService
         }
 
         $this->datapointRepo->createBatch($videoId, $datapoints);
-    }
-
-    private function indexBySecond(array $entries, string $valueKey): array
-    {
-        $indexed = [];
-
-        foreach ($entries as $entry) {
-            $indexed[$entry['second']] = $entry[$valueKey];
-        }
-
-        return $indexed;
     }
 
     private function storeSegments(

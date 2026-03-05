@@ -4,62 +4,58 @@ namespace App\Services;
 
 use App\Config\AnalysisConfig;
 use App\Models\FlashAnalysisResult;
-use App\Utils\ImageAnalyzer;
 
 class FlashDetector
 {
-    public function detect(array $framePaths, int $samplingRate): FlashAnalysisResult
+    public function detectFromData(array $perFrameData, int $samplingRate): FlashAnalysisResult
     {
-        $luminanceDiffs = $this->computeLuminanceDiffs($framePaths);
-        $flashEvents = $this->identifyFlashEvents($luminanceDiffs);
-        $perSecondFrequencies = $this->groupBySecond($flashEvents, $samplingRate, count($framePaths));
+        $flashFrames = $this->identifyFlashFrames($perFrameData);
+        $perSecondFrequencies = $this->groupBySecond($flashFrames, $samplingRate, count($perFrameData));
         $segments = $this->buildFlaggedSegments($perSecondFrequencies);
-        $totalEvents = array_sum(array_map(fn(int $v): int => $v, $flashEvents));
-        $highestFrequency = empty($perSecondFrequencies) ? 0.0 : max(array_column($perSecondFrequencies, 'frequency'));
+
+        $totalEvents = 0;
+        foreach ($flashFrames as $isFlash) {
+            $totalEvents += $isFlash;
+        }
+
+        $highestFrequency = 0.0;
+        foreach ($perSecondFrequencies as $entry) {
+            if ($entry['frequency'] > $highestFrequency) {
+                $highestFrequency = $entry['frequency'];
+            }
+        }
 
         return new FlashAnalysisResult($totalEvents, $highestFrequency, $segments, $perSecondFrequencies);
     }
 
-    private function computeLuminanceDiffs(array $framePaths): array
-    {
-        $diffs = [];
-
-        for ($i = 1; $i < count($framePaths); $i++) {
-            $lum1 = ImageAnalyzer::calculateAverageLuminance($framePaths[$i - 1]);
-            $lum2 = ImageAnalyzer::calculateAverageLuminance($framePaths[$i]);
-            $diffs[] = [
-                'index' => $i,
-                'diff' => abs($lum2 - $lum1),
-                'luminance' => $lum2,
-            ];
-        }
-
-        return $diffs;
-    }
-
-    private function identifyFlashEvents(array $diffs): array
+    // Returns [frameIndex => 1 or 0] — whether each frame is a flash event.
+    private function identifyFlashFrames(array $perFrameData): array
     {
         $events = [];
 
-        foreach ($diffs as $d) {
-            $events[$d['index']] = $d['diff'] >= AnalysisConfig::FLASH_THRESHOLD ? 1 : 0;
+        foreach ($perFrameData as $i => $frame) {
+            if ($i === 0) {
+                continue;
+            }
+            $events[$i] = $frame['luminanceDiff'] >= AnalysisConfig::FLASH_THRESHOLD ? 1 : 0;
         }
 
         return $events;
     }
 
-    private function groupBySecond(array $flashEvents, int $samplingRate, int $totalFrames): array
+    // Counts flash events per second. Raw count = brightness reversals/sec (WCAG measure).
+    private function groupBySecond(array $flashFrames, int $samplingRate, int $totalFrames): array
     {
         $durationSeconds = (int) ceil($totalFrames / $samplingRate);
         $perSecond = [];
 
         for ($sec = 0; $sec < $durationSeconds; $sec++) {
-            $startFrame = $sec * $samplingRate;
+            $startFrame = $sec * $samplingRate + 1;
             $endFrame = min(($sec + 1) * $samplingRate, $totalFrames);
             $count = 0;
 
-            for ($f = $startFrame + 1; $f < $endFrame; $f++) {
-                $count += $flashEvents[$f] ?? 0;
+            for ($f = $startFrame; $f < $endFrame; $f++) {
+                $count += $flashFrames[$f] ?? 0;
             }
 
             $perSecond[] = [
@@ -90,6 +86,7 @@ class FlashDetector
             } elseif (!$isDangerous && $inSegment) {
                 $segments[] = $this->createSegment($segStart, $entry['second'], $maxFreq);
                 $inSegment = false;
+                $maxFreq = 0.0;
             }
         }
 

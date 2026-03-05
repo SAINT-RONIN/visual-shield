@@ -1,16 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-} from 'chart.js'
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip)
+import '@/utils/chartSetup.js'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -43,6 +34,7 @@ const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
+    legend: { display: false },
     tooltip: {
       mode: 'index',
       intersect: false,

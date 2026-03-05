@@ -28,11 +28,6 @@ const motionColor = computed(() => {
   if (v > 30) return 'text-yellow-400'
   return 'text-green-400'
 })
-
-const zapIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'
-const activityIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>'
-const moveIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 9l4-4 4 4M5 15l4 4 4-4M15 9l4-4M15 15l4 4"/></svg>'
-const filmIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4M3 12h18M3 16h4M17 8h4M17 16h4M3 4h18v16H3z"/></svg>'
 </script>
 
 <template>
@@ -40,26 +35,49 @@ const filmIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="
     <StatCard
       label="Flash Events"
       :value="summary.totalFlashEvents"
-      :icon="zapIcon"
       :color-class="flashEventsColor"
-    />
+    >
+      <template #icon>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </template>
+    </StatCard>
+
     <StatCard
       label="Peak Flash Rate (Hz)"
       :value="summary.highestFlashFrequency.toFixed(1)"
-      :icon="activityIcon"
       :color-class="flashFreqColor"
-    />
+    >
+      <template #icon>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      </template>
+    </StatCard>
+
     <StatCard
       label="Avg Motion Intensity"
       :value="summary.averageMotionIntensity.toFixed(1)"
-      :icon="moveIcon"
       :color-class="motionColor"
-    />
+    >
+      <template #icon>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 9l4-4 4 4M5 15l4 4 4-4M15 9l4-4M15 15l4 4"/>
+        </svg>
+      </template>
+    </StatCard>
+
     <StatCard
       label="Effective FPS"
       :value="summary.effectiveSamplingRate || '--'"
-      :icon="filmIcon"
       color-class="text-heading"
-    />
+    >
+      <template #icon>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4M3 12h18M3 16h4M17 8h4M17 16h4M3 4h18v16H3z"/>
+        </svg>
+      </template>
+    </StatCard>
   </div>
 </template>

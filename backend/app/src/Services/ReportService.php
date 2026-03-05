@@ -55,10 +55,11 @@ class ReportService
 
     private function buildCsvString(array $segments): string
     {
-        $lines = ['Start Time,End Time,Type,Severity,Metric Value'];
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
 
         foreach ($segments as $seg) {
-            $lines[] = implode(',', [
+            fputcsv($handle, [
                 $seg['start_time'],
                 $seg['end_time'],
                 $seg['segment_type'],
@@ -67,6 +68,10 @@ class ReportService
             ]);
         }
 
-        return implode("\n", $lines);
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return $csv;
     }
 }

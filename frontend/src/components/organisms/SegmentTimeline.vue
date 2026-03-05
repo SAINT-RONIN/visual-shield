@@ -10,7 +10,11 @@ const hoveredSegment = ref(null)
 
 const timeLabels = computed(() => {
   if (props.duration <= 0) return []
-  const step = props.duration <= 30 ? 5 : props.duration <= 120 ? 10 : 30
+
+  let step = 30
+  if (props.duration <= 30) step = 5
+  else if (props.duration <= 120) step = 10
+
   const labels = []
   for (let t = 0; t <= props.duration; t += step) {
     labels.push(t)

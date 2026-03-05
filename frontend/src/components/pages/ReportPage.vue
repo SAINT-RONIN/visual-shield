@@ -16,6 +16,7 @@ const route = useRoute()
 const report = ref(null)
 const isLoading = ref(true)
 const error = ref('')
+const exporting = ref(false)
 
 onMounted(async () => {
   try {
@@ -27,28 +28,42 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+async function handleExport(format) {
+  exporting.value = true
+  try {
+    const response = await api.get(`/videos/${route.params.id}/export/${format}`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([response.data])
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `report_${route.params.id}.${format === 'json' ? 'json' : 'csv'}`
+    link.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    error.value = 'Export failed. Please try again.'
+  } finally {
+    exporting.value = false
+  }
+}
 </script>
 
 <template>
   <PageTemplate title="Analysis Report">
-    <!-- Loading -->
     <div v-if="isLoading" class="text-body text-center py-12">Loading report...</div>
 
-    <!-- Error -->
     <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
 
-    <!-- Report Content -->
     <div v-else-if="report" class="space-y-6 lg:space-y-8">
-      <!-- Header -->
       <ReportHeader
         :video="report.video"
         :risk-level="report.summary.overallRiskLevel"
       />
 
-      <!-- Stats Panel -->
       <StatsPanel :summary="{ ...report.summary, effectiveSamplingRate: report.video.effectiveSamplingRate }" />
 
-      <!-- Charts: 2 + 1 layout -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FlashFrequencyChart
           v-if="report.charts.flashFrequency.length"
@@ -64,17 +79,14 @@ onMounted(async () => {
         :data="report.charts.luminance"
       />
 
-      <!-- Segment Timeline -->
       <SegmentTimeline
         :segments="report.segments"
         :duration="report.video.duration"
       />
 
-      <!-- Segment Table -->
       <SegmentTable :segments="report.segments" />
 
-      <!-- Export Buttons -->
-      <ExportButtons :video-id="report.video.id" />
+      <ExportButtons :exporting="exporting" @export="handleExport" />
     </div>
   </PageTemplate>
 </template>

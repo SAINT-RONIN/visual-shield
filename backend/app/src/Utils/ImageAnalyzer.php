@@ -9,23 +9,10 @@ class ImageAnalyzer
     public static function calculateAverageLuminance(string $imagePath): float
     {
         $image = self::loadImage($imagePath);
-        $width = imagesx($image);
-        $height = imagesy($image);
-
-        $totalLuminance = 0.0;
-        $sampleCount = 0;
-
-        for ($y = 0; $y < $height; $y += self::PIXEL_SAMPLE_STEP) {
-            for ($x = 0; $x < $width; $x += self::PIXEL_SAMPLE_STEP) {
-                $rgb = imagecolorat($image, $x, $y);
-                $totalLuminance += self::rgbToLuminance($rgb);
-                $sampleCount++;
-            }
-        }
-
+        $luminance = self::computeLuminanceFromImage($image);
         imagedestroy($image);
 
-        return $sampleCount > 0 ? $totalLuminance / $sampleCount : 0.0;
+        return $luminance;
     }
 
     public static function calculateFrameDifference(string $imagePath1, string $imagePath2): float
@@ -55,6 +42,46 @@ class ImageAnalyzer
         return $sampleCount > 0 ? $totalDiff / $sampleCount : 0.0;
     }
 
+    // Analyzes two frames in one pass: luminance for both + motion score.
+    public static function analyzeFramePair(string $imagePath1, string $imagePath2): array
+    {
+        $image1 = self::loadImage($imagePath1);
+        $image2 = self::loadImage($imagePath2);
+
+        $width = min(imagesx($image1), imagesx($image2));
+        $height = min(imagesy($image1), imagesy($image2));
+
+        $totalLum1 = 0.0;
+        $totalLum2 = 0.0;
+        $totalDiff = 0.0;
+        $sampleCount = 0;
+
+        for ($y = 0; $y < $height; $y += self::PIXEL_SAMPLE_STEP) {
+            for ($x = 0; $x < $width; $x += self::PIXEL_SAMPLE_STEP) {
+                $rgb1 = imagecolorat($image1, $x, $y);
+                $rgb2 = imagecolorat($image2, $x, $y);
+
+                $totalLum1 += self::rgbToLuminance($rgb1);
+                $totalLum2 += self::rgbToLuminance($rgb2);
+                $totalDiff += self::pixelDifference($rgb1, $rgb2);
+                $sampleCount++;
+            }
+        }
+
+        imagedestroy($image1);
+        imagedestroy($image2);
+
+        if ($sampleCount === 0) {
+            return ['luminance1' => 0.0, 'luminance2' => 0.0, 'motionIntensity' => 0.0];
+        }
+
+        return [
+            'luminance1' => $totalLum1 / $sampleCount,
+            'luminance2' => $totalLum2 / $sampleCount,
+            'motionIntensity' => $totalDiff / $sampleCount,
+        ];
+    }
+
     private static function loadImage(string $path): \GdImage
     {
         $image = @imagecreatefromjpeg($path);
@@ -64,6 +91,23 @@ class ImageAnalyzer
         }
 
         return $image;
+    }
+
+    private static function computeLuminanceFromImage(\GdImage $image): float
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $totalLuminance = 0.0;
+        $sampleCount = 0;
+
+        for ($y = 0; $y < $height; $y += self::PIXEL_SAMPLE_STEP) {
+            for ($x = 0; $x < $width; $x += self::PIXEL_SAMPLE_STEP) {
+                $totalLuminance += self::rgbToLuminance(imagecolorat($image, $x, $y));
+                $sampleCount++;
+            }
+        }
+
+        return $sampleCount > 0 ? $totalLuminance / $sampleCount : 0.0;
     }
 
     private static function rgbToLuminance(int $rgb): float
