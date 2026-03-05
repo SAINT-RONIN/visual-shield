@@ -73,4 +73,19 @@ $router->delete('/api/videos/(\d+)', function ($id) use ($video) {
     $video->delete((int) $id);
 });
 
+// Report routes
+$report = new \App\Controllers\ReportController();
+
+$router->get('/api/videos/(\d+)/report', function ($id) use ($report) {
+    $report->getReport((int) $id);
+});
+
+$router->get('/api/videos/(\d+)/export/json', function ($id) use ($report) {
+    $report->exportJson((int) $id);
+});
+
+$router->get('/api/videos/(\d+)/export/csv', function ($id) use ($report) {
+    $report->exportCsv((int) $id);
+});
+
 $router->run();

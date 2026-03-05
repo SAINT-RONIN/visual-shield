@@ -9,6 +9,8 @@ use App\Repositories\AnalysisDatapointRepository;
 use App\Services\AnalysisService;
 use App\Services\FrameExtractor;
 use App\Services\FFprobeService;
+use App\Services\FlashDetector;
+use App\Services\MotionDetector;
 
 $videoRepo = new VideoRepository();
 $analysisService = new AnalysisService(
@@ -18,6 +20,8 @@ $analysisService = new AnalysisService(
     new AnalysisDatapointRepository(),
     new FrameExtractor(),
     new FFprobeService(),
+    new FlashDetector(),
+    new MotionDetector(),
 );
 
 echo "Worker started. Waiting for queued videos...\n";
