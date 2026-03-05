@@ -60,6 +60,14 @@ class VideoRepository
         $stmt->execute([$effectiveRate, $id]);
     }
 
+    public function findNextQueued(): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM videos WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1");
+        $stmt->execute();
+
+        return $stmt->fetch() ?: null;
+    }
+
     public function delete(int $id): void
     {
         $stmt = $this->db->prepare('DELETE FROM videos WHERE id = ?');

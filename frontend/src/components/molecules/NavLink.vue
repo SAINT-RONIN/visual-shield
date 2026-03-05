@@ -1,12 +1,8 @@
 <script setup>
-import { useRoute } from 'vue-router'
-
-const props = defineProps({
+defineProps({
   to: { type: String, required: true },
-  routeName: { type: String, default: '' },
+  active: { type: Boolean, default: false },
 })
-
-const route = useRoute()
 
 defineEmits(['navigate'])
 </script>
@@ -15,7 +11,7 @@ defineEmits(['navigate'])
   <router-link
     :to="to"
     class="px-3 py-2 text-sm rounded-lg transition-colors"
-    :class="route.name === routeName ? 'text-heading border-b-2 border-primary' : 'text-body hover:text-heading'"
+    :class="active ? 'text-heading border-b-2 border-primary' : 'text-body hover:text-heading'"
     @click="$emit('navigate')"
   >
     <slot />

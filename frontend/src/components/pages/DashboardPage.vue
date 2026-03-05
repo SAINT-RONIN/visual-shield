@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
@@ -8,16 +8,49 @@ import VideoCard from '@/components/molecules/VideoCard.vue'
 const videos = ref([])
 const loading = ref(true)
 const error = ref('')
+let pollInterval = null
 
-onMounted(async () => {
+const hasPendingVideos = computed(() =>
+  videos.value.some((v) => v.status === 'queued' || v.status === 'processing')
+)
+
+async function fetchVideos() {
   try {
     const { data } = await api.get('/videos')
     videos.value = data
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to load videos'
-  } finally {
-    loading.value = false
   }
+}
+
+function startPolling() {
+  stopPolling()
+  pollInterval = setInterval(async () => {
+    await fetchVideos()
+    if (!hasPendingVideos.value) {
+      stopPolling()
+    }
+  }, 5000)
+}
+
+function stopPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
+}
+
+onMounted(async () => {
+  await fetchVideos()
+  loading.value = false
+
+  if (hasPendingVideos.value) {
+    startPolling()
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
 })
 
 async function handleDelete(id) {

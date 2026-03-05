@@ -1,17 +1,18 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useAuth } from '@/composables/useAuth.js'
+import { ref } from 'vue'
 import NavLink from '@/components/molecules/NavLink.vue'
 import UserMenuDropdown from '@/components/molecules/UserMenuDropdown.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 
-const { user, isLoggedIn } = useAuth()
+defineProps({
+  isLoggedIn: { type: Boolean, default: false },
+  displayName: { type: String, default: 'User' },
+  currentRoute: { type: String, default: '' },
+})
 
 const emit = defineEmits(['logout'])
 
 const mobileMenuOpen = ref(false)
-
-const displayName = computed(() => user.value?.displayName || user.value?.username || 'User')
 
 function handleLogout() {
   mobileMenuOpen.value = false
@@ -29,8 +30,8 @@ function handleLogout() {
 
       <!-- Desktop Nav -->
       <nav v-if="isLoggedIn" class="hidden md:flex items-center gap-1">
-        <NavLink to="/dashboard" route-name="dashboard">Dashboard</NavLink>
-        <NavLink to="/upload" route-name="upload">Upload</NavLink>
+        <NavLink to="/dashboard" :active="currentRoute === 'dashboard'">Dashboard</NavLink>
+        <NavLink to="/upload" :active="currentRoute === 'upload'">Upload</NavLink>
       </nav>
 
       <!-- User Menu (logged in) -->
@@ -66,9 +67,9 @@ function handleLogout() {
     <!-- Mobile Menu -->
     <div v-if="mobileMenuOpen" class="md:hidden border-t border-line bg-surface px-4 py-3 space-y-2">
       <template v-if="isLoggedIn">
-        <NavLink to="/dashboard" route-name="dashboard" class="block" @navigate="mobileMenuOpen = false">Dashboard</NavLink>
-        <NavLink to="/upload" route-name="upload" class="block" @navigate="mobileMenuOpen = false">Upload</NavLink>
-        <NavLink to="/profile" route-name="profile" class="block" @navigate="mobileMenuOpen = false">Profile</NavLink>
+        <NavLink to="/dashboard" :active="currentRoute === 'dashboard'" class="block" @navigate="mobileMenuOpen = false">Dashboard</NavLink>
+        <NavLink to="/upload" :active="currentRoute === 'upload'" class="block" @navigate="mobileMenuOpen = false">Upload</NavLink>
+        <NavLink to="/profile" :active="currentRoute === 'profile'" class="block" @navigate="mobileMenuOpen = false">Profile</NavLink>
         <button
           @click="handleLogout"
           class="w-full text-left px-3 py-2 text-sm text-body hover:text-heading rounded-lg"
@@ -77,8 +78,8 @@ function handleLogout() {
         </button>
       </template>
       <template v-else>
-        <NavLink to="/login" route-name="login" class="block" @navigate="mobileMenuOpen = false">Log In</NavLink>
-        <NavLink to="/register" route-name="register" class="block" @navigate="mobileMenuOpen = false">Register</NavLink>
+        <NavLink to="/login" :active="currentRoute === 'login'" class="block" @navigate="mobileMenuOpen = false">Log In</NavLink>
+        <NavLink to="/register" :active="currentRoute === 'register'" class="block" @navigate="mobileMenuOpen = false">Register</NavLink>
       </template>
     </div>
   </header>
