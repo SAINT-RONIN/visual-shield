@@ -3,15 +3,31 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
+import AppSelect from '@/components/atoms/AppSelect.vue'
 import VideoCard from '@/components/molecules/VideoCard.vue'
 
 const videos = ref([])
 const loading = ref(true)
 const error = ref('')
+const filterStatus = ref('all')
 let pollInterval = null
+
+const filterOptions = [
+  { value: 'all', label: 'All Videos' },
+  { value: 'queued', label: 'Queued' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'failed', label: 'Failed' },
+]
 
 const hasPendingVideos = computed(() =>
   videos.value.some((v) => v.status === 'queued' || v.status === 'processing')
+)
+
+const filteredVideos = computed(() =>
+  filterStatus.value === 'all'
+    ? videos.value
+    : videos.value.filter((v) => v.status === filterStatus.value)
 )
 
 async function fetchVideos() {
@@ -27,31 +43,21 @@ function startPolling() {
   stopPolling()
   pollInterval = setInterval(async () => {
     await fetchVideos()
-    if (!hasPendingVideos.value) {
-      stopPolling()
-    }
+    if (!hasPendingVideos.value) stopPolling()
   }, 5000)
 }
 
 function stopPolling() {
-  if (pollInterval) {
-    clearInterval(pollInterval)
-    pollInterval = null
-  }
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null }
 }
 
 onMounted(async () => {
   await fetchVideos()
   loading.value = false
-
-  if (hasPendingVideos.value) {
-    startPolling()
-  }
+  if (hasPendingVideos.value) startPolling()
 })
 
-onUnmounted(() => {
-  stopPolling()
-})
+onUnmounted(() => stopPolling())
 
 async function handleDelete(id) {
   try {
@@ -61,12 +67,29 @@ async function handleDelete(id) {
     error.value = err.response?.data?.error?.message || 'Failed to delete video'
   }
 }
+
+async function handleReanalyze(id) {
+  const video = videos.value.find((v) => v.id === id)
+  try {
+    const { data } = await api.put(`/videos/${id}/reanalyze`, {
+      samplingRate: video?.samplingRate || 15,
+    })
+    const idx = videos.value.findIndex((v) => v.id === id)
+    if (idx !== -1) videos.value[idx] = data
+    startPolling()
+  } catch (err) {
+    error.value = err.response?.data?.error?.message || 'Failed to queue re-analysis'
+  }
+}
 </script>
 
 <template>
-  <PageTemplate title="Your Videos">
-    <div class="flex items-center justify-between mb-6 -mt-2">
-      <p class="text-body text-sm">{{ videos.length }} video{{ videos.length !== 1 ? 's' : '' }}</p>
+  <PageTemplate title="Your Videos" max-width="max-w-none">
+    <div class="flex items-center justify-between mb-6 -mt-2 gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <p class="text-body text-sm">{{ videos.length }} video{{ videos.length !== 1 ? 's' : '' }}</p>
+        <AppSelect v-if="videos.length > 0" v-model="filterStatus" :options="filterOptions" />
+      </div>
       <router-link to="/upload">
         <AppButton>Upload Video</AppButton>
       </router-link>
@@ -81,15 +104,23 @@ async function handleDelete(id) {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
       </svg>
       <p class="text-body mb-2">No videos yet</p>
-      <p class="text-muted text-sm">Upload a video to get started with accessibility analysis</p>
+      <p class="text-muted text-sm mb-4">Upload a video to get started with accessibility analysis</p>
+      <router-link to="/upload">
+        <AppButton>Upload Your First Video</AppButton>
+      </router-link>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
+    <div v-else-if="filteredVideos.length === 0" class="text-center py-12">
+      <p class="text-muted text-sm">No videos match the selected filter.</p>
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5 lg:gap-6">
       <VideoCard
-        v-for="video in videos"
+        v-for="video in filteredVideos"
         :key="video.id"
         :video="video"
         @delete="handleDelete"
+        @reanalyze="handleReanalyze"
       />
     </div>
   </PageTemplate>

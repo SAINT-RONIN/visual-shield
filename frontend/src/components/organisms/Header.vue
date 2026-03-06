@@ -22,7 +22,7 @@ function handleLogout() {
 
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 bg-surface border-b border-line">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8 xl:px-10 h-14 flex items-center justify-between">
+    <div class="px-4 md:px-6 lg:px-8 xl:px-10 h-14 flex items-center justify-between">
       <!-- Logo -->
       <router-link to="/dashboard" class="text-lg font-bold text-heading">
         Visual Shield

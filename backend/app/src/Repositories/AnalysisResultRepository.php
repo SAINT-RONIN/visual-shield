@@ -47,4 +47,10 @@ class AnalysisResultRepository
 
         return $stmt->fetch() ?: null;
     }
+
+    public function deleteByVideoId(int $videoId): void
+    {
+        $stmt = $this->db->prepare('DELETE FROM analysis_results WHERE video_id = ?');
+        $stmt->execute([$videoId]);
+    }
 }

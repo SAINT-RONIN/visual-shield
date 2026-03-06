@@ -141,6 +141,27 @@ class VideoService
         return "storage/videos/{$filename}";
     }
 
+    public function reanalyze(int $userId, int $videoId, int $samplingRate): array
+    {
+        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
+
+        if (!$video) {
+            throw new \RuntimeException('Video not found', 404);
+        }
+
+        if (!in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
+            throw new \InvalidArgumentException(
+                'Invalid sampling rate. Allowed: ' . implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES)
+            );
+        }
+
+        $this->videoRepo->resetForReanalysis($videoId, $samplingRate);
+
+        return $this->formatVideo($this->videoRepo->findById($videoId));
+    }
+
+    // ...existing code...
+
     private function formatVideo(array $video): array
     {
         return [
@@ -151,8 +172,26 @@ class VideoService
             'status' => $video['status'],
             'samplingRate' => (int) $video['sampling_rate'],
             'effectiveRate' => $video['effective_rate'] ? (int) $video['effective_rate'] : null,
+            'progress' => (int) ($video['progress'] ?? 0),
+            'progressMessage' => $video['progress_message'] ?? null,
+            'errorMessage' => $video['error_message'] ?? null,
+            'riskLevel' => $video['status'] === 'completed' ? $this->computeRiskLevel($video) : null,
             'createdAt' => $video['created_at'],
             'updatedAt' => $video['updated_at'],
         ];
+    }
+
+    private function computeRiskLevel(array $video): string
+    {
+        $highestFreq = (float) ($video['highest_flash_frequency'] ?? 0);
+        $avgMotion = (float) ($video['average_motion_intensity'] ?? 0);
+        $highSegs = (int) ($video['high_segments'] ?? 0);
+        $medSegs = (int) ($video['medium_segments'] ?? 0);
+        $totalSegs = (int) ($video['total_segments'] ?? 0);
+
+        if ($highSegs > 0 || $highestFreq > 10 || $avgMotion > 120) return 'high';
+        if ($medSegs > 0 || $highestFreq > 5 || $avgMotion > 60) return 'medium';
+        if ($totalSegs > 0 || $highestFreq > 3 || $avgMotion > 30) return 'low';
+        return 'safe';
     }
 }

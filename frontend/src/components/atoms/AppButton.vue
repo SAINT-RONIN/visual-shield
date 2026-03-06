@@ -1,6 +1,7 @@
 <script setup>
 defineProps({
   variant: { type: String, default: 'primary' },
+  size: { type: String, default: 'md' },
   loading: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   fullWidth: { type: Boolean, default: false },
@@ -10,10 +11,12 @@ defineProps({
 <template>
   <button
     :disabled="loading || disabled"
-    class="px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    class="rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     :class="[
+      size === 'sm' ? 'px-3 py-1 text-sm' : 'px-4 py-2',
       variant === 'primary' && 'bg-primary hover:bg-primary-hover text-heading',
       variant === 'secondary' && 'bg-surface-alt hover:bg-surface-hover text-body border border-line-strong',
+      variant === 'danger' && 'bg-red-500/20 hover:bg-red-500/30 text-red-400',
       variant === 'ghost' && 'text-body hover:text-heading',
       fullWidth && 'w-full',
     ]"

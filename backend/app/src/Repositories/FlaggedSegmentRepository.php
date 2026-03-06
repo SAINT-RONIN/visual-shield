@@ -51,4 +51,10 @@ class FlaggedSegmentRepository
 
         return $stmt->fetchAll();
     }
+
+    public function deleteByVideoId(int $videoId): void
+    {
+        $stmt = $this->db->prepare('DELETE FROM flagged_segments WHERE video_id = ?');
+        $stmt->execute([$videoId]);
+    }
 }

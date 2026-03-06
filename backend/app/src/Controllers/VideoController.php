@@ -58,6 +58,24 @@ class VideoController extends BaseController
         }
     }
 
+    public function reanalyze(int $id): void
+    {
+        try {
+            $userId = $this->getAuthenticatedUserId();
+            $body = $this->getJsonBody();
+            $samplingRate = (int) ($body['samplingRate'] ?? 15);
+            $video = $this->videoService->reanalyze($userId, $id, $samplingRate);
+            $this->jsonResponse($video, 200);
+        } catch (\InvalidArgumentException $e) {
+            $this->jsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
+        } catch (\RuntimeException $e) {
+            $code = $e->getCode() === 404 ? 404 : 500;
+            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
+        } catch (\Throwable $e) {
+            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
+        }
+    }
+
     public function delete(int $id): void
     {
         try {

@@ -73,6 +73,10 @@ $router->delete('/api/videos/(\d+)', function ($id) use ($video) {
     $video->delete((int) $id);
 });
 
+$router->put('/api/videos/(\d+)/reanalyze', function ($id) use ($video) {
+    $video->reanalyze((int) $id);
+});
+
 // Report routes
 $report = new \App\Controllers\ReportController();
 

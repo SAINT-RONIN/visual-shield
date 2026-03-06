@@ -26,7 +26,15 @@ class VideoRepository
 
     public function findAllByUserId(int $userId): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM videos WHERE user_id = ? ORDER BY created_at DESC');
+        $stmt = $this->db->prepare(
+            'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'high\') as high_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'medium\') as medium_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id) as total_segments
+             FROM videos v
+             LEFT JOIN analysis_results ar ON ar.video_id = v.id
+             WHERE v.user_id = ? ORDER BY v.created_at DESC'
+        );
         $stmt->execute([$userId]);
 
         return $stmt->fetchAll();
@@ -42,7 +50,15 @@ class VideoRepository
 
     public function findById(int $id): ?array
     {
-        $stmt = $this->db->prepare('SELECT * FROM videos WHERE id = ?');
+        $stmt = $this->db->prepare(
+            'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'high\') as high_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'medium\') as medium_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id) as total_segments
+             FROM videos v
+             LEFT JOIN analysis_results ar ON ar.video_id = v.id
+             WHERE v.id = ?'
+        );
         $stmt->execute([$id]);
 
         return $stmt->fetch() ?: null;
@@ -58,6 +74,26 @@ class VideoRepository
     {
         $stmt = $this->db->prepare('UPDATE videos SET effective_rate = ? WHERE id = ?');
         $stmt->execute([$effectiveRate, $id]);
+    }
+
+    public function updateProgress(int $id, int $progress, string $message): void
+    {
+        $stmt = $this->db->prepare('UPDATE videos SET progress = ?, progress_message = ? WHERE id = ?');
+        $stmt->execute([$progress, $message, $id]);
+    }
+
+    public function updateError(int $id, string $message): void
+    {
+        $stmt = $this->db->prepare('UPDATE videos SET error_message = ? WHERE id = ?');
+        $stmt->execute([$message, $id]);
+    }
+
+    public function resetForReanalysis(int $id, int $samplingRate): void
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE videos SET status = \'queued\', progress = 0, progress_message = NULL, error_message = NULL, sampling_rate = ? WHERE id = ?'
+        );
+        $stmt->execute([$samplingRate, $id]);
     }
 
     public function findNextQueued(): ?array

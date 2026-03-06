@@ -46,6 +46,12 @@ class AnalysisDatapointRepository
         return $stmt->fetchAll();
     }
 
+    public function deleteByVideoId(int $videoId): void
+    {
+        $stmt = $this->db->prepare('DELETE FROM analysis_datapoints WHERE video_id = ?');
+        $stmt->execute([$videoId]);
+    }
+
     private function insertChunk(int $videoId, array $chunk): void
     {
         $placeholders = [];

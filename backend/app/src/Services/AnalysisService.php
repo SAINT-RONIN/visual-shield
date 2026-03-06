@@ -24,7 +24,7 @@ class AnalysisService
         private MotionDetector $motionDetector,
     ) {}
 
-    public function analyze(int $videoId): void
+    public function analyze(int $videoId, ?callable $onProgress = null): void
     {
         $video = $this->videoRepo->findById($videoId);
 
@@ -36,22 +36,27 @@ class AnalysisService
         $outputDir = $this->buildOutputDir($videoId);
         $samplingRate = (int) ($video['effective_rate'] ?? $video['sampling_rate']);
 
+        $onProgress && $onProgress(10, 'Extracting frames...');
+
         try {
             $framePaths = $this->frameExtractor->extract($videoPath, $samplingRate, $outputDir);
-            $this->runAnalysis($videoId, $framePaths, $samplingRate);
+            $onProgress && $onProgress(40, 'Analyzing flash events...');
+            $this->runAnalysis($videoId, $framePaths, $samplingRate, $onProgress);
         } finally {
             $this->frameExtractor->cleanup($outputDir);
         }
     }
 
     // Runs flash + motion + luminance analysis in a single pass over frames.
-    private function runAnalysis(int $videoId, array $framePaths, int $samplingRate): void
+    private function runAnalysis(int $videoId, array $framePaths, int $samplingRate, ?callable $onProgress = null): void
     {
         $perFrameData = $this->computePerFrameData($framePaths);
 
         $flashResult = $this->flashDetector->detectFromData($perFrameData, $samplingRate);
+        $onProgress && $onProgress(65, 'Analyzing motion...');
         $motionResult = $this->motionDetector->detectFromData($perFrameData, $samplingRate);
         $luminancePerSecond = $this->averageLuminancePerSecond($perFrameData, $samplingRate);
+        $onProgress && $onProgress(85, 'Saving results...');
 
         $this->storeDatapoints($videoId, $flashResult, $motionResult, $luminancePerSecond);
         $this->storeSegments($videoId, $flashResult, $motionResult);
@@ -123,6 +128,7 @@ class AnalysisService
         MotionAnalysisResult $motionResult,
         array $luminanceValues,
     ): void {
+        $this->datapointRepo->deleteByVideoId($videoId);
         // Index each metric by second for easy lookup
         $flashBySecond = [];
         foreach ($flashResult->perSecondFrequencies as $entry) {
@@ -161,6 +167,7 @@ class AnalysisService
         FlashAnalysisResult $flashResult,
         MotionAnalysisResult $motionResult,
     ): void {
+        $this->segmentRepo->deleteByVideoId($videoId);
         $allSegments = array_merge($flashResult->segments, $motionResult->segments);
 
         if (!empty($allSegments)) {
@@ -175,6 +182,7 @@ class AnalysisService
         MotionAnalysisResult $motionResult,
         int $effectiveRate,
     ): void {
+        $this->analysisResultRepo->deleteByVideoId($videoId);
         $this->analysisResultRepo->create(
             $videoId,
             $totalFrames,
