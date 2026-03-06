@@ -58,7 +58,7 @@ class AnalysisDatapointRepository
             $values[] = $dp['flashFrequency'] ?? 0;
             $values[] = $dp['motionIntensity'] ?? 0;
             $values[] = $dp['luminance'] ?? 0;
-            $values[] = $dp['flashDetected'] ?? false;
+            $values[] = $dp['flashDetected'] ? 1 : 0;
         }
 
         $sql = 'INSERT INTO analysis_datapoints

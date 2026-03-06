@@ -16,6 +16,24 @@ services:
     networks:
       - visual-shield
 
+  worker:
+    build:
+      context: .
+      dockerfile: PHP.Dockerfile
+    command: php /app/cli/worker.php
+    volumes:
+      - ./app:/app
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    networks:
+      - visual-shield
+
   nginx:
     image: nginx:alpine
     ports:

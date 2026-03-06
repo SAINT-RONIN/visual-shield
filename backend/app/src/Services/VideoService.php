@@ -18,7 +18,12 @@ class VideoService
         $this->validateFileType($dto->file['tmp_name']);
         $this->validateFileSize($dto->file['size']);
 
-        $duration = $this->ffprobe->getDuration($dto->file['tmp_name']);
+        try {
+            $duration = $this->ffprobe->getDuration($dto->file['tmp_name']);
+        } catch (\RuntimeException $e) {
+            throw new \RuntimeException('Could not read video metadata. Ensure the file is a valid video. (' . $e->getMessage() . ')');
+        }
+
         $effectiveRate = $this->adjustSamplingRate($duration, $dto->samplingRate);
         $storedPath = $this->storeFile($dto->file['tmp_name'], $dto->file['name']);
 
@@ -118,11 +123,20 @@ class VideoService
         $dir = __DIR__ . '/../../storage/videos';
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+                throw new \RuntimeException('Failed to create upload directory');
+            }
+        }
+
+        if (!is_writable($dir)) {
+            throw new \RuntimeException('Upload directory is not writable');
         }
 
         $dest = "{$dir}/{$filename}";
-        move_uploaded_file($tmpPath, $dest);
+
+        if (!move_uploaded_file($tmpPath, $dest)) {
+            throw new \RuntimeException('Failed to move uploaded file to storage');
+        }
 
         return "storage/videos/{$filename}";
     }

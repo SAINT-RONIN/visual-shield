@@ -26,8 +26,10 @@ class VideoController extends BaseController
             $this->jsonResponse($video, 201);
         } catch (\InvalidArgumentException $e) {
             $this->jsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
+        } catch (\RuntimeException $e) {
+            $this->jsonResponse(['error' => ['code' => 500, 'message' => $e->getMessage()]], 500);
         } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
+            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Upload failed: ' . $e->getMessage()]], 500);
         }
     }
 
