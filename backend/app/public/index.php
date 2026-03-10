@@ -77,6 +77,10 @@ $router->put('/api/videos/(\d+)/reanalyze', function ($id) use ($video) {
     $video->reanalyze((int) $id);
 });
 
+$router->get('/api/videos/(\d+)/stream', function ($id) use ($video) {
+    $video->stream((int) $id);
+});
+
 // Report routes
 $report = new \App\Controllers\ReportController();
 

@@ -11,6 +11,7 @@ import LuminanceChart from '@/components/organisms/LuminanceChart.vue'
 import SegmentTimeline from '@/components/organisms/SegmentTimeline.vue'
 import SegmentTable from '@/components/organisms/SegmentTable.vue'
 import ExportButtons from '@/components/molecules/ExportButtons.vue'
+import VideoOverlay from '@/components/organisms/VideoOverlay.vue'
 
 const route = useRoute()
 const report = ref(null)
@@ -60,6 +61,12 @@ async function handleExport(format) {
       <ReportHeader
         :video="report.video"
         :risk-level="report.summary.overallRiskLevel"
+      />
+
+      <VideoOverlay
+        :video-id="report.video.id"
+        :charts="report.charts"
+        :duration="report.video.duration"
       />
 
       <StatsPanel :summary="{ ...report.summary, effectiveSamplingRate: report.video.effectiveSamplingRate }" />

@@ -59,6 +59,17 @@ class VideoService
         return $this->formatVideo($video);
     }
 
+    public function getRawForUser(int $userId, int $videoId): array
+    {
+        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
+
+        if (!$video) {
+            throw new \RuntimeException('Video not found', 404);
+        }
+
+        return $video;
+    }
+
     public function delete(int $userId, int $videoId): void
     {
         $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
