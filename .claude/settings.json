@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "C:\\Users\\mrlea\\source\\repos\\visual-shield\\backend\\app\\src\\Controllers",
+      "C:\\Users\\mrlea\\source\\repos\\visual-shield\\backend\\app\\src\\DTOs",
+      "C:\\Users\\mrlea\\source\\repos\\visual-shield\\backend\\app\\src\\Framework",
+      "C:\\Users\\mrlea\\source\\repos\\visual-shield\\backend\\app\\src\\Models",
+      "C:\\Users\\mrlea\\source\\repos\\visual-shield\\backend\\app\\src\\Utils"
+    ]
+  }
+}

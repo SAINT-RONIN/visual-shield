@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\DTOs\PaginatedResultDTO;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\VideoFilterDTO;
@@ -28,6 +31,9 @@ class VideoService
         'video/quicktime',
         'video/x-msvideo',
     ];
+
+    /** Number of bytes in one megabyte, used for human-readable error messages. */
+    private const BYTES_PER_MEGABYTE = 1_048_576;
 
     /** Known video file extensions and their MIME types. */
     private const MIME_TYPES_BY_EXTENSION = [
@@ -84,18 +90,28 @@ class VideoService
     // ──────────────────────────────────────────────
 
     /**
-     * Get all videos belonging to a user.
-     *
-     * @return Video[]
+     * Get all videos belonging to a user, with optional filtering, sorting, and pagination.
      */
-    /**
-     * Get all videos belonging to a user, with optional filtering and sorting.
-     *
-     * @return Video[]
-     */
-    public function getAllForUser(int $userId, VideoFilterDTO $filters): array
+    public function getAllForUser(int $userId, VideoFilterDTO $filters): PaginatedResultDTO
     {
-        return $this->videoRepo->findAllByUserId($userId, $filters);
+        $videos = $this->videoRepo->findAllByUserId($userId, $filters);
+        $total = $this->videoRepo->countAllByUserId($userId, $filters);
+
+        return new PaginatedResultDTO(
+            items: $videos,
+            total: $total,
+            limit: $filters->limit,
+            offset: $filters->offset,
+        );
+    }
+
+    /** Update a video's metadata (title/original name). */
+    public function updateMetadata(int $userId, int $videoId, string $originalName): Video
+    {
+        $this->findUserVideoOrFail($userId, $videoId);
+        $this->videoRepo->updateOriginalName($videoId, $originalName);
+
+        return $this->findVideoOrFail($videoId);
     }
 
     /** Get a single video belonging to a user. */
@@ -112,6 +128,15 @@ class VideoService
     public function delete(int $userId, int $videoId): void
     {
         $video = $this->findUserVideoOrFail($userId, $videoId);
+
+        $this->deleteVideoFileFromDisk($video->storedPath);
+        $this->videoRepo->delete($videoId);
+    }
+
+    /** Delete any video as admin (no ownership check). */
+    public function deleteAsAdmin(int $videoId): void
+    {
+        $video = $this->findVideoOrFail($videoId);
 
         $this->deleteVideoFileFromDisk($video->storedPath);
         $this->videoRepo->delete($videoId);
@@ -181,7 +206,7 @@ class VideoService
     private function validateFileSize(int $fileSizeInBytes): void
     {
         if ($fileSizeInBytes > AnalysisConfig::MAX_FILE_SIZE) {
-            $maxSizeInMegabytes = AnalysisConfig::MAX_FILE_SIZE / 1048576;
+            $maxSizeInMegabytes = AnalysisConfig::MAX_FILE_SIZE / self::BYTES_PER_MEGABYTE;
             throw new \InvalidArgumentException("File too large. Maximum: {$maxSizeInMegabytes} MB");
         }
     }
@@ -265,7 +290,7 @@ class VideoService
     private function moveUploadToPermanentStorage(string $temporaryFilePath, string $originalFilename): string
     {
         $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION) ?: 'mp4';
-        $uniqueFilename = bin2hex(random_bytes(16)) . '.' . $fileExtension;
+        $uniqueFilename = bin2hex(random_bytes(AnalysisConfig::STORAGE_FILENAME_RANDOM_BYTES)) . '.' . $fileExtension;
         $storageDirectory = AnalysisConfig::appRoot() . '/storage/videos';
 
         $this->ensureDirectoryExists($storageDirectory);

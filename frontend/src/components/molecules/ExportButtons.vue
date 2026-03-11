@@ -9,7 +9,7 @@ defineEmits(['export'])
 </script>
 
 <template>
-  <div class="flex justify-end gap-4">
+  <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
     <AppButton variant="secondary" :disabled="exporting" @click="$emit('export', 'json')">
       Download JSON
     </AppButton>

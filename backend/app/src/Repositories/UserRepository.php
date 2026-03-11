@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Framework\Database;
@@ -31,7 +33,7 @@ class UserRepository
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->db->prepare(
-            'SELECT id, username, password_hash, display_name, created_at, updated_at
+            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
              FROM users WHERE username = :username'
         );
         $stmt->execute(['username' => $username]);
@@ -48,7 +50,7 @@ class UserRepository
     public function findById(int $id): ?User
     {
         $stmt = $this->db->prepare(
-            'SELECT id, username, password_hash, display_name, created_at, updated_at
+            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -62,16 +64,17 @@ class UserRepository
      *
      * Called during registration after password hashing.
      */
-    public function create(string $username, string $passwordHash, ?string $displayName): int
+    public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'viewer'): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO users (username, password_hash, display_name)
-             VALUES (:username, :passwordHash, :displayName)'
+            'INSERT INTO users (username, password_hash, display_name, role)
+             VALUES (:username, :passwordHash, :displayName, :role)'
         );
         $stmt->execute([
             'username' => $username,
             'passwordHash' => $passwordHash,
             'displayName' => $displayName,
+            'role' => $role,
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -88,5 +91,43 @@ class UserRepository
             'UPDATE users SET display_name = :displayName WHERE id = :id'
         );
         $stmt->execute(['displayName' => $displayName, 'id' => $id]);
+    }
+
+    /** Count total number of users in the database. */
+    public function countAll(): int
+    {
+        $stmt = $this->db->query('SELECT COUNT(*) FROM users');
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Fetch all users (admin use only).
+     *
+     * @return User[]
+     */
+    public function findAll(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
+             FROM users ORDER BY created_at ASC'
+        );
+
+        return array_map(fn(array $row) => User::fromRow($row), $stmt->fetchAll());
+    }
+
+    /** Update a user's role and return the updated user. */
+    public function updateRole(int $id, string $role): User
+    {
+        $stmt = $this->db->prepare('UPDATE users SET role = :role WHERE id = :id');
+        $stmt->execute(['role' => $role, 'id' => $id]);
+
+        $user = $this->findById($id);
+
+        if (!$user) {
+            throw new \RuntimeException('User not found', 404);
+        }
+
+        return $user;
     }
 }

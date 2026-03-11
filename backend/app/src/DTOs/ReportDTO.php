@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DTOs;
 
 use App\Models\AnalysisDatapoint;
@@ -94,14 +96,19 @@ class ReportDTO
      */
     private static function buildSummary(?AnalysisResult $analysisResult, array $segments): array
     {
+        $totalFlash = $analysisResult?->totalFlashEvents ?? 0;
         $highestFreq = $analysisResult?->highestFlashFrequency ?? 0.0;
         $avgMotion = $analysisResult?->averageMotionIntensity ?? 0.0;
 
         return [
-            'totalFlashEvents' => $analysisResult?->totalFlashEvents ?? 0,
+            'totalFlashEvents' => $totalFlash,
             'highestFlashFrequency' => $highestFreq,
             'averageMotionIntensity' => $avgMotion,
             'overallRiskLevel' => self::calculateRiskLevel($highestFreq, $avgMotion, $segments),
+            'flashEventsRisk' => RiskLevel::colorForFlashCount($totalFlash),
+            'flashFrequencyRisk' => RiskLevel::colorForFlashFrequency($highestFreq),
+            'motionIntensityRisk' => RiskLevel::colorForMotionIntensity($avgMotion),
+            'samplingRateRisk' => 'safe',
         ];
     }
 
@@ -115,10 +122,10 @@ class ReportDTO
         $highSegments = 0;
         $mediumSegments = 0;
 
-        foreach ($segments as $seg) {
-            if ($seg->severity === 'high') {
+        foreach ($segments as $segment) {
+            if ($segment->severity === 'high') {
                 $highSegments++;
-            } elseif ($seg->severity === 'medium') {
+            } elseif ($segment->severity === 'medium') {
                 $mediumSegments++;
             }
         }
@@ -159,13 +166,13 @@ class ReportDTO
         $motionIntensity = [];
         $luminance = [];
 
-        foreach ($datapoints as $dp) {
-            $flashFrequency[] = ['time' => $dp->timePoint, 'frequency' => $dp->flashFrequency];
-            $motionIntensity[] = ['time' => $dp->timePoint, 'intensity' => $dp->motionIntensity];
+        foreach ($datapoints as $datapoint) {
+            $flashFrequency[] = ['time' => $datapoint->timePoint, 'frequency' => $datapoint->flashFrequency];
+            $motionIntensity[] = ['time' => $datapoint->timePoint, 'intensity' => $datapoint->motionIntensity];
             $luminance[] = [
-                'time' => $dp->timePoint,
-                'luminance' => $dp->luminance,
-                'flashDetected' => $dp->flashDetected,
+                'time' => $datapoint->timePoint,
+                'luminance' => $datapoint->luminance,
+                'flashDetected' => $datapoint->flashDetected,
             ];
         }
 

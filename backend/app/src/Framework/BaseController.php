@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Framework;
 
 class BaseController
 {
+    /** HTTP status codes that RuntimeException codes are allowed to map to directly. */
+    private const ALLOWED_HTTP_ERROR_CODES = [400, 401, 403, 404];
     /**
      * Execute a controller action with standardised error handling.
      *
@@ -31,6 +35,7 @@ class BaseController
         }
     }
 
+    /** Send a JSON response with the given status code and terminate. */
     protected function jsonResponse(mixed $data, int $status = 200): void
     {
         http_response_code($status);
@@ -39,6 +44,7 @@ class BaseController
         exit;
     }
 
+    /** Decode the request body as JSON, throwing on invalid syntax. */
     protected function getJsonBody(): array
     {
         $body = file_get_contents('php://input');
@@ -51,9 +57,24 @@ class BaseController
         return $data;
     }
 
+    /** Authenticate the request and return the user's ID. */
     protected function getAuthenticatedUserId(): int
     {
         return AuthMiddleware::authenticate();
+    }
+
+    /** Get the role of the currently authenticated user. */
+    protected function getAuthenticatedUserRole(): string
+    {
+        return AuthMiddleware::getAuthenticatedUserRole();
+    }
+
+    /** Require a specific role, throwing 403 if the user doesn't have it. */
+    protected function requireRole(string $role): void
+    {
+        if ($this->getAuthenticatedUserRole() !== $role) {
+            throw new \RuntimeException('Forbidden: insufficient permissions', 403);
+        }
     }
 
     /** Send a JSON error response with a consistent structure. */
@@ -72,7 +93,7 @@ class BaseController
     {
         $exceptionCode = $e->getCode();
 
-        if ($exceptionCode === 401 || $exceptionCode === 404) {
+        if (in_array($exceptionCode, self::ALLOWED_HTTP_ERROR_CODES, true)) {
             return $exceptionCode;
         }
 

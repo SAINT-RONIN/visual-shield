@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
+use App\Config\AnalysisConfig;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
@@ -43,7 +46,11 @@ class AuthService
         $this->ensureUsernameIsAvailable($dto->username);
 
         $hashedPassword = password_hash($dto->password, PASSWORD_ARGON2ID);
-        $newUserId = $this->userRepo->create($dto->username, $hashedPassword, $dto->displayName);
+
+        // First user becomes admin, all others are viewers
+        $role = $this->userRepo->countAll() === 0 ? 'admin' : 'viewer';
+
+        $newUserId = $this->userRepo->create($dto->username, $hashedPassword, $dto->displayName, $role);
 
         return $this->findUserOrFail($newUserId);
     }
@@ -168,8 +175,9 @@ class AuthService
      */
     private function createBearerToken(int $userId): string
     {
-        $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        $token = bin2hex(random_bytes(AnalysisConfig::TOKEN_RANDOM_BYTES));
+        $expiryHours = AnalysisConfig::TOKEN_EXPIRY_HOURS;
+        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryHours} hours"));
 
         $this->tokenRepo->store($userId, $token, $expiresAt);
 

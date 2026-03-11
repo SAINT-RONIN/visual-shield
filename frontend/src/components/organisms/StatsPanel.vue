@@ -1,41 +1,23 @@
 <script setup>
-import { computed } from 'vue'
 import StatCard from '@/components/atoms/StatCard.vue'
 
 const props = defineProps({
   summary: { type: Object, required: true },
 })
 
-const flashEventsColor = computed(() => {
-  const v = props.summary.totalFlashEvents
-  if (v > 50) return '#ef4444'
-  if (v > 20) return '#ef4444'
-  return '#ef4444'
-})
-
-const flashFreqColor = computed(() => {
-  const v = props.summary.highestFlashFrequency
-  if (v > 10) return '#ef4444'
-  if (v > 3) return '#ef4444'
-  return '#ef4444'
-})
-
-const motionColor = computed(() => {
-  const v = props.summary.averageMotionIntensity
-  if (v > 120) return '#f59e0b'
-  if (v > 30) return '#f59e0b'
-  return '#f59e0b'
-})
-
-const samplingColor = '#22c55e'
+const riskColors = {
+  danger: '#ef4444',
+  warning: '#f59e0b',
+  safe: '#22c55e',
+}
 </script>
 
 <template>
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     <StatCard
       label="Total Flash Events"
       :value="summary.totalFlashEvents"
-      :color="flashEventsColor"
+      :color="riskColors[summary.flashEventsRisk] ?? '#22c55e'"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -47,7 +29,7 @@ const samplingColor = '#22c55e'
     <StatCard
       label="Highest Flash Freq."
       :value="summary.highestFlashFrequency.toFixed(1) + ' Hz'"
-      :color="flashFreqColor"
+      :color="riskColors[summary.flashFrequencyRisk] ?? '#22c55e'"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -59,7 +41,7 @@ const samplingColor = '#22c55e'
     <StatCard
       label="Avg Motion Intensity"
       :value="summary.averageMotionIntensity.toFixed(1) + '/255'"
-      :color="motionColor"
+      :color="riskColors[summary.motionIntensityRisk] ?? '#22c55e'"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -71,7 +53,7 @@ const samplingColor = '#22c55e'
     <StatCard
       label="Sampling Rate"
       :value="(summary.effectiveSamplingRate || '--') + ' FPS'"
-      :color="samplingColor"
+      :color="riskColors[summary.samplingRateRisk] ?? '#22c55e'"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

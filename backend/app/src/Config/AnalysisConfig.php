@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Config;
 
 /**
@@ -34,6 +36,50 @@ class AnalysisConfig
 
     /** Maximum allowed upload file size in bytes (500 MB). */
     public const MAX_FILE_SIZE = 524288000; // 500 MB
+
+    /** Maximum luminance value (8-bit colour depth). */
+    public const LUMINANCE_MAX = 255;
+
+    /** Number of bytes used to generate a bearer token (produces a 64-char hex string). */
+    public const TOKEN_RANDOM_BYTES = 32;
+
+    /** How long a bearer token stays valid, in hours. */
+    public const TOKEN_EXPIRY_HOURS = 24;
+
+    /** Number of bytes used to generate a unique storage filename (produces a 32-char hex string). */
+    public const STORAGE_FILENAME_RANDOM_BYTES = 16;
+
+    // ── Flash severity thresholds ──
+
+    /** Flashes/sec above this value are classified as "high" severity. */
+    public const FLASH_SEVERITY_HIGH = 10;
+
+    /** Flashes/sec above this value are classified as "medium" severity. */
+    public const FLASH_SEVERITY_MEDIUM = 5;
+
+    // ── Motion severity thresholds ──
+
+    /** Motion intensity above this value is classified as "high" severity. */
+    public const MOTION_SEVERITY_HIGH = 120;
+
+    /** Motion intensity above this value is classified as "medium" severity. */
+    public const MOTION_SEVERITY_MEDIUM = 60;
+
+    // ── Risk-level thresholds (used by RiskLevel::determine) ──
+
+    /** Flash event count above this is flagged as "danger" risk color. */
+    public const FLASH_COUNT_DANGER = 50;
+
+    /** Flash event count above this is flagged as "warning" risk color. */
+    public const FLASH_COUNT_WARNING = 20;
+
+    // ── Pagination limits ──
+
+    /** Minimum number of items per page. */
+    public const PAGINATION_MIN_LIMIT = 1;
+
+    /** Maximum number of items per page. */
+    public const PAGINATION_MAX_LIMIT = 100;
 
     /**
      * Get the absolute path to the app root directory (backend/app/).

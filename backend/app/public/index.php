@@ -5,7 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // CORS headers
 $corsOrigin = getenv('CORS_ORIGIN') ?: '*';
 header("Access-Control-Allow-Origin: {$corsOrigin}");
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 
@@ -29,6 +29,13 @@ $router->get('/api/health/db', function () {
         http_response_code(500);
         echo json_encode(['error' => ['code' => 500, 'message' => 'Database connection failed']]);
     }
+});
+
+// Config routes (public, no auth required)
+$config = new \App\Controllers\ConfigController();
+
+$router->get('/api/config', function () use ($config) {
+    $config->getConfig();
 });
 
 // Auth routes
@@ -69,6 +76,10 @@ $router->get('/api/videos/(\d+)', function ($id) use ($video) {
     $video->getOne((int) $id);
 });
 
+$router->patch('/api/videos/(\d+)', function ($id) use ($video) {
+    $video->update((int) $id);
+});
+
 $router->delete('/api/videos/(\d+)', function ($id) use ($video) {
     $video->delete((int) $id);
 });
@@ -94,6 +105,17 @@ $router->get('/api/videos/(\d+)/export/json', function ($id) use ($report) {
 
 $router->get('/api/videos/(\d+)/export/csv', function ($id) use ($report) {
     $report->exportCsv((int) $id);
+});
+
+// Admin routes
+$admin = new \App\Controllers\AdminController();
+
+$router->get('/api/admin/users', function () use ($admin) {
+    $admin->listUsers();
+});
+
+$router->patch('/api/admin/users/(\d+)/role', function ($id) use ($admin) {
+    $admin->updateUserRole((int) $id);
 });
 
 $router->run();

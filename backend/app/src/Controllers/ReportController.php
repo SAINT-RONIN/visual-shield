@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\DTOs\SegmentFilterDTO;
@@ -23,6 +25,7 @@ class ReportController extends BaseController
         $this->reportService = ServiceRegistry::reportService();
     }
 
+    /** Return the full analysis report for a video as JSON. */
     public function getReport(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -33,6 +36,7 @@ class ReportController extends BaseController
         });
     }
 
+    /** Download the full report as a JSON file attachment. */
     public function exportJson(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -43,6 +47,7 @@ class ReportController extends BaseController
         });
     }
 
+    /** Download flagged segments as a CSV file attachment. */
     public function exportCsv(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {

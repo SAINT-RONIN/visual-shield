@@ -41,8 +41,8 @@ const columns = [
 
 <template>
   <div class="rounded-2xl border border-line bg-surface">
-    <div class="border-b border-line p-5">
-      <h3 class="text-heading font-semibold">Flagged Segments</h3>
+    <div class="border-b border-line p-3 sm:p-4 md:p-5">
+      <h3 class="text-heading font-semibold text-sm sm:text-base">Flagged Segments</h3>
     </div>
 
     <div v-if="!hasSegments" class="text-success text-sm py-6 text-center">

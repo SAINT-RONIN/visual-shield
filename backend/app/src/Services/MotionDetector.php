@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
@@ -189,11 +191,11 @@ class MotionDetector
      */
     private function classifySeverity(float $intensity): string
     {
-        if ($intensity > 120) {
+        if ($intensity > AnalysisConfig::MOTION_SEVERITY_HIGH) {
             return 'high';
         }
 
-        if ($intensity > 60) {
+        if ($intensity > AnalysisConfig::MOTION_SEVERITY_MEDIUM) {
             return 'medium';
         }
 

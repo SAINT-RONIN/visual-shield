@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Framework;
 
 use App\Repositories\UserRepository;
@@ -29,12 +31,43 @@ use App\Services\VideoService;
  */
 class ServiceRegistry
 {
+    private static ?UserRepository $userRepository = null;
+    private static ?TokenRepository $tokenRepository = null;
     private static ?VideoRepository $videoRepository = null;
+    private static ?AnalysisResultRepository $analysisResultRepository = null;
+    private static ?FlaggedSegmentRepository $flaggedSegmentRepository = null;
+    private static ?AnalysisDatapointRepository $analysisDatapointRepository = null;
     private static ?AnalysisService $analysisService = null;
     private static ?AuthService $authService = null;
     private static ?VideoService $videoService = null;
     private static ?ReportService $reportService = null;
+    private static ?FFprobeService $ffprobeService = null;
 
+    // ──────────────────────────────────────────────
+    //  Repositories (lazy singletons)
+    // ──────────────────────────────────────────────
+
+    /** Get the shared UserRepository instance. */
+    public static function userRepository(): UserRepository
+    {
+        if (!self::$userRepository) {
+            self::$userRepository = new UserRepository();
+        }
+
+        return self::$userRepository;
+    }
+
+    /** Get the shared TokenRepository instance. */
+    public static function tokenRepository(): TokenRepository
+    {
+        if (!self::$tokenRepository) {
+            self::$tokenRepository = new TokenRepository();
+        }
+
+        return self::$tokenRepository;
+    }
+
+    /** Get the shared VideoRepository instance. */
     public static function videoRepository(): VideoRepository
     {
         if (!self::$videoRepository) {
@@ -44,16 +77,61 @@ class ServiceRegistry
         return self::$videoRepository;
     }
 
+    /** Get the shared AnalysisResultRepository instance. */
+    public static function analysisResultRepository(): AnalysisResultRepository
+    {
+        if (!self::$analysisResultRepository) {
+            self::$analysisResultRepository = new AnalysisResultRepository();
+        }
+
+        return self::$analysisResultRepository;
+    }
+
+    /** Get the shared FlaggedSegmentRepository instance. */
+    public static function flaggedSegmentRepository(): FlaggedSegmentRepository
+    {
+        if (!self::$flaggedSegmentRepository) {
+            self::$flaggedSegmentRepository = new FlaggedSegmentRepository();
+        }
+
+        return self::$flaggedSegmentRepository;
+    }
+
+    /** Get the shared AnalysisDatapointRepository instance. */
+    public static function analysisDatapointRepository(): AnalysisDatapointRepository
+    {
+        if (!self::$analysisDatapointRepository) {
+            self::$analysisDatapointRepository = new AnalysisDatapointRepository();
+        }
+
+        return self::$analysisDatapointRepository;
+    }
+
+    // ──────────────────────────────────────────────
+    //  Services (lazy singletons, using cached repos)
+    // ──────────────────────────────────────────────
+
+    /** Get the shared FFprobeService instance. */
+    public static function ffprobeService(): FFprobeService
+    {
+        if (!self::$ffprobeService) {
+            self::$ffprobeService = new FFprobeService();
+        }
+
+        return self::$ffprobeService;
+    }
+
+    /** Get the shared AnalysisService instance. */
     public static function analysisService(): AnalysisService
     {
         if (!self::$analysisService) {
             self::$analysisService = new AnalysisService(
-                new VideoRepository(),
-                new AnalysisResultRepository(),
-                new FlaggedSegmentRepository(),
-                new AnalysisDatapointRepository(),
+                self::videoRepository(),
+                self::analysisResultRepository(),
+                self::flaggedSegmentRepository(),
+                self::analysisDatapointRepository(),
                 new FrameExtractor(),
-                new FFprobeService(),
+                self::ffprobeService(),
                 new FlashDetector(),
                 new MotionDetector(),
             );
@@ -62,38 +140,41 @@ class ServiceRegistry
         return self::$analysisService;
     }
 
+    /** Get the shared AuthService instance. */
     public static function authService(): AuthService
     {
         if (!self::$authService) {
             self::$authService = new AuthService(
-                new UserRepository(),
-                new TokenRepository(),
+                self::userRepository(),
+                self::tokenRepository(),
             );
         }
 
         return self::$authService;
     }
 
+    /** Get the shared VideoService instance. */
     public static function videoService(): VideoService
     {
         if (!self::$videoService) {
             self::$videoService = new VideoService(
-                new VideoRepository(),
-                new FFprobeService(),
+                self::videoRepository(),
+                self::ffprobeService(),
             );
         }
 
         return self::$videoService;
     }
 
+    /** Get the shared ReportService instance. */
     public static function reportService(): ReportService
     {
         if (!self::$reportService) {
             self::$reportService = new ReportService(
-                new VideoRepository(),
-                new AnalysisResultRepository(),
-                new FlaggedSegmentRepository(),
-                new AnalysisDatapointRepository(),
+                self::videoRepository(),
+                self::analysisResultRepository(),
+                self::flaggedSegmentRepository(),
+                self::analysisDatapointRepository(),
             );
         }
 

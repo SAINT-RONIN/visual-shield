@@ -1,15 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Framework;
 
+/**
+ * Stateless authentication middleware that validates bearer tokens.
+ *
+ * Extracts tokens from either the Authorization header or a query
+ * parameter, resolves them to a user via AuthService, and caches
+ * the authenticated user's role for downstream permission checks.
+ */
 class AuthMiddleware
 {
+    /** Stores the authenticated user's role after token validation. */
+    private static ?string $authenticatedUserRole = null;
+
     /**
      * Authenticate using the Authorization header (standard for API calls).
      *
      * Extracts the Bearer token from the header, validates it, and
-     * returns the authenticated user's ID. Sends a 401 response and
-     * exits if the token is missing or invalid.
+     * returns the authenticated user's ID. Also stores the user's role
+     * for later access via getAuthenticatedUserRole().
      */
     public static function authenticate(): int
     {
@@ -39,6 +51,12 @@ class AuthMiddleware
         }
 
         return self::resolveUserIdFromToken($token);
+    }
+
+    /** Get the role of the most recently authenticated user. */
+    public static function getAuthenticatedUserRole(): string
+    {
+        return self::$authenticatedUserRole ?? 'viewer';
     }
 
     /** Extract the raw Bearer token string from the Authorization header. */
@@ -94,6 +112,8 @@ class AuthMiddleware
         if (!$user) {
             self::sendUnauthorized('Invalid or expired token');
         }
+
+        self::$authenticatedUserRole = $user->role;
 
         return $user->id;
     }

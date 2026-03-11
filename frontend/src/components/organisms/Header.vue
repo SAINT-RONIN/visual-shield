@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/atoms/ThemeToggle.vue'
 
 defineProps({
   isLoggedIn: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
   displayName: { type: String, default: 'User' },
   currentRoute: { type: String, default: '' },
 })
@@ -38,6 +39,10 @@ function handleLogout() {
         <NavLink to="/upload" :active="currentRoute === 'upload'">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12M7 9l5-5 5 5" /></svg>
           Upload
+        </NavLink>
+        <NavLink v-if="isAdmin" to="/admin" :active="currentRoute === 'admin'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+          Admin
         </NavLink>
       </nav>
 
@@ -90,6 +95,10 @@ function handleLogout() {
         <NavLink to="/upload" :active="currentRoute === 'upload'" class="block" @navigate="mobileMenuOpen = false">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12M7 9l5-5 5 5" /></svg>
           Upload
+        </NavLink>
+        <NavLink v-if="isAdmin" to="/admin" :active="currentRoute === 'admin'" class="block" @navigate="mobileMenuOpen = false">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+          Admin
         </NavLink>
         <NavLink to="/profile" :active="currentRoute === 'profile'" class="block" @navigate="mobileMenuOpen = false">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>

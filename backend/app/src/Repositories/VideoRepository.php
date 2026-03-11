@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\DTOs\VideoFilterDTO;
@@ -69,11 +71,45 @@ class VideoRepository
         }
 
         $sql .= " ORDER BY v.{$filters->sort} {$filters->order}";
+        $sql .= ' LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->bindValue('limit', $filters->limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $filters->offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return array_map(fn(array $row) => Video::fromRow($row), $stmt->fetchAll());
+    }
+
+    /**
+     * Count all videos for a user matching the given filters.
+     *
+     * Uses the same WHERE clauses as findAllByUserId but returns only the count.
+     */
+    public function countAllByUserId(int $userId, VideoFilterDTO $filters): int
+    {
+        $sql = 'SELECT COUNT(*) FROM videos v WHERE v.user_id = :userId';
+        $params = ['userId' => $userId];
+
+        if ($filters->status !== null) {
+            $sql .= ' AND v.status = :status';
+            $params['status'] = $filters->status;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND v.original_name LIKE :search';
+            $params['search'] = '%' . $filters->search . '%';
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        return array_map(fn(array $row) => Video::fromRow($row), $stmt->fetchAll());
+        return (int) $stmt->fetchColumn();
     }
 
     /**
@@ -163,6 +199,13 @@ class VideoRepository
         $row = $stmt->fetch();
 
         return $row ? Video::fromRow($row) : null;
+    }
+
+    /** Update a video's original name (title). */
+    public function updateOriginalName(int $id, string $originalName): void
+    {
+        $stmt = $this->db->prepare('UPDATE videos SET original_name = ? WHERE id = ?');
+        $stmt->execute([$originalName, $id]);
     }
 
     /** Delete a video record by primary key. Foreign-key cascades handle related rows. */

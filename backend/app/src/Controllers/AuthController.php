@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Framework\BaseController;
@@ -26,6 +28,7 @@ class AuthController extends BaseController
         $this->authService = ServiceRegistry::authService();
     }
 
+    /** Register a new user account from a JSON request body. */
     public function register(): void
     {
         $this->handleRequest(function () {
@@ -35,6 +38,7 @@ class AuthController extends BaseController
         });
     }
 
+    /** Authenticate a user and return a bearer token. */
     public function login(): void
     {
         $this->handleRequest(function () {
@@ -47,6 +51,7 @@ class AuthController extends BaseController
         });
     }
 
+    /** Revoke the current bearer token, logging the user out. */
     public function logout(): void
     {
         $this->handleRequest(function () {
@@ -56,6 +61,7 @@ class AuthController extends BaseController
         });
     }
 
+    /** Return the authenticated user's profile. */
     public function getProfile(): void
     {
         $this->handleRequest(function () {
@@ -65,6 +71,7 @@ class AuthController extends BaseController
         });
     }
 
+    /** Update the authenticated user's display name. */
     public function updateProfile(): void
     {
         $this->handleRequest(function () {

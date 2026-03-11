@@ -6,6 +6,7 @@ import DashboardPage from '@/components/pages/DashboardPage.vue'
 import UploadPage from '@/components/pages/UploadPage.vue'
 import ReportPage from '@/components/pages/ReportPage.vue'
 import ProfilePage from '@/components/pages/ProfilePage.vue'
+import AdminPage from '@/components/pages/AdminPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,12 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfilePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminPage,
       meta: { requiresAuth: true },
     },
   ],
