@@ -32,4 +32,16 @@ class AnalysisDatapoint
             flashDetected: (bool) $row['flash_detected'],
         );
     }
+
+    /** Convert to a camelCase array for the API response. */
+    public function toApiArray(): array
+    {
+        return [
+            'timePoint' => $this->timePoint,
+            'flashFrequency' => $this->flashFrequency,
+            'motionIntensity' => $this->motionIntensity,
+            'luminance' => $this->luminance,
+            'flashDetected' => $this->flashDetected,
+        ];
+    }
 }

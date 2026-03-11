@@ -12,7 +12,7 @@ const isLoggedIn = computed(() => !!token.value)
 const isAdmin = computed(() => user.value?.role === 'admin')
 
 async function login(username, password) {
-  const { data } = await api.post('/login', { username, password })
+  const { data } = await api.post('/auth/login', { username, password })
   token.value = data.token
   user.value = data.user
   localStorage.setItem('auth_token', data.token)
@@ -21,7 +21,7 @@ async function login(username, password) {
 }
 
 async function register(username, password, displayName) {
-  const { data } = await api.post('/register', { username, password, displayName })
+  const { data } = await api.post('/auth/register', { username, password, displayName })
   return data
 }
 
@@ -39,7 +39,7 @@ async function updateProfile(displayName) {
 
 async function logout() {
   try {
-    await api.post('/logout')
+    await api.post('/auth/logout')
   } catch {
     // Ignore logout errors
   }

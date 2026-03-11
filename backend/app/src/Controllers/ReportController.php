@@ -7,6 +7,8 @@ namespace App\Controllers;
 use App\DTOs\SegmentFilterDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
+use App\Models\AnalysisDatapoint;
+use App\Models\FlaggedSegment;
 use App\Services\ReportService;
 
 /**
@@ -58,6 +60,31 @@ class ReportController extends BaseController
             header('Content-Disposition: attachment; filename="report_' . $videoId . '.csv"');
             echo $csv;
             exit;
+        });
+    }
+
+    /** Return all flagged segments for a video. */
+    public function getSegments(int $videoId): void
+    {
+        $this->handleRequest(function () use ($videoId) {
+            $userId = $this->getAuthenticatedUserId();
+            $segmentFilters = SegmentFilterDTO::fromQuery($_GET);
+            $segments = $this->reportService->getSegments($userId, $videoId, $segmentFilters);
+            $this->jsonResponse([
+                'data' => array_map(fn(FlaggedSegment $s) => $s->toApiArray(), $segments),
+            ]);
+        });
+    }
+
+    /** Return all per-second analysis datapoints for a video. */
+    public function getDatapoints(int $videoId): void
+    {
+        $this->handleRequest(function () use ($videoId) {
+            $userId = $this->getAuthenticatedUserId();
+            $datapoints = $this->reportService->getDatapoints($userId, $videoId);
+            $this->jsonResponse([
+                'data' => array_map(fn(AnalysisDatapoint $dp) => $dp->toApiArray(), $datapoints),
+            ]);
         });
     }
 }

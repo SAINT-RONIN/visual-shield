@@ -5,11 +5,10 @@ const props = defineProps({
   summary: { type: Object, required: true },
 })
 
-const riskColors = {
-  danger: '#ef4444',
-  warning: '#f59e0b',
-  safe: '#22c55e',
-}
+/** Fixed colors per metric type — matches UI-EXAMPLE exactly */
+const FLASH_COLOR = '#ef4444'
+const MOTION_COLOR = '#f59e0b'
+const SAMPLING_COLOR = '#22c55e'
 </script>
 
 <template>
@@ -17,7 +16,7 @@ const riskColors = {
     <StatCard
       label="Total Flash Events"
       :value="summary.totalFlashEvents"
-      :color="riskColors[summary.flashEventsRisk] ?? '#22c55e'"
+      :color="FLASH_COLOR"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -28,8 +27,8 @@ const riskColors = {
 
     <StatCard
       label="Highest Flash Freq."
-      :value="summary.highestFlashFrequency.toFixed(1) + ' Hz'"
-      :color="riskColors[summary.flashFrequencyRisk] ?? '#22c55e'"
+      :value="(summary.highestFlashFrequency != null ? summary.highestFlashFrequency.toFixed(1) : '0.0') + ' Hz'"
+      :color="FLASH_COLOR"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -40,8 +39,8 @@ const riskColors = {
 
     <StatCard
       label="Avg Motion Intensity"
-      :value="summary.averageMotionIntensity.toFixed(1) + '/255'"
-      :color="riskColors[summary.motionIntensityRisk] ?? '#22c55e'"
+      :value="(summary.averageMotionIntensity != null ? summary.averageMotionIntensity.toFixed(1) : '0.0') + '/255'"
+      :color="MOTION_COLOR"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -53,7 +52,7 @@ const riskColors = {
     <StatCard
       label="Sampling Rate"
       :value="(summary.effectiveSamplingRate || '--') + ' FPS'"
-      :color="riskColors[summary.samplingRateRisk] ?? '#22c55e'"
+      :color="SAMPLING_COLOR"
     >
       <template #icon>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

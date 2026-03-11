@@ -33,4 +33,17 @@ class AnalysisResult
             effectiveSamplingRate: (int) $row['effective_sampling_rate'],
         );
     }
+
+    /** Convert to a camelCase array for the API response. */
+    public function toApiArray(): array
+    {
+        return [
+            'videoId' => $this->videoId,
+            'totalFramesAnalyzed' => $this->totalFramesAnalyzed,
+            'totalFlashEvents' => $this->totalFlashEvents,
+            'highestFlashFrequency' => $this->highestFlashFrequency,
+            'averageMotionIntensity' => $this->averageMotionIntensity,
+            'effectiveSamplingRate' => $this->effectiveSamplingRate,
+        ];
+    }
 }
