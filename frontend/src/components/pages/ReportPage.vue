@@ -111,7 +111,7 @@ function handleSegmentSort(columnKey) {
 async function handleExport(format) {
   exporting.value = true
   try {
-    const response = await api.get(`/videos/${route.params.id}/export/${format}`, {
+    const response = await api.get(`/videos/${route.params.id}/report/${format}`, {
       responseType: 'blob',
     })
     const blob = new Blob([response.data])

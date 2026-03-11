@@ -41,15 +41,15 @@ $router->get('/api/config', function () use ($config) {
 // Auth routes
 $auth = new \App\Controllers\AuthController();
 
-$router->post('/api/register', function () use ($auth) {
+$router->post('/api/auth/register', function () use ($auth) {
     $auth->register();
 });
 
-$router->post('/api/login', function () use ($auth) {
+$router->post('/api/auth/login', function () use ($auth) {
     $auth->login();
 });
 
-$router->post('/api/logout', function () use ($auth) {
+$router->post('/api/auth/logout', function () use ($auth) {
     $auth->logout();
 });
 
@@ -99,12 +99,20 @@ $router->get('/api/videos/(\d+)/report', function ($id) use ($report) {
     $report->getReport((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/export/json', function ($id) use ($report) {
+$router->get('/api/videos/(\d+)/report/json', function ($id) use ($report) {
     $report->exportJson((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/export/csv', function ($id) use ($report) {
+$router->get('/api/videos/(\d+)/report/csv', function ($id) use ($report) {
     $report->exportCsv((int) $id);
+});
+
+$router->get('/api/videos/(\d+)/segments', function ($id) use ($report) {
+    $report->getSegments((int) $id);
+});
+
+$router->get('/api/videos/(\d+)/datapoints', function ($id) use ($report) {
+    $report->getDatapoints((int) $id);
 });
 
 // Admin routes

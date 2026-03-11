@@ -100,7 +100,14 @@ class FlaggedSegmentRepository
                 $params['severity'] = $filters->severity;
             }
 
-            $sql .= " ORDER BY {$filters->sort} {$filters->order}";
+            // sort and order are validated against a strict whitelist in SegmentFilterDTO,
+            // so interpolation here is safe — PDO cannot bind identifiers (column names).
+            $allowedSorts = ['start_time', 'end_time', 'segment_type', 'severity', 'metric_value'];
+            $allowedOrders = ['asc', 'desc'];
+            $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'start_time';
+            $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
+
+            $sql .= " ORDER BY {$sortCol} {$orderDir}";
         } else {
             $sql .= ' ORDER BY start_time ASC';
         }

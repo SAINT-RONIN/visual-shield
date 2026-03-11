@@ -44,14 +44,23 @@ class BaseController
         exit;
     }
 
-    /** Decode the request body as JSON, throwing on invalid syntax. */
+    /** Decode the request body as JSON, throwing on invalid or empty input. */
     protected function getJsonBody(): array
     {
         $body = file_get_contents('php://input');
+
+        if ($body === false || trim($body) === '') {
+            return [];
+        }
+
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \InvalidArgumentException('Invalid JSON body');
+        }
+
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('JSON body must be an object or array');
         }
 
         return $data;

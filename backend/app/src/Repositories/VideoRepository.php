@@ -70,7 +70,14 @@ class VideoRepository
             $params['search'] = '%' . $filters->search . '%';
         }
 
-        $sql .= " ORDER BY v.{$filters->sort} {$filters->order}";
+        // sort and order are validated against a strict whitelist in VideoFilterDTO,
+        // so interpolation here is safe — PDO cannot bind identifiers (column names).
+        $allowedSorts = ['created_at', 'original_name', 'status'];
+        $allowedOrders = ['asc', 'desc'];
+        $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
+        $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'DESC';
+
+        $sql .= " ORDER BY v.{$sortCol} {$orderDir}";
         $sql .= ' LIMIT :limit OFFSET :offset';
 
         $stmt = $this->db->prepare($sql);

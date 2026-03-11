@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
+use App\Models\AnalysisDatapoint;
 use App\Models\FlaggedSegment;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
@@ -78,6 +79,39 @@ class ReportService
     public function exportAsJson(int $userId, int $videoId): ReportDTO
     {
         return $this->getReport($userId, $videoId);
+    }
+
+    /**
+     * Return just the flagged segments for a video.
+     *
+     * @param  int                  $userId         Authenticated user (ownership check).
+     * @param  int                  $videoId        The video to query.
+     * @param  SegmentFilterDTO|null $segmentFilters Optional type/severity/sort filters.
+     * @return FlaggedSegment[]     Typed segment objects.
+     *
+     * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
+     */
+    public function getSegments(int $userId, int $videoId, ?SegmentFilterDTO $segmentFilters = null): array
+    {
+        $this->findUserVideoOrFail($userId, $videoId);
+
+        return $this->segmentRepo->findByVideoId($videoId, $segmentFilters);
+    }
+
+    /**
+     * Return just the per-second analysis datapoints for a video.
+     *
+     * @param  int                    $userId  Authenticated user (ownership check).
+     * @param  int                    $videoId The video to query.
+     * @return AnalysisDatapoint[]    Typed datapoint objects ordered by time.
+     *
+     * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
+     */
+    public function getDatapoints(int $userId, int $videoId): array
+    {
+        $this->findUserVideoOrFail($userId, $videoId);
+
+        return $this->datapointRepo->findByVideoId($videoId);
     }
 
     // ──────────────────────────────────────────────
