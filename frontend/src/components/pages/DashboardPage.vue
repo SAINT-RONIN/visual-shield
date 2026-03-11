@@ -13,6 +13,12 @@ const error = ref('')
 const filterStatus = ref('all')
 let pollInterval = null
 
+// Pagination state
+const page = ref(1)
+const limit = ref(20)
+const total = ref(0)
+const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1)
+
 const filterOptions = [
   { value: 'all', label: 'All Videos' },
   { value: 'queued', label: 'Queued' },
@@ -28,10 +34,19 @@ const hasPendingVideos = computed(() =>
 async function fetchVideos() {
   const params = {}
   if (filterStatus.value !== 'all') params.status = filterStatus.value
+  params.limit = limit.value
+  params.offset = (page.value - 1) * limit.value
 
   try {
     const { data } = await api.get('/videos', { params })
-    videos.value = data
+    // Support both paginated { data, pagination } and legacy array responses
+    if (Array.isArray(data)) {
+      videos.value = data
+      total.value = data.length
+    } else {
+      videos.value = data.data
+      total.value = data.pagination?.total ?? 0
+    }
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to load videos'
   }
@@ -58,6 +73,16 @@ onMounted(async () => {
 onUnmounted(() => stopPolling())
 
 watch(filterStatus, async () => {
+  page.value = 1
+  filterLoading.value = true
+  error.value = ''
+  await fetchVideos()
+  filterLoading.value = false
+  if (hasPendingVideos.value) startPolling()
+  else stopPolling()
+})
+
+watch(page, async () => {
   filterLoading.value = true
   error.value = ''
   await fetchVideos()
@@ -94,7 +119,7 @@ async function handleReanalyze(id) {
   <PageTemplate title="Your Videos" max-width="max-w-none">
     <div class="flex items-center justify-between mb-6 -mt-2 gap-4 flex-wrap">
       <div class="flex items-center gap-3">
-        <p class="text-body text-sm">{{ videos.length }} video{{ videos.length !== 1 ? 's' : '' }}</p>
+        <p class="text-body text-sm">{{ total }} video{{ total !== 1 ? 's' : '' }}</p>
         <AppSelect v-if="videos.length > 0 || filterStatus !== 'all'" v-model="filterStatus" :options="filterOptions" />
         <span v-if="filterLoading" class="text-muted text-xs animate-pulse">Updating...</span>
       </div>
@@ -130,6 +155,27 @@ async function handleReanalyze(id) {
         @delete="handleDelete"
         @reanalyze="handleReanalyze"
       />
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+      <AppButton
+        variant="secondary"
+        size="sm"
+        :disabled="page <= 1"
+        @click="page--"
+      >
+        Previous
+      </AppButton>
+      <span class="text-body text-sm">Page {{ page }} of {{ totalPages }}</span>
+      <AppButton
+        variant="secondary"
+        size="sm"
+        :disabled="page >= totalPages"
+        @click="page++"
+      >
+        Next
+      </AppButton>
     </div>
   </PageTemplate>
 </template>

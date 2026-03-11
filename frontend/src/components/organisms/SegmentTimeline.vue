@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
+import { getSeverityColor } from '@/utils/colors.js'
 
 const props = defineProps({
   segments: { type: Array, required: true },
@@ -27,9 +28,7 @@ function segmentStyle(seg) {
 }
 
 function severityFill(severity) {
-  if (severity === 'high') return '#ef4444'
-  if (severity === 'medium') return '#f59e0b'
-  return '#eab308'
+  return getSeverityColor(severity)
 }
 
 function capitalize(str) {
@@ -38,7 +37,7 @@ function capitalize(str) {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-line bg-surface p-5">
+  <div class="rounded-2xl border border-line bg-surface p-3 sm:p-4 md:p-5">
     <h3 class="mb-4 text-heading font-semibold">Segment Timeline</h3>
 
     <div class="relative">

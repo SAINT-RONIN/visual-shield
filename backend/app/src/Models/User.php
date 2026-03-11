@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 /**
@@ -19,6 +21,7 @@ class User
         public readonly string $username,
         public readonly string $passwordHash,
         public readonly ?string $displayName,
+        public readonly string $role,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {}
@@ -36,6 +39,7 @@ class User
             username: $row['username'],
             passwordHash: $row['password_hash'],
             displayName: $row['display_name'],
+            role: $row['role'] ?? 'viewer',
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at'],
         );
@@ -53,6 +57,7 @@ class User
             'id' => $this->id,
             'username' => $this->username,
             'displayName' => $this->displayName,
+            'role' => $this->role,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
         ];

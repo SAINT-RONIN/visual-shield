@@ -6,6 +6,9 @@ const props = defineProps({
   videoSrc: { type: String, required: true },
   charts: { type: Object, required: true },
   duration: { type: Number, required: true },
+  flashThreshold: { type: Number, default: 3 },
+  motionThreshold: { type: Number, default: 30 },
+  luminanceMax: { type: Number, default: 255 },
 })
 
 // ── Refs ──────────────────────────────────────────
@@ -45,18 +48,13 @@ const gridOn = ref(true)
 let seekingGraphSlider = false
 let seekingGridSlider = false
 
-// Thresholds mirrored from AnalysisConfig.php
-const FLASH_FREQUENCY_DANGER = 3   // flashes/sec (WCAG 2.3.1)
-const MOTION_THRESHOLD = 30        // pixel difference for significant motion
-const LUMINANCE_MAX = 255          // fixed 0–255 scale
-
 const graphs = reactive([
   { key: 'flashFrequency', label: 'Flash', color: '#818cf8', visible: true,
-    threshold: FLASH_FREQUENCY_DANGER, fixedScale: null },
+    get threshold() { return props.flashThreshold }, fixedScale: null },
   { key: 'motionIntensity', label: 'Motion', color: '#fbbf24', visible: true,
-    threshold: MOTION_THRESHOLD, fixedScale: null },
+    get threshold() { return props.motionThreshold }, fixedScale: null },
   { key: 'luminance', label: 'Luminance', color: '#22d3ee', visible: true,
-    threshold: null, fixedScale: LUMINANCE_MAX },
+    threshold: null, get fixedScale() { return props.luminanceMax } },
 ])
 
 // ── Equalizer state ──────────────────────────────
@@ -745,7 +743,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
     <div class="video-with-eq">
       <!-- ── Equalizer bars (HTML/CSS) ───────────── -->
-      <div class="eq-container">
+      <div class="eq-container hidden sm:flex">
         <div
           v-for="bar in eqBars"
           :key="bar.key"

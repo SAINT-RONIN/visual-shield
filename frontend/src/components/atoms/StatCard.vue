@@ -19,7 +19,7 @@ defineProps({
         </span>
       </div>
     </div>
-    <p class="text-3xl font-semibold" :style="{ color: color }">
+    <p class="text-xl sm:text-2xl md:text-3xl font-semibold" :style="{ color: color }">
       {{ value }}
     </p>
   </div>

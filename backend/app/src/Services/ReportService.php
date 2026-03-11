@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTOs\ReportDTO;
@@ -119,7 +121,8 @@ class ReportService
         return $csvString;
     }
 
-    private function writeCsvHeaderRow($stream): void
+    /** @param resource $stream An open file handle to write the header into. */
+    private function writeCsvHeaderRow(mixed $stream): void
     {
         fputcsv($stream, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
     }
@@ -127,7 +130,8 @@ class ReportService
     /**
      * @param FlaggedSegment[] $segments Typed segment objects.
      */
-    private function writeCsvDataRows($stream, array $segments): void
+    /** @param resource $stream An open file handle to write segment rows into. */
+    private function writeCsvDataRows(mixed $stream, array $segments): void
     {
         foreach ($segments as $segment) {
             fputcsv($stream, $segment->toCsvRow());
@@ -135,7 +139,8 @@ class ReportService
     }
 
     /** Rewind the stream to the beginning and read all its contents. */
-    private function readEntireStream($stream): string
+    /** @param resource $stream An open file handle to read from. */
+    private function readEntireStream(mixed $stream): string
     {
         rewind($stream);
 

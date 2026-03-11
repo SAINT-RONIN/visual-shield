@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
@@ -215,11 +217,11 @@ class FlashDetector
      */
     private function classifySeverity(float $frequency): string
     {
-        if ($frequency > 10) {
+        if ($frequency > AnalysisConfig::FLASH_SEVERITY_HIGH) {
             return 'high';
         }
 
-        if ($frequency > 5) {
+        if ($frequency > AnalysisConfig::FLASH_SEVERITY_MEDIUM) {
             return 'medium';
         }
 

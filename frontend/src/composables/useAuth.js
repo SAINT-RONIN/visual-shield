@@ -9,6 +9,7 @@ if (token.value) {
 }
 
 const isLoggedIn = computed(() => !!token.value)
+const isAdmin = computed(() => user.value?.role === 'admin')
 
 async function login(username, password) {
   const { data } = await api.post('/login', { username, password })
@@ -49,5 +50,5 @@ async function logout() {
 }
 
 export function useAuth() {
-  return { user, token, isLoggedIn, login, register, fetchProfile, updateProfile, logout }
+  return { user, token, isLoggedIn, isAdmin, login, register, fetchProfile, updateProfile, logout }
 }

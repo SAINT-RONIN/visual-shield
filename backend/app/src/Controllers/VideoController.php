@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
+use App\DTOs\UpdateVideoDTO;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\ReanalyzeVideoDTO;
 use App\DTOs\VideoFilterDTO;
+use App\Models\Video;
 use App\Services\VideoService;
 
 /**
@@ -27,6 +31,7 @@ class VideoController extends BaseController
         $this->videoService = ServiceRegistry::videoService();
     }
 
+    /** Accept a video file upload and queue it for analysis. */
     public function upload(): void
     {
         $this->handleRequest(function () {
@@ -37,16 +42,26 @@ class VideoController extends BaseController
         });
     }
 
+    /** List all videos for the authenticated user with pagination and filters. */
     public function getAll(): void
     {
         $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
             $filters = VideoFilterDTO::fromQuery($_GET);
-            $videos = $this->videoService->getAllForUser($userId, $filters);
-            $this->jsonResponse(array_map(fn($v) => $v->toApiArray(), $videos), 200);
+            $result = $this->videoService->getAllForUser($userId, $filters);
+
+            $this->jsonResponse([
+                'data' => array_map(fn(Video $video) => $video->toApiArray(), $result->items),
+                'pagination' => [
+                    'total' => $result->total,
+                    'limit' => $result->limit,
+                    'offset' => $result->offset,
+                ],
+            ]);
         });
     }
 
+    /** Get a single video's details by ID. */
     public function getOne(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -56,6 +71,18 @@ class VideoController extends BaseController
         });
     }
 
+    /** Update a video's metadata (e.g. title). */
+    public function update(int $id): void
+    {
+        $this->handleRequest(function () use ($id) {
+            $userId = $this->getAuthenticatedUserId();
+            $dto = UpdateVideoDTO::fromArray($this->getJsonBody());
+            $video = $this->videoService->updateMetadata($userId, $id, $dto->originalName);
+            $this->jsonResponse(['data' => $video->toApiArray()]);
+        });
+    }
+
+    /** Queue a video for re-analysis with a new sampling rate. */
     public function reanalyze(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -66,11 +93,19 @@ class VideoController extends BaseController
         });
     }
 
+    /** Delete a video (admins can delete any video, users only their own). */
     public function delete(int $id): void
     {
         $this->handleRequest(function () use ($id) {
             $userId = $this->getAuthenticatedUserId();
-            $this->videoService->delete($userId, $id);
+            $role = $this->getAuthenticatedUserRole();
+
+            if ($role === 'admin') {
+                $this->videoService->deleteAsAdmin($id);
+            } else {
+                $this->videoService->delete($userId, $id);
+            }
+
             $this->jsonResponse(['message' => 'Video deleted successfully'], 200);
         });
     }

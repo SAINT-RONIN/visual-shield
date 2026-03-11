@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Config\AnalysisConfig;
+
 /**
  * Captures and validates query parameters for filtering and sorting
  * the video list on the dashboard.
@@ -18,6 +20,8 @@ final class VideoFilterDTO
         public readonly ?string $search = null,
         public readonly string $sort = 'created_at',
         public readonly string $order = 'desc',
+        public readonly int $limit = 20,
+        public readonly int $offset = 0,
     ) {}
 
     /**
@@ -41,11 +45,19 @@ final class VideoFilterDTO
         $order = isset($query['order']) && in_array($query['order'], $validOrders, true)
             ? $query['order'] : 'desc';
 
+        $limit = isset($query['limit']) ? (int) $query['limit'] : 20;
+        $limit = max(AnalysisConfig::PAGINATION_MIN_LIMIT, min(AnalysisConfig::PAGINATION_MAX_LIMIT, $limit));
+
+        $offset = isset($query['offset']) ? (int) $query['offset'] : 0;
+        $offset = max(0, $offset);
+
         return new self(
             status: $status,
             search: $search,
             sort: $sort,
             order: $order,
+            limit: $limit,
+            offset: $offset,
         );
     }
 }

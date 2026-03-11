@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api, { getAuthToken } from '@/utils/api.js'
+import { useConfig } from '@/composables/useConfig.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import ReportHeader from '@/components/molecules/ReportHeader.vue'
 import StatsPanel from '@/components/organisms/StatsPanel.vue'
@@ -14,6 +15,7 @@ import ExportButtons from '@/components/molecules/ExportButtons.vue'
 import VideoOverlay from '@/components/organisms/VideoOverlay.vue'
 
 const route = useRoute()
+const { config } = useConfig()
 const report = ref(null)
 const isLoading = ref(true)
 const filterLoading = ref(false)
@@ -143,6 +145,9 @@ async function handleExport(format) {
         :video-src="videoSrc"
         :charts="report.charts"
         :duration="report.video.duration"
+        :flash-threshold="config?.flashDangerThreshold ?? 3"
+        :motion-threshold="config?.motionThreshold ?? 30"
+        :luminance-max="config?.luminanceMax ?? 255"
       />
 
       <StatsPanel :summary="{ ...report.summary, effectiveSamplingRate: report.video.effectiveSamplingRate }" />
@@ -168,7 +173,7 @@ async function handleExport(format) {
       />
 
       <!-- Segment filter bar -->
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <!-- Type filters -->
         <div class="inline-flex rounded-xl bg-surface-alt p-0.5">
           <button
