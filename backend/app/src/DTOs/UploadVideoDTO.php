@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Config\AnalysisConfig;
+use App\Exceptions\ValidationException;
 
 /**
  * Immutable value object representing a validated video upload request.
@@ -51,20 +52,20 @@ class UploadVideoDTO
     public static function fromRequest(array $fileData, array $postData): self
     {
         if (empty($fileData)) {
-            throw new \InvalidArgumentException('No video file received. Ensure the field name is "video".');
+            throw new ValidationException('No video file received. Ensure the field name is "video".');
         }
 
         $uploadError = $fileData['error'] ?? UPLOAD_ERR_NO_FILE;
 
         if ($uploadError !== UPLOAD_ERR_OK) {
-            throw new \InvalidArgumentException(self::describeUploadError($uploadError));
+            throw new ValidationException(self::describeUploadError($uploadError));
         }
 
         // Accept both camelCase and snake_case key names
         $rate = (int) ($postData['samplingRate'] ?? $postData['sampling_rate'] ?? 0);
 
         if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
-            throw new \InvalidArgumentException(
+            throw new ValidationException(
                 'Invalid sampling rate. Allowed values: ' . implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES)
             );
         }

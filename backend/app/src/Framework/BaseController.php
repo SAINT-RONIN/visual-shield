@@ -4,17 +4,26 @@ declare(strict_types=1);
 
 namespace App\Framework;
 
+use App\Exceptions\ForbiddenException;
+use App\Exceptions\NotFoundException;
+use App\Exceptions\UnauthorizedException;
+use App\Exceptions\ValidationException;
+
 class BaseController
 {
     /** HTTP status codes that RuntimeException codes are allowed to map to directly. */
     private const ALLOWED_HTTP_ERROR_CODES = [400, 401, 403, 404];
+
     /**
      * Execute a controller action with standardised error handling.
      *
      * Catches domain exceptions and maps them to HTTP status codes:
-     *   - InvalidArgumentException → 400 Bad Request
-     *   - RuntimeException with code 404 → 404 Not Found
-     *   - RuntimeException (other) → uses the exception's code or 500
+     *   - ValidationException → 400 Bad Request
+     *   - UnauthorizedException → 401 Unauthorized
+     *   - ForbiddenException → 403 Forbidden
+     *   - NotFoundException → 404 Not Found
+     *   - InvalidArgumentException → 400 Bad Request (legacy)
+     *   - RuntimeException → uses the exception's code (allowlist) or 500 (legacy)
      *   - Any other Throwable → 500 Internal Server Error
      *
      * This eliminates the identical try/catch blocks that were duplicated
@@ -24,6 +33,14 @@ class BaseController
     {
         try {
             $action();
+        } catch (ValidationException $e) {
+            $this->errorResponse(400, $e->getMessage());
+        } catch (UnauthorizedException $e) {
+            $this->errorResponse(401, $e->getMessage());
+        } catch (ForbiddenException $e) {
+            $this->errorResponse(403, $e->getMessage());
+        } catch (NotFoundException $e) {
+            $this->errorResponse(404, $e->getMessage());
         } catch (\InvalidArgumentException $e) {
             $this->errorResponse(400, $e->getMessage());
         } catch (\RuntimeException $e) {
@@ -82,7 +99,7 @@ class BaseController
     protected function requireRole(string $role): void
     {
         if ($this->getAuthenticatedUserRole() !== $role) {
-            throw new \RuntimeException('Forbidden: insufficient permissions', 403);
+            throw new ForbiddenException('Forbidden: insufficient permissions');
         }
     }
 

@@ -40,9 +40,9 @@ function capitalize(str) {
   <div class="rounded-2xl border border-line bg-surface p-3 sm:p-4 md:p-5">
     <h3 class="mb-4 text-heading font-semibold">Segment Timeline</h3>
 
-    <div class="relative">
+    <div class="relative overflow-x-auto">
       <!-- Time labels above bar -->
-      <div class="mb-2 flex justify-between text-muted" style="font-size: 0.7rem">
+      <div class="mb-2 flex justify-between text-muted min-w-0" style="font-size: 0.7rem">
         <span v-for="t in timeLabels" :key="t">{{ formatTime(t) }}</span>
       </div>
 

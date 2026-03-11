@@ -9,6 +9,8 @@ use App\DTOs\PaginatedResultDTO;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\VideoFilterDTO;
+use App\Exceptions\NotFoundException;
+use App\Exceptions\ValidationException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
 
@@ -198,7 +200,7 @@ class VideoService
         $detectedMimeType = $fileInfo->file($temporaryFilePath);
 
         if (!in_array($detectedMimeType, self::ALLOWED_MIME_TYPES, true)) {
-            throw new \InvalidArgumentException('Invalid file type. Allowed: MP4, WebM');
+            throw new ValidationException('Invalid file type. Allowed: MP4, WebM');
         }
     }
 
@@ -207,7 +209,7 @@ class VideoService
     {
         if ($fileSizeInBytes > AnalysisConfig::MAX_FILE_SIZE) {
             $maxSizeInMegabytes = AnalysisConfig::MAX_FILE_SIZE / self::BYTES_PER_MEGABYTE;
-            throw new \InvalidArgumentException("File too large. Maximum: {$maxSizeInMegabytes} MB");
+            throw new ValidationException("File too large. Maximum: {$maxSizeInMegabytes} MB");
         }
     }
 
@@ -216,7 +218,7 @@ class VideoService
     {
         if (!in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
-            throw new \InvalidArgumentException("Invalid sampling rate. Allowed: {$allowedRates}");
+            throw new ValidationException("Invalid sampling rate. Allowed: {$allowedRates}");
         }
     }
 
@@ -341,7 +343,7 @@ class VideoService
         $fullPath = $this->resolveFullPath($storedPath);
 
         if (!file_exists($fullPath)) {
-            throw new \RuntimeException('Video file not found', 404);
+            throw new NotFoundException('Video file not found');
         }
 
         return $fullPath;
@@ -375,7 +377,7 @@ class VideoService
         $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
 
         if (!$video) {
-            throw new \RuntimeException('Video not found', 404);
+            throw new NotFoundException('Video not found');
         }
 
         return $video;
@@ -387,7 +389,7 @@ class VideoService
         $video = $this->videoRepo->findById($videoId);
 
         if (!$video) {
-            throw new \RuntimeException('Video not found', 404);
+            throw new NotFoundException('Video not found');
         }
 
         return $video;

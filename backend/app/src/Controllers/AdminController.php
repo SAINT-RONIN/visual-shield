@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Exceptions\ValidationException;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Models\User;
@@ -45,7 +46,7 @@ class AdminController extends BaseController
 
             if (!in_array($role, self::ASSIGNABLE_ROLES, true)) {
                 $allowedRoles = implode(', ', self::ASSIGNABLE_ROLES);
-                throw new \InvalidArgumentException("Invalid role. Allowed: {$allowedRoles}");
+                throw new ValidationException("Invalid role. Allowed: {$allowedRoles}");
             }
 
             $user = ServiceRegistry::userRepository()->updateRole($id, $role);

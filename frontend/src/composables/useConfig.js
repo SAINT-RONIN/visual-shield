@@ -10,8 +10,8 @@ async function loadConfig() {
     const { data } = await api.get('/config')
     config.value = data.data
     loaded.value = true
-  } catch (e) {
-    console.error('Failed to load config', e)
+  } catch {
+    // Config load failed silently
   }
 }
 

@@ -1,15 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import ProfileForm from '@/components/organisms/ProfileForm.vue'
 
 const { user, fetchProfile, updateProfile } = useAuth()
+const { showToast } = useToast()
 
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-const success = ref('')
 
 onMounted(async () => {
   try {
@@ -24,10 +25,9 @@ onMounted(async () => {
 async function handleSave(displayName) {
   saving.value = true
   error.value = ''
-  success.value = ''
   try {
     await updateProfile(displayName)
-    success.value = 'Profile updated successfully'
+    showToast('Profile updated', 'success')
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to update profile'
   } finally {
@@ -43,7 +43,6 @@ async function handleSave(displayName) {
       :loading="loading"
       :saving="saving"
       :error="error"
-      :success="success"
       @save="handleSave"
     />
   </PageTemplate>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Exceptions\ValidationException;
+
 /**
  * Immutable value object representing a validated login request.
  *
@@ -42,11 +44,11 @@ class LoginDTO
     public static function fromArray(array $data): self
     {
         if (empty($data['username']) || !is_string($data['username'])) {
-            throw new \InvalidArgumentException('Username is required');
+            throw new ValidationException('Username is required');
         }
 
         if (empty($data['password']) || !is_string($data['password'])) {
-            throw new \InvalidArgumentException('Password is required');
+            throw new ValidationException('Password is required');
         }
 
         return new self(

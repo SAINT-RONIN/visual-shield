@@ -3,11 +3,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api.js'
 import { useConfig } from '@/composables/useConfig.js'
+import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import UploadForm from '@/components/organisms/UploadForm.vue'
 
 const router = useRouter()
 const { config } = useConfig()
+const { showToast } = useToast()
 
 const uploading = ref(false)
 const progress = ref(0)
@@ -39,6 +41,7 @@ async function handleSubmit({ file, samplingRate }) {
         }
       },
     })
+    showToast('Video uploaded successfully', 'success')
     router.push('/dashboard')
   } catch (err) {
     if (err.response?.data?.error?.message) {

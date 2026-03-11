@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Exceptions\NotFoundException;
 use App\Framework\Database;
 use App\Models\User;
 use PDO;
@@ -125,7 +126,7 @@ class UserRepository
         $user = $this->findById($id);
 
         if (!$user) {
-            throw new \RuntimeException('User not found', 404);
+            throw new NotFoundException('User not found');
         }
 
         return $user;

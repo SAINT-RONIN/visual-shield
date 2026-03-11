@@ -84,7 +84,9 @@ class FrameExtractor
     {
         $safeInputPath = escapeshellarg($videoPath);
         $safeOutputPattern = escapeshellarg($outputDirectory . '/frame_%05d.jpg');
-        $safeSamplingRate = escapeshellarg((string) $samplingRate);
+        // $samplingRate is typed int — cast directly; escapeshellarg would add quotes
+        // that break the fps= filter syntax (fps='10' is invalid).
+        $safeSamplingRate = (int) $samplingRate;
 
         // "2>&1" redirects FFmpeg's error messages so we can capture them if it fails
         $command = "ffmpeg -i {$safeInputPath} -vf fps={$safeSamplingRate} {$safeOutputPattern} 2>&1";
