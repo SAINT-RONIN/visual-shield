@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Config\AnalysisConfig;
+use App\Exceptions\ValidationException;
 
 /**
  * Immutable value object representing a validated re-analysis request.
@@ -39,7 +40,7 @@ class ReanalyzeVideoDTO
 
         if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
-            throw new \InvalidArgumentException("Invalid sampling rate. Allowed: {$allowedRates}");
+            throw new ValidationException("Invalid sampling rate. Allowed: {$allowedRates}");
         }
 
         return new self($rate);

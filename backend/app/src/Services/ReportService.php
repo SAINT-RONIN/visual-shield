@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
+use App\Exceptions\NotFoundException;
 use App\Models\AnalysisDatapoint;
 use App\Models\FlaggedSegment;
 use App\Models\Video;
@@ -124,7 +125,7 @@ class ReportService
         $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
 
         if (!$video) {
-            throw new \RuntimeException('Video not found', 404);
+            throw new NotFoundException('Video not found');
         }
 
         return $video;
@@ -162,9 +163,9 @@ class ReportService
     }
 
     /**
+     * @param resource         $stream   An open file handle to write segment rows into.
      * @param FlaggedSegment[] $segments Typed segment objects.
      */
-    /** @param resource $stream An open file handle to write segment rows into. */
     private function writeCsvDataRows(mixed $stream, array $segments): void
     {
         foreach ($segments as $segment) {
@@ -172,8 +173,11 @@ class ReportService
         }
     }
 
-    /** Rewind the stream to the beginning and read all its contents. */
-    /** @param resource $stream An open file handle to read from. */
+    /**
+     * Rewind the stream to the beginning and read all its contents.
+     *
+     * @param resource $stream An open file handle to read from.
+     */
     private function readEntireStream(mixed $stream): string
     {
         rewind($stream);

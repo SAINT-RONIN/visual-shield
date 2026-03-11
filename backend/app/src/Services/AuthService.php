@@ -9,6 +9,9 @@ use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
 use App\DTOs\UpdateProfileDTO;
+use App\Exceptions\NotFoundException;
+use App\Exceptions\UnauthorizedException;
+use App\Exceptions\ValidationException;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Repositories\TokenRepository;
@@ -127,7 +130,7 @@ class AuthService
         $user = $this->userRepo->findById($userId);
 
         if (!$user) {
-            throw new \RuntimeException('User not found');
+            throw new NotFoundException('User not found');
         }
 
         return $user;
@@ -141,7 +144,7 @@ class AuthService
     private function ensureUsernameIsAvailable(string $username): void
     {
         if ($this->userRepo->findByUsername($username)) {
-            throw new \InvalidArgumentException('Username is already taken');
+            throw new ValidationException('Username is already taken');
         }
     }
 
@@ -157,7 +160,7 @@ class AuthService
         $credentialsAreValid = $user && password_verify($password, $user->passwordHash);
 
         if (!$credentialsAreValid) {
-            throw new \RuntimeException('Invalid username or password');
+            throw new UnauthorizedException('Invalid username or password');
         }
 
         return $user;

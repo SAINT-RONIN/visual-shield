@@ -4,6 +4,7 @@ import { RouterView, useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth.js'
 import { useConfig } from '@/composables/useConfig.js'
 import Header from '@/components/organisms/Header.vue'
+import ToastContainer from '@/components/atoms/ToastContainer.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -31,4 +32,5 @@ async function handleLogout() {
   <main class="pt-14">
     <RouterView />
   </main>
+  <ToastContainer />
 </template>

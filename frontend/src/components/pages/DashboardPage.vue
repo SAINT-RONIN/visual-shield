@@ -1,10 +1,15 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api.js'
+import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import AppSelect from '@/components/atoms/AppSelect.vue'
+import Spinner from '@/components/atoms/Spinner.vue'
+import EmptyState from '@/components/atoms/EmptyState.vue'
 import VideoCard from '@/components/molecules/VideoCard.vue'
+
+const { showToast } = useToast()
 
 const videos = ref([])
 const loading = ref(true)
@@ -95,6 +100,7 @@ async function handleDelete(id) {
   try {
     await api.delete(`/videos/${id}`)
     videos.value = videos.value.filter((v) => v.id !== id)
+    showToast('Video deleted', 'success')
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to delete video'
   }
@@ -128,26 +134,25 @@ async function handleReanalyze(id) {
       </router-link>
     </div>
 
-    <div v-if="loading" class="text-body text-center py-12">Loading videos...</div>
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <Spinner size="lg" />
+    </div>
 
     <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
 
-    <div v-else-if="videos.length === 0 && filterStatus === 'all'" class="text-center py-16">
-      <svg class="w-16 h-16 mx-auto mb-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-      <p class="text-body mb-2">No videos yet</p>
-      <p class="text-muted text-sm mb-4">Upload a video to get started with accessibility analysis</p>
-      <router-link to="/upload">
-        <AppButton>Upload Your First Video</AppButton>
-      </router-link>
-    </div>
+    <EmptyState
+      v-else-if="videos.length === 0 && filterStatus === 'all'"
+      title="No videos yet"
+      description="Upload your first video to get started."
+      action-label="Upload Video"
+      action-to="/upload"
+    />
 
     <div v-else-if="videos.length === 0" class="text-center py-12">
       <p class="text-muted text-sm">No videos match the selected filter.</p>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5 lg:gap-6">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <VideoCard
         v-for="video in videos"
         :key="video.id"

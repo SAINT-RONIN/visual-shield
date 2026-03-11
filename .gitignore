@@ -102,7 +102,10 @@ docker-compose.override.yml
 # ========================
 storage/videos/*
 !storage/videos/.gitkeep
+backend/app/storage/videos/*
+!backend/app/storage/videos/.gitkeep
 storage/frames/
+backend/app/storage/frames/
 storage/temp/
 storage/tmp/
 storage/exports/

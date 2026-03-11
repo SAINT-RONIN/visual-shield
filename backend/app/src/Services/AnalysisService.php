@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Config\AnalysisConfig;
 use App\DTOs\FlashAnalysisResult;
 use App\DTOs\MotionAnalysisResult;
+use App\Exceptions\NotFoundException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
 use App\Repositories\AnalysisResultRepository;
@@ -338,7 +339,7 @@ class AnalysisService
         $video = $this->videoRepo->findById($videoId);
 
         if (!$video) {
-            throw new \RuntimeException('Video not found');
+            throw new NotFoundException('Video not found');
         }
 
         return $video;
@@ -350,7 +351,7 @@ class AnalysisService
         $fullPath = AnalysisConfig::appRoot() . '/' . $storedPath;
 
         if (!file_exists($fullPath)) {
-            throw new \RuntimeException('Video file not found on disk');
+            throw new NotFoundException('Video file not found on disk');
         }
 
         return $fullPath;

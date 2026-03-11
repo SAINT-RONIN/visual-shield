@@ -13,6 +13,7 @@ import SegmentTimeline from '@/components/organisms/SegmentTimeline.vue'
 import SegmentTable from '@/components/organisms/SegmentTable.vue'
 import ExportButtons from '@/components/molecules/ExportButtons.vue'
 import VideoOverlay from '@/components/organisms/VideoOverlay.vue'
+import Spinner from '@/components/atoms/Spinner.vue'
 
 const route = useRoute()
 const { config } = useConfig()
@@ -131,7 +132,9 @@ async function handleExport(format) {
 
 <template>
   <PageTemplate title="Analysis Report">
-    <div v-if="isLoading" class="text-body text-center py-12">Loading report...</div>
+    <div v-if="isLoading" class="flex items-center justify-center py-20">
+      <Spinner size="lg" />
+    </div>
 
     <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
 
