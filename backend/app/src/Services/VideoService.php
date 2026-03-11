@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Config\AnalysisConfig;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
+use App\DTOs\VideoFilterDTO;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
 
@@ -87,9 +88,14 @@ class VideoService
      *
      * @return Video[]
      */
-    public function getAllForUser(int $userId): array
+    /**
+     * Get all videos belonging to a user, with optional filtering and sorting.
+     *
+     * @return Video[]
+     */
+    public function getAllForUser(int $userId, VideoFilterDTO $filters): array
     {
-        return $this->videoRepo->findAllByUserId($userId);
+        return $this->videoRepo->findAllByUserId($userId, $filters);
     }
 
     /** Get a single video belonging to a user. */

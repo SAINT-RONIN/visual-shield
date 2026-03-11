@@ -39,18 +39,20 @@ onUnmounted(() => {
     <div
       v-if="open"
       @click="open = false"
-      class="absolute right-0 mt-2 w-48 bg-surface-alt border border-line-strong rounded-lg shadow-lg py-1"
+      class="absolute right-0 mt-2 w-48 bg-surface-alt border border-line-strong rounded-xl shadow-xl p-1.5"
     >
       <router-link
         to="/profile"
-        class="block px-4 py-2 text-sm text-body hover:bg-surface-hover hover:text-heading"
+        class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-body transition-colors hover:bg-surface-hover hover:text-heading"
       >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
         Profile
       </router-link>
       <button
         @click="$emit('logout')"
-        class="w-full text-left px-4 py-2 text-sm text-body hover:bg-surface-hover hover:text-heading"
+        class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm text-body transition-colors hover:bg-surface-hover hover:text-heading"
       >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
         Logout
       </button>
     </div>

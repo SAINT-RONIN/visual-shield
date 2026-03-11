@@ -7,6 +7,7 @@ use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\ReanalyzeVideoDTO;
+use App\DTOs\VideoFilterDTO;
 use App\Services\VideoService;
 
 /**
@@ -40,7 +41,8 @@ class VideoController extends BaseController
     {
         $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
-            $videos = $this->videoService->getAllForUser($userId);
+            $filters = VideoFilterDTO::fromQuery($_GET);
+            $videos = $this->videoService->getAllForUser($userId, $filters);
             $this->jsonResponse(array_map(fn($v) => $v->toApiArray(), $videos), 200);
         });
     }

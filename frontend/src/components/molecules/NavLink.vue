@@ -10,8 +10,10 @@ defineEmits(['navigate'])
 <template>
   <router-link
     :to="to"
-    class="px-3 py-2 text-sm rounded-lg transition-colors"
-    :class="active ? 'text-heading border-b-2 border-primary' : 'text-body hover:text-heading'"
+    class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors"
+    :class="active
+      ? 'bg-primary/10 text-primary'
+      : 'text-body hover:bg-surface-alt hover:text-heading'"
     @click="$emit('navigate')"
   >
     <slot />

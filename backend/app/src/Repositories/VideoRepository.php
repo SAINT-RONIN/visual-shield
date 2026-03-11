@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTOs\VideoFilterDTO;
 use App\Framework\Database;
 use App\Models\Video;
 use PDO;
@@ -45,18 +46,32 @@ class VideoRepository
      *
      * @return Video[] List of videos (newest first) with joined metrics.
      */
-    public function findAllByUserId(int $userId): array
+    public function findAllByUserId(int $userId, VideoFilterDTO $filters): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
+        $sql = 'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
                     (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'high\') as high_segments,
                     (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'medium\') as medium_segments,
                     (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id) as total_segments
              FROM videos v
              LEFT JOIN analysis_results ar ON ar.video_id = v.id
-             WHERE v.user_id = ? ORDER BY v.created_at DESC'
-        );
-        $stmt->execute([$userId]);
+             WHERE v.user_id = :userId';
+
+        $params = ['userId' => $userId];
+
+        if ($filters->status !== null) {
+            $sql .= ' AND v.status = :status';
+            $params['status'] = $filters->status;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND v.original_name LIKE :search';
+            $params['search'] = '%' . $filters->search . '%';
+        }
+
+        $sql .= " ORDER BY v.{$filters->sort} {$filters->order}";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return array_map(fn(array $row) => Video::fromRow($row), $stmt->fetchAll());
     }

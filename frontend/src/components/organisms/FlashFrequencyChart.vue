@@ -34,11 +34,11 @@ const chartData = computed(() => ({
   ],
 }))
 
-const chartOptions = buildChartOptions()
+const chartOptions = buildChartOptions({ yLabel: 'Hz' })
 </script>
 
 <template>
-  <ChartCard title="Flash Frequency">
+  <ChartCard title="Flash Frequency Over Time">
     <Line :data="chartData" :options="chartOptions" />
   </ChartCard>
 </template>

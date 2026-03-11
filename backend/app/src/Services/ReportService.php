@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\ReportDTO;
+use App\DTOs\SegmentFilterDTO;
 use App\Models\FlaggedSegment;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
@@ -42,12 +43,12 @@ class ReportService
      *
      * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
      */
-    public function getReport(int $userId, int $videoId): ReportDTO
+    public function getReport(int $userId, int $videoId, ?SegmentFilterDTO $segmentFilters = null): ReportDTO
     {
         $video = $this->findUserVideoOrFail($userId, $videoId);
 
         $analysisResult = $this->analysisResultRepo->findByVideoId($videoId);
-        $segments = $this->segmentRepo->findByVideoId($videoId);
+        $segments = $this->segmentRepo->findByVideoId($videoId, $segmentFilters);
         $datapoints = $this->datapointRepo->findByVideoId($videoId);
 
         return ReportDTO::fromData($video, $analysisResult, $segments, $datapoints);

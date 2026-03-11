@@ -32,11 +32,11 @@ const chartData = computed(() => ({
   ],
 }))
 
-const chartOptions = buildChartOptions({ y: { max: 255 } })
+const chartOptions = buildChartOptions({ yLabel: 'Intensity', y: { max: 255 } })
 </script>
 
 <template>
-  <ChartCard title="Motion Intensity">
+  <ChartCard title="Motion Intensity Over Time">
     <Line :data="chartData" :options="chartOptions" />
   </ChartCard>
 </template>

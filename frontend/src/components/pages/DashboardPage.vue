@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
@@ -8,6 +8,7 @@ import VideoCard from '@/components/molecules/VideoCard.vue'
 
 const videos = ref([])
 const loading = ref(true)
+const filterLoading = ref(false)
 const error = ref('')
 const filterStatus = ref('all')
 let pollInterval = null
@@ -24,15 +25,12 @@ const hasPendingVideos = computed(() =>
   videos.value.some((v) => v.status === 'queued' || v.status === 'processing')
 )
 
-const filteredVideos = computed(() =>
-  filterStatus.value === 'all'
-    ? videos.value
-    : videos.value.filter((v) => v.status === filterStatus.value)
-)
-
 async function fetchVideos() {
+  const params = {}
+  if (filterStatus.value !== 'all') params.status = filterStatus.value
+
   try {
-    const { data } = await api.get('/videos')
+    const { data } = await api.get('/videos', { params })
     videos.value = data
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to load videos'
@@ -58,6 +56,15 @@ onMounted(async () => {
 })
 
 onUnmounted(() => stopPolling())
+
+watch(filterStatus, async () => {
+  filterLoading.value = true
+  error.value = ''
+  await fetchVideos()
+  filterLoading.value = false
+  if (hasPendingVideos.value) startPolling()
+  else stopPolling()
+})
 
 async function handleDelete(id) {
   try {
@@ -88,7 +95,8 @@ async function handleReanalyze(id) {
     <div class="flex items-center justify-between mb-6 -mt-2 gap-4 flex-wrap">
       <div class="flex items-center gap-3">
         <p class="text-body text-sm">{{ videos.length }} video{{ videos.length !== 1 ? 's' : '' }}</p>
-        <AppSelect v-if="videos.length > 0" v-model="filterStatus" :options="filterOptions" />
+        <AppSelect v-if="videos.length > 0 || filterStatus !== 'all'" v-model="filterStatus" :options="filterOptions" />
+        <span v-if="filterLoading" class="text-muted text-xs animate-pulse">Updating...</span>
       </div>
       <router-link to="/upload">
         <AppButton>Upload Video</AppButton>
@@ -99,7 +107,7 @@ async function handleReanalyze(id) {
 
     <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
 
-    <div v-else-if="videos.length === 0" class="text-center py-16">
+    <div v-else-if="videos.length === 0 && filterStatus === 'all'" class="text-center py-16">
       <svg class="w-16 h-16 mx-auto mb-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
       </svg>
@@ -110,13 +118,13 @@ async function handleReanalyze(id) {
       </router-link>
     </div>
 
-    <div v-else-if="filteredVideos.length === 0" class="text-center py-12">
+    <div v-else-if="videos.length === 0" class="text-center py-12">
       <p class="text-muted text-sm">No videos match the selected filter.</p>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5 lg:gap-6">
       <VideoCard
-        v-for="video in filteredVideos"
+        v-for="video in videos"
         :key="video.id"
         :video="video"
         @delete="handleDelete"

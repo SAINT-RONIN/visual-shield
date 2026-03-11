@@ -27,6 +27,7 @@ const chartData = computed(() => ({
 }))
 
 const chartOptions = buildChartOptions({
+  yLabel: 'Brightness',
   y: { max: 255 },
   tooltip: {
     callbacks: {
@@ -40,7 +41,7 @@ const chartOptions = buildChartOptions({
 </script>
 
 <template>
-  <ChartCard title="Luminance (Brightness)">
+  <ChartCard title="Luminance (Brightness) Over Time">
     <Line :data="chartData" :options="chartOptions" />
   </ChartCard>
 </template>

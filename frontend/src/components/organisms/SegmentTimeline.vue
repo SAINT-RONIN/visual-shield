@@ -11,13 +11,10 @@ const hoveredSegment = ref(null)
 
 const timeLabels = computed(() => {
   if (props.duration <= 0) return []
-
-  let step = 30
-  if (props.duration <= 30) step = 5
-  else if (props.duration <= 120) step = 10
-
+  const count = 6
   const labels = []
-  for (let t = 0; t <= props.duration; t += step) {
+  for (let i = 0; i < count; i++) {
+    const t = (i * props.duration) / (count - 1)
     labels.push(t)
   }
   return labels
@@ -29,57 +26,69 @@ function segmentStyle(seg) {
   return { left: `${left}%`, width: `${Math.max(width, 0.5)}%` }
 }
 
-function segmentColor(severity) {
-  if (severity === 'high') return 'bg-error'
-  if (severity === 'medium') return 'bg-warning'
-  return 'bg-warning/60'
+function severityFill(severity) {
+  if (severity === 'high') return '#ef4444'
+  if (severity === 'medium') return '#f59e0b'
+  return '#eab308'
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 </script>
 
 <template>
-  <div class="bg-surface rounded-xl p-4 md:p-6 border border-line">
-    <h3 class="text-base md:text-lg font-semibold text-heading mb-4">Risk Timeline</h3>
+  <div class="rounded-2xl border border-line bg-surface p-5">
+    <h3 class="mb-4 text-heading font-semibold">Segment Timeline</h3>
 
     <div class="relative">
-      <div class="bg-surface-alt rounded-full h-8 relative overflow-hidden">
-        <div
-          v-for="(seg, i) in segments"
-          :key="i"
-          class="absolute top-0 h-full opacity-80 cursor-pointer transition-opacity hover:opacity-100"
-          :class="segmentColor(seg.severity)"
-          :style="segmentStyle(seg)"
-          @mouseenter="hoveredSegment = seg"
-          @mouseleave="hoveredSegment = null"
-        />
-      </div>
-
-      <!-- Time labels -->
-      <div class="flex justify-between mt-2 text-xs text-muted">
+      <!-- Time labels above bar -->
+      <div class="mb-2 flex justify-between text-muted" style="font-size: 0.7rem">
         <span v-for="t in timeLabels" :key="t">{{ formatTime(t) }}</span>
       </div>
 
-      <!-- Tooltip -->
-      <div
-        v-if="hoveredSegment"
-        class="absolute -top-16 left-1/2 -translate-x-1/2 bg-surface-alt border border-line rounded-lg px-3 py-2 text-xs text-body shadow-lg z-10 whitespace-nowrap"
-      >
-        <p class="font-medium text-heading capitalize">{{ hoveredSegment.type }}</p>
-        <p>{{ formatTime(hoveredSegment.startTime) }} - {{ formatTime(hoveredSegment.endTime) }}</p>
-        <p class="capitalize">Severity: {{ hoveredSegment.severity }}</p>
+      <!-- Timeline bar -->
+      <div class="relative h-10 overflow-hidden rounded-lg bg-surface-alt">
+        <div
+          v-for="(seg, i) in segments"
+          :key="i"
+          class="absolute top-0 h-full cursor-pointer transition-opacity"
+          :style="{
+            ...segmentStyle(seg),
+            backgroundColor: severityFill(seg.severity),
+            opacity: hoveredSegment === seg ? 1 : 0.6,
+          }"
+          @mouseenter="hoveredSegment = seg"
+          @mouseleave="hoveredSegment = null"
+        >
+          <!-- Tooltip -->
+          <div
+            v-if="hoveredSegment === seg"
+            class="absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 shadow-xl"
+            style="font-size: 0.75rem"
+          >
+            <p class="font-medium text-heading capitalize">
+              {{ seg.type }} &middot; {{ capitalize(seg.severity) }} Severity
+            </p>
+            <p class="text-muted">
+              {{ formatTime(seg.startTime) }} &rarr; {{ formatTime(seg.endTime) }} &middot; {{ seg.metricValue.toFixed(2) }}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Legend -->
-    <div class="flex gap-6 mt-4 text-xs text-muted">
-      <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-error" /> High
-      </span>
-      <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-warning" /> Medium
-      </span>
-      <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-warning/60" /> Low
-      </span>
+      <!-- Legend -->
+      <div class="mt-3 flex gap-5" style="font-size: 0.7rem">
+        <span class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm bg-error" /> High
+        </span>
+        <span class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm bg-warning" /> Medium
+        </span>
+        <span class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm" style="background-color: #eab308" /> Low
+        </span>
+      </div>
     </div>
   </div>
 </template>

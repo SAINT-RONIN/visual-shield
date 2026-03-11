@@ -1,9 +1,11 @@
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Page & Surfaces */
-  --color-page: #030712;
-  --color-surface: #111827;
-  --color-surface-alt: #1f2937;
-  --color-surface-hover: #374151;
+  /* Page & Surfaces — light defaults */
+  --color-page: #ffffff;
+  --color-surface: #f9fafb;
+  --color-surface-alt: #f3f4f6;
+  --color-surface-hover: #e5e7eb;
 
   /* Primary / Accent */
   --color-primary: #4f46e5;
@@ -11,41 +13,43 @@
   --color-accent: #6366f1;
 
   /* Borders */
+  --color-line: #e5e7eb;
+  --color-line-strong: #d1d5db;
+
+  /* Typography */
+  --color-heading: #111827;
+  --color-body: #6b7280;
+  --color-muted: #9ca3af;
+  --color-link: #4f46e5;
+  --color-link-hover: #4338ca;
+
+  /* Status */
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-page: #030712;
+  --color-surface: #111827;
+  --color-surface-alt: #1f2937;
+  --color-surface-hover: #374151;
+
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-accent: #6366f1;
+
   --color-line: #1f2937;
   --color-line-strong: #374151;
 
-  /* Typography */
   --color-heading: #ffffff;
   --color-body: #9ca3af;
   --color-muted: #6b7280;
   --color-link: #818cf8;
   --color-link-hover: #a5b4fc;
 
-  /* Status */
   --color-error: #f87171;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
 }
-
-/* To enable light mode later, override the CSS custom properties:
- *
- * [data-theme="light"] {
- *   --color-page: #ffffff;
- *   --color-surface: #f9fafb;
- *   --color-surface-alt: #f3f4f6;
- *   --color-surface-hover: #e5e7eb;
- *   --color-primary: #4f46e5;
- *   --color-primary-hover: #4338ca;
- *   --color-accent: #6366f1;
- *   --color-line: #e5e7eb;
- *   --color-line-strong: #d1d5db;
- *   --color-heading: #111827;
- *   --color-body: #6b7280;
- *   --color-muted: #9ca3af;
- *   --color-link: #4f46e5;
- *   --color-link-hover: #4338ca;
- *   --color-error: #ef4444;
- *   --color-success: #22c55e;
- *   --color-warning: #f59e0b;
- * }
- */

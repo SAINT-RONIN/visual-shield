@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTOs\SegmentFilterDTO;
 use App\Framework\Database;
 use App\Models\FlaggedSegment;
 use PDO;
@@ -79,13 +80,31 @@ class FlaggedSegmentRepository
      * @param  int              $videoId The video to query.
      * @return FlaggedSegment[] List of segments sorted by start time.
      */
-    public function findByVideoId(int $videoId): array
+    public function findByVideoId(int $videoId, ?SegmentFilterDTO $filters = null): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT start_time, end_time, segment_type, severity, metric_value
-             FROM flagged_segments WHERE video_id = ? ORDER BY start_time ASC'
-        );
-        $stmt->execute([$videoId]);
+        $sql = 'SELECT start_time, end_time, segment_type, severity, metric_value
+                FROM flagged_segments WHERE video_id = :videoId';
+
+        $params = ['videoId' => $videoId];
+
+        if ($filters !== null) {
+            if ($filters->type !== null) {
+                $sql .= ' AND segment_type = :type';
+                $params['type'] = $filters->type;
+            }
+
+            if ($filters->severity !== null) {
+                $sql .= ' AND severity = :severity';
+                $params['severity'] = $filters->severity;
+            }
+
+            $sql .= " ORDER BY {$filters->sort} {$filters->order}";
+        } else {
+            $sql .= ' ORDER BY start_time ASC';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return array_map(
             fn(array $row) => FlaggedSegment::fromRow($row),

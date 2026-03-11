@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\DTOs\SegmentFilterDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Services\ReportService;
@@ -26,7 +27,8 @@ class ReportController extends BaseController
     {
         $this->handleRequest(function () use ($videoId) {
             $userId = $this->getAuthenticatedUserId();
-            $report = $this->reportService->getReport($userId, $videoId);
+            $segmentFilters = SegmentFilterDTO::fromQuery($_GET);
+            $report = $this->reportService->getReport($userId, $videoId, $segmentFilters);
             $this->jsonResponse($report->toArray(), 200);
         });
     }
