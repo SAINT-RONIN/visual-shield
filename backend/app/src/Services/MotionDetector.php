@@ -3,106 +3,196 @@
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
-use App\Models\MotionAnalysisResult;
+use App\DTOs\MotionAnalysisResult;
 
+/**
+ * Detects excessive or rapid motion in video frames.
+ *
+ * High motion intensity can cause discomfort or vestibular triggers for
+ * sensitive viewers (think: rapid camera shaking, fast panning, etc.).
+ *
+ * This detector:
+ *   1. Averages motion intensity for each 1-second window
+ *   2. Flags consecutive high-motion seconds as dangerous segments
+ *   3. Only reports segments that last at least MIN_SUSTAINED_SECONDS
+ *      (brief spikes are filtered out since they rarely cause discomfort)
+ */
 class MotionDetector
 {
+    /** A segment must last at least this many consecutive seconds to be flagged. */
     private const MIN_SUSTAINED_SECONDS = 1;
 
-    // Detects motion segments from pre-computed per-frame data.
+    /**
+     * Analyze pre-computed frame data for excessive motion.
+     *
+     * @param  array $perFrameData Each frame's luminance and motion data (from AnalysisService).
+     * @param  int   $samplingRate How many frames per second were extracted.
+     * @return MotionAnalysisResult Contains average intensity, flagged segments, and per-second data.
+     */
     public function detectFromData(array $perFrameData, int $samplingRate): MotionAnalysisResult
     {
-        $perSecondIntensities = $this->groupBySecond($perFrameData, $samplingRate);
-        $segments = $this->buildFlaggedSegments($perSecondIntensities);
-        $averageIntensity = $this->computeAverage($perSecondIntensities);
+        $perSecondIntensities = $this->calculateMotionPerSecond($perFrameData, $samplingRate);
+        $flaggedSegments = $this->groupHighMotionSecondsIntoSegments($perSecondIntensities);
+        $overallAverageIntensity = $this->calculateOverallAverage($perSecondIntensities);
 
-        return new MotionAnalysisResult($averageIntensity, $segments, $perSecondIntensities);
+        return new MotionAnalysisResult($overallAverageIntensity, $flaggedSegments, $perSecondIntensities);
     }
 
-    // Averages motion intensity per second. Skips frame 0 (no prior frame).
-    private function groupBySecond(array $perFrameData, int $samplingRate): array
+    // ──────────────────────────────────────────────
+    //  Step 1: Average motion per second
+    // ──────────────────────────────────────────────
+
+    /**
+     * Calculate the average motion intensity for each 1-second window.
+     *
+     * Frame 0 is skipped because motion is measured as the difference
+     * between two consecutive frames, and frame 0 has no predecessor.
+     */
+    private function calculateMotionPerSecond(array $perFrameData, int $samplingRate): array
     {
         $totalFrames = count($perFrameData);
-        $durationSeconds = (int) ceil($totalFrames / $samplingRate);
-        $perSecond = [];
+        $totalSeconds = (int) ceil($totalFrames / $samplingRate);
+        $perSecondResults = [];
 
-        for ($sec = 0; $sec < $durationSeconds; $sec++) {
-            $startFrame = $sec * $samplingRate;
-            $endFrame = min(($sec + 1) * $samplingRate, $totalFrames);
-            $sum = 0.0;
-            $count = 0;
+        for ($second = 0; $second < $totalSeconds; $second++) {
+            $averageIntensity = $this->averageMotionInSecond($perFrameData, $second, $samplingRate, $totalFrames);
 
-            for ($f = $startFrame; $f < $endFrame; $f++) {
-                if ($f === 0) {
-                    continue;
-                }
-                $sum += $perFrameData[$f]['motionIntensity'];
-                $count++;
-            }
-
-            $perSecond[] = [
-                'second' => $sec,
-                'intensity' => $count > 0 ? round($sum / $count, 2) : 0.0,
+            $perSecondResults[] = [
+                'second' => $second,
+                'intensity' => round($averageIntensity, 2),
             ];
         }
 
-        return $perSecond;
+        return $perSecondResults;
     }
 
-    private function buildFlaggedSegments(array $perSecondIntensities): array
+    /** Calculate the average motion intensity for frames within a specific second. */
+    private function averageMotionInSecond(
+        array $perFrameData,
+        int $second,
+        int $samplingRate,
+        int $totalFrames,
+    ): float {
+        $startFrame = $second * $samplingRate;
+        $endFrame = min(($second + 1) * $samplingRate, $totalFrames);
+
+        $sum = 0.0;
+        $count = 0;
+
+        for ($frame = $startFrame; $frame < $endFrame; $frame++) {
+            // Skip frame 0 — it has no predecessor to compare against
+            if ($frame === 0) {
+                continue;
+            }
+
+            $sum += $perFrameData[$frame]['motionIntensity'];
+            $count++;
+        }
+
+        if ($count === 0) {
+            return 0.0;
+        }
+
+        return $sum / $count;
+    }
+
+    // ──────────────────────────────────────────────
+    //  Step 2: Group high-motion seconds into segments
+    // ──────────────────────────────────────────────
+
+    /**
+     * Merge consecutive high-motion seconds into flagged time segments.
+     *
+     * Only creates a segment if the run of high-intensity seconds meets
+     * the MIN_SUSTAINED_SECONDS threshold. This filters out brief spikes
+     * that are unlikely to cause viewer discomfort.
+     */
+    private function groupHighMotionSecondsIntoSegments(array $perSecondIntensities): array
     {
-        $segments = [];
-        $inSegment = false;
-        $segStart = 0;
-        $maxIntensity = 0.0;
-        $consecutiveCount = 0;
+        $completedSegments = [];
+        $currentSegment = null;
+        $consecutiveHighSeconds = 0;
 
         foreach ($perSecondIntensities as $entry) {
-            $isHigh = $entry['intensity'] >= AnalysisConfig::MOTION_THRESHOLD;
+            $isHighMotion = $entry['intensity'] >= AnalysisConfig::MOTION_THRESHOLD;
 
-            if ($isHigh) {
-                if (!$inSegment) {
-                    $segStart = $entry['second'];
-                    $maxIntensity = $entry['intensity'];
-                    $consecutiveCount = 1;
-                    $inSegment = true;
-                } else {
-                    $maxIntensity = max($maxIntensity, $entry['intensity']);
-                    $consecutiveCount++;
-                }
+            if ($isHighMotion) {
+                $result = $this->handleHighMotionSecond($currentSegment, $consecutiveHighSeconds, $entry);
+                $currentSegment = $result['segment'];
+                $consecutiveHighSeconds = $result['count'];
             } else {
-                if ($inSegment && $consecutiveCount >= self::MIN_SUSTAINED_SECONDS) {
-                    $segments[] = $this->createSegment($segStart, $entry['second'], $maxIntensity);
+                // The high-motion streak ended — save the segment if it was long enough
+                if ($currentSegment !== null && $consecutiveHighSeconds >= self::MIN_SUSTAINED_SECONDS) {
+                    $completedSegments[] = $this->closeSegment($currentSegment, $entry['second']);
                 }
-                $inSegment = false;
-                $consecutiveCount = 0;
+                $currentSegment = null;
+                $consecutiveHighSeconds = 0;
             }
         }
 
-        if ($inSegment && $consecutiveCount >= self::MIN_SUSTAINED_SECONDS) {
+        // If the video ends during a high-motion segment, close it
+        if ($currentSegment !== null && $consecutiveHighSeconds >= self::MIN_SUSTAINED_SECONDS) {
             $lastSecond = end($perSecondIntensities)['second'] + 1;
-            $segments[] = $this->createSegment($segStart, $lastSecond, $maxIntensity);
+            $completedSegments[] = $this->closeSegment($currentSegment, $lastSecond);
         }
 
-        return $segments;
+        return $completedSegments;
     }
 
-    private function createSegment(int $startSecond, int $endSecond, float $maxIntensity): array
-    {
+    /** Either start a new segment or extend the current one. */
+    private function handleHighMotionSecond(
+        ?array $currentSegment,
+        int $consecutiveHighSeconds,
+        array $entry,
+    ): array {
+        if ($currentSegment === null) {
+            // Start a new segment
+            return [
+                'segment' => [
+                    'startSecond' => $entry['second'],
+                    'peakIntensity' => $entry['intensity'],
+                ],
+                'count' => 1,
+            ];
+        }
+
+        // Extend the existing segment
+        $currentSegment['peakIntensity'] = max($currentSegment['peakIntensity'], $entry['intensity']);
+
         return [
-            'startTime' => (float) $startSecond,
-            'endTime' => (float) $endSecond,
-            'type' => 'motion',
-            'severity' => $this->classifySeverity($maxIntensity),
-            'metricValue' => round($maxIntensity, 2),
+            'segment' => $currentSegment,
+            'count' => $consecutiveHighSeconds + 1,
         ];
     }
 
+    // ──────────────────────────────────────────────
+    //  Segment building helpers
+    // ──────────────────────────────────────────────
+
+    /** Convert a tracking segment into the final output format. */
+    private function closeSegment(array $segment, int $endSecond): array
+    {
+        return [
+            'startTime' => (float) $segment['startSecond'],
+            'endTime' => (float) $endSecond,
+            'type' => 'motion',
+            'severity' => $this->classifySeverity($segment['peakIntensity']),
+            'metricValue' => round($segment['peakIntensity'], 2),
+        ];
+    }
+
+    /**
+     * Classify how severe a motion intensity is.
+     *   - Over 120 = high (very jarring camera movement)
+     *   - Over 60  = medium (noticeable fast motion)
+     *   - 30–60    = low (slightly elevated motion)
+     */
     private function classifySeverity(float $intensity): string
     {
         if ($intensity > 120) {
             return 'high';
         }
+
         if ($intensity > 60) {
             return 'medium';
         }
@@ -110,13 +200,19 @@ class MotionDetector
         return 'low';
     }
 
-    private function computeAverage(array $perSecondIntensities): float
+    // ──────────────────────────────────────────────
+    //  Aggregation helpers
+    // ──────────────────────────────────────────────
+
+    /** Calculate the average motion intensity across all seconds of the video. */
+    private function calculateOverallAverage(array $perSecondIntensities): float
     {
         if (empty($perSecondIntensities)) {
             return 0.0;
         }
 
         $sum = 0.0;
+
         foreach ($perSecondIntensities as $entry) {
             $sum += $entry['intensity'];
         }

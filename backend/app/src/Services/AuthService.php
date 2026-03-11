@@ -2,90 +2,177 @@
 
 namespace App\Services;
 
-use App\DTOs\RegisterDTO;
 use App\DTOs\LoginDTO;
+use App\DTOs\LoginResult;
+use App\DTOs\RegisterDTO;
 use App\DTOs\UpdateProfileDTO;
+use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Repositories\TokenRepository;
 
+/**
+ * Handles user authentication and profile management.
+ *
+ * This service is responsible for:
+ *   - Registration: create a new account with a securely hashed password
+ *   - Login: verify credentials and issue a bearer token
+ *   - Logout: revoke a bearer token
+ *   - Profile: retrieve and update user profile info
+ *
+ * Passwords are hashed with Argon2id (the strongest PHP algorithm).
+ * Tokens are random 64-character hex strings that expire after 24 hours.
+ */
 class AuthService
 {
     public function __construct(
         private UserRepository $userRepo,
-        private TokenRepository $tokenRepo
+        private TokenRepository $tokenRepo,
     ) {}
 
-    public function register(RegisterDTO $dto): array
+    // ──────────────────────────────────────────────
+    //  Registration
+    // ──────────────────────────────────────────────
+
+    /**
+     * Register a new user account.
+     *
+     * @throws \InvalidArgumentException If the username is already taken.
+     */
+    public function register(RegisterDTO $dto): User
     {
-        $this->ensureUsernameAvailable($dto->username);
-        $passwordHash = password_hash($dto->password, PASSWORD_ARGON2ID);
-        $userId = $this->userRepo->create($dto->username, $passwordHash, $dto->displayName);
-        return $this->formatUser($this->userRepo->findById($userId));
+        $this->ensureUsernameIsAvailable($dto->username);
+
+        $hashedPassword = password_hash($dto->password, PASSWORD_ARGON2ID);
+        $newUserId = $this->userRepo->create($dto->username, $hashedPassword, $dto->displayName);
+
+        return $this->findUserOrFail($newUserId);
     }
 
-    public function login(LoginDTO $dto): array
+    // ──────────────────────────────────────────────
+    //  Login / Logout
+    // ──────────────────────────────────────────────
+
+    /**
+     * Log a user in by verifying their credentials and issuing a token.
+     *
+     * @throws \RuntimeException If the username or password is wrong.
+     */
+    public function login(LoginDTO $dto): LoginResult
     {
-        $user = $this->userRepo->findByUsername($dto->username);
-        if (!$user || !password_verify($dto->password, $user['password_hash'])) {
-            throw new \RuntimeException('Invalid username or password');
-        }
+        $user = $this->verifyCredentials($dto->username, $dto->password);
+        $token = $this->createBearerToken($user->id);
 
-        $token = $this->generateToken();
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
-        $this->tokenRepo->store($user['id'], $token, $expiresAt);
-
-        return ['token' => $token, 'user' => $this->formatUser($user)];
+        return new LoginResult($token, $user);
     }
 
+    /** Log a user out by deleting their bearer token from the database. */
     public function logout(string $token): void
     {
         $this->tokenRepo->deleteByToken($token);
     }
 
-    public function getUserFromToken(string $token): ?array
+    // ──────────────────────────────────────────────
+    //  Token resolution
+    // ──────────────────────────────────────────────
+
+    /**
+     * Look up which user owns a given bearer token.
+     *
+     * Returns null if the token is invalid or expired — the caller
+     * (middleware) uses this to reject unauthenticated requests.
+     */
+    public function getUserFromToken(string $token): ?User
     {
         $tokenRecord = $this->tokenRepo->findValidToken($token);
+
         if (!$tokenRecord) {
             return null;
         }
-        return $this->userRepo->findById($tokenRecord['user_id']);
+
+        return $this->userRepo->findById($tokenRecord->userId);
     }
 
-    public function getProfile(int $userId): array
+    // ──────────────────────────────────────────────
+    //  Profile
+    // ──────────────────────────────────────────────
+
+    /** Get a user's profile by their ID. */
+    public function getProfile(int $userId): User
+    {
+        return $this->findUserOrFail($userId);
+    }
+
+    /** Update a user's display name and return their updated profile. */
+    public function updateProfile(int $userId, UpdateProfileDTO $dto): User
+    {
+        $this->userRepo->updateProfile($userId, $dto->displayName);
+
+        return $this->findUserOrFail($userId);
+    }
+
+    // ──────────────────────────────────────────────
+    //  Lookup helpers
+    // ──────────────────────────────────────────────
+
+    /** Find a user by ID, or throw if they don't exist. */
+    private function findUserOrFail(int $userId): User
     {
         $user = $this->userRepo->findById($userId);
+
         if (!$user) {
             throw new \RuntimeException('User not found');
         }
-        return $this->formatUser($user);
+
+        return $user;
     }
 
-    public function updateProfile(int $userId, UpdateProfileDTO $dto): array
-    {
-        $this->userRepo->updateProfile($userId, $dto->displayName);
-        return $this->formatUser($this->userRepo->findById($userId));
-    }
+    // ──────────────────────────────────────────────
+    //  Validation helpers
+    // ──────────────────────────────────────────────
 
-    private function ensureUsernameAvailable(string $username): void
+    /** Throw an error if the username is already taken by another account. */
+    private function ensureUsernameIsAvailable(string $username): void
     {
         if ($this->userRepo->findByUsername($username)) {
             throw new \InvalidArgumentException('Username is already taken');
         }
     }
 
-    private function generateToken(): string
+    /**
+     * Check that the username exists and the password matches.
+     *
+     * Returns the User on success, throws on failure.
+     */
+    private function verifyCredentials(string $username, string $password): User
     {
-        return bin2hex(random_bytes(32));
+        $user = $this->userRepo->findByUsername($username);
+
+        $credentialsAreValid = $user && password_verify($password, $user->passwordHash);
+
+        if (!$credentialsAreValid) {
+            throw new \RuntimeException('Invalid username or password');
+        }
+
+        return $user;
     }
 
-    private function formatUser(array $user): array
+    // ──────────────────────────────────────────────
+    //  Token generation
+    // ──────────────────────────────────────────────
+
+    /**
+     * Generate a new bearer token and save it to the database.
+     *
+     * The token is a cryptographically secure 64-character hex string
+     * that expires 24 hours from now.
+     */
+    private function createBearerToken(int $userId): string
     {
-        return [
-            'id' => $user['id'],
-            'username' => $user['username'],
-            'displayName' => $user['display_name'],
-            'createdAt' => $user['created_at'],
-            'updatedAt' => $user['updated_at'],
-        ];
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+        $this->tokenRepo->store($userId, $token, $expiresAt);
+
+        return $token;
     }
 }

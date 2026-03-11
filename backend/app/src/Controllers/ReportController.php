@@ -3,58 +3,47 @@
 namespace App\Controllers;
 
 use App\Framework\BaseController;
+use App\Framework\ServiceRegistry;
 use App\Services\ReportService;
-use App\Repositories\VideoRepository;
-use App\Repositories\AnalysisResultRepository;
-use App\Repositories\FlaggedSegmentRepository;
-use App\Repositories\AnalysisDatapointRepository;
 
+/**
+ * HTTP layer for analysis report endpoints (view, export JSON, export CSV).
+ *
+ * Translates HTTP requests into ReportService calls, sets the correct
+ * Content-Type and Content-Disposition headers for downloads, and lets
+ * BaseController::handleRequest() map exceptions to HTTP status codes.
+ */
 class ReportController extends BaseController
 {
     private ReportService $reportService;
 
     public function __construct()
     {
-        $this->reportService = new ReportService(
-            new VideoRepository(),
-            new AnalysisResultRepository(),
-            new FlaggedSegmentRepository(),
-            new AnalysisDatapointRepository(),
-        );
+        $this->reportService = ServiceRegistry::reportService();
     }
 
     public function getReport(int $videoId): void
     {
-        try {
+        $this->handleRequest(function () use ($videoId) {
             $userId = $this->getAuthenticatedUserId();
             $report = $this->reportService->getReport($userId, $videoId);
-            $this->jsonResponse($report, 200);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+            $this->jsonResponse($report->toArray(), 200);
+        });
     }
 
     public function exportJson(int $videoId): void
     {
-        try {
+        $this->handleRequest(function () use ($videoId) {
             $userId = $this->getAuthenticatedUserId();
             $report = $this->reportService->exportAsJson($userId, $videoId);
             header('Content-Disposition: attachment; filename="report_' . $videoId . '.json"');
-            $this->jsonResponse($report, 200);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+            $this->jsonResponse($report->toArray(), 200);
+        });
     }
 
     public function exportCsv(int $videoId): void
     {
-        try {
+        $this->handleRequest(function () use ($videoId) {
             $userId = $this->getAuthenticatedUserId();
             $csv = $this->reportService->exportAsCsv($userId, $videoId);
             http_response_code(200);
@@ -62,11 +51,6 @@ class ReportController extends BaseController
             header('Content-Disposition: attachment; filename="report_' . $videoId . '.csv"');
             echo $csv;
             exit;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+        });
     }
 }

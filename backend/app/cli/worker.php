@@ -2,27 +2,10 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Repositories\VideoRepository;
-use App\Repositories\AnalysisResultRepository;
-use App\Repositories\FlaggedSegmentRepository;
-use App\Repositories\AnalysisDatapointRepository;
-use App\Services\AnalysisService;
-use App\Services\FrameExtractor;
-use App\Services\FFprobeService;
-use App\Services\FlashDetector;
-use App\Services\MotionDetector;
+use App\Framework\ServiceRegistry;
 
-$videoRepo = new VideoRepository();
-$analysisService = new AnalysisService(
-    $videoRepo,
-    new AnalysisResultRepository(),
-    new FlaggedSegmentRepository(),
-    new AnalysisDatapointRepository(),
-    new FrameExtractor(),
-    new FFprobeService(),
-    new FlashDetector(),
-    new MotionDetector(),
-);
+$videoRepo = ServiceRegistry::videoRepository();
+$analysisService = ServiceRegistry::analysisService();
 
 echo "Worker started. Waiting for queued videos...\n";
 
@@ -34,8 +17,8 @@ while (true) {
         continue;
     }
 
-    $videoId = (int) $video['id'];
-    echo "Processing video #{$videoId}: {$video['original_name']}\n";
+    $videoId = $video->id;
+    echo "Processing video #{$videoId}: {$video->originalName}\n";
 
     $videoRepo->updateStatus($videoId, 'processing');
     $videoRepo->updateProgress($videoId, 5, 'Starting analysis...');

@@ -3,11 +3,24 @@
 namespace App\Services;
 
 use App\DTOs\ReportDTO;
+use App\Models\FlaggedSegment;
+use App\Models\Video;
 use App\Repositories\VideoRepository;
 use App\Repositories\AnalysisResultRepository;
 use App\Repositories\FlaggedSegmentRepository;
 use App\Repositories\AnalysisDatapointRepository;
 
+/**
+ * Assembles and exports analysis reports for a given video.
+ *
+ * After a video has been analyzed, this service gathers all the results
+ * (summary metrics, flagged segments, per-second datapoints) and packages
+ * them into a report the frontend can display or the user can download.
+ *
+ * Supports two export formats:
+ *   - JSON: the full report as a structured object
+ *   - CSV: just the flagged segments as a spreadsheet-friendly format
+ */
 class ReportService
 {
     public function __construct(
@@ -17,32 +30,59 @@ class ReportService
         private AnalysisDatapointRepository $datapointRepo,
     ) {}
 
-    public function getReport(int $userId, int $videoId): array
+    // ──────────────────────────────────────────────
+    //  Report generation
+    // ──────────────────────────────────────────────
+
+    /**
+     * Build the full analysis report for a video.
+     *
+     * Gathers the video record, analysis summary, flagged segments, and
+     * per-second datapoints, then assembles them into a single report.
+     *
+     * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
+     */
+    public function getReport(int $userId, int $videoId): ReportDTO
     {
-        $video = $this->getVerifiedVideo($userId, $videoId);
-        $analysisResult = $this->analysisResultRepo->findByVideoId($videoId) ?? [];
+        $video = $this->findUserVideoOrFail($userId, $videoId);
+
+        $analysisResult = $this->analysisResultRepo->findByVideoId($videoId);
         $segments = $this->segmentRepo->findByVideoId($videoId);
         $datapoints = $this->datapointRepo->findByVideoId($videoId);
 
-        $dto = ReportDTO::fromData($video, $analysisResult, $segments, $datapoints);
-
-        return $dto->toArray();
+        return ReportDTO::fromData($video, $analysisResult, $segments, $datapoints);
     }
 
+    // ──────────────────────────────────────────────
+    //  Export formats
+    // ──────────────────────────────────────────────
+
+    /**
+     * Export flagged segments as a CSV string for spreadsheet download.
+     *
+     * Columns: Start Time, End Time, Type, Severity, Metric Value.
+     */
     public function exportAsCsv(int $userId, int $videoId): string
     {
-        $this->getVerifiedVideo($userId, $videoId);
+        $this->findUserVideoOrFail($userId, $videoId);
+
         $segments = $this->segmentRepo->findByVideoId($videoId);
 
-        return $this->buildCsvString($segments);
+        return $this->convertSegmentsToCsvString($segments);
     }
 
-    public function exportAsJson(int $userId, int $videoId): array
+    /** Export the full report as a ReportDTO for JSON serialization. */
+    public function exportAsJson(int $userId, int $videoId): ReportDTO
     {
         return $this->getReport($userId, $videoId);
     }
 
-    private function getVerifiedVideo(int $userId, int $videoId): array
+    // ──────────────────────────────────────────────
+    //  Lookup helpers
+    // ──────────────────────────────────────────────
+
+    /** Find a video that belongs to a specific user, or throw a 404 error. */
+    private function findUserVideoOrFail(int $userId, int $videoId): Video
     {
         $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
 
@@ -53,25 +93,51 @@ class ReportService
         return $video;
     }
 
-    private function buildCsvString(array $segments): string
+    // ──────────────────────────────────────────────
+    //  CSV building
+    // ──────────────────────────────────────────────
+
+    /**
+     * Convert FlaggedSegment models into a CSV-formatted string.
+     *
+     * Uses php://temp (an in-memory stream) so we don't need to write
+     * a temporary file to disk — PHP handles it all in memory.
+     *
+     * @param FlaggedSegment[] $segments Typed segment objects.
+     */
+    private function convertSegmentsToCsvString(array $segments): string
     {
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
+        $memoryStream = fopen('php://temp', 'r+');
 
-        foreach ($segments as $seg) {
-            fputcsv($handle, [
-                $seg['start_time'],
-                $seg['end_time'],
-                $seg['segment_type'],
-                $seg['severity'],
-                $seg['metric_value'] ?? '',
-            ]);
+        $this->writeCsvHeaderRow($memoryStream);
+        $this->writeCsvDataRows($memoryStream, $segments);
+
+        $csvString = $this->readEntireStream($memoryStream);
+        fclose($memoryStream);
+
+        return $csvString;
+    }
+
+    private function writeCsvHeaderRow($stream): void
+    {
+        fputcsv($stream, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
+    }
+
+    /**
+     * @param FlaggedSegment[] $segments Typed segment objects.
+     */
+    private function writeCsvDataRows($stream, array $segments): void
+    {
+        foreach ($segments as $segment) {
+            fputcsv($stream, $segment->toCsvRow());
         }
+    }
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+    /** Rewind the stream to the beginning and read all its contents. */
+    private function readEntireStream($stream): string
+    {
+        rewind($stream);
 
-        return $csv;
+        return stream_get_contents($stream);
     }
 }

@@ -2,8 +2,28 @@
 
 namespace App\DTOs;
 
+use App\Models\AnalysisDatapoint;
+use App\Models\AnalysisResult;
+use App\Models\FlaggedSegment;
+use App\Models\Video;
+use App\Utils\RiskLevel;
+
+/**
+ * Immutable value object that transforms typed models into a
+ * frontend-friendly report structure with video, summary, segments,
+ * and charts sections.
+ *
+ * Centralises all the reshaping so every consumer (API endpoint,
+ * JSON export, CSV export) receives an identical structure.
+ */
 class ReportDTO
 {
+    /**
+     * @param array $video    Formatted video metadata (id, originalName, duration, etc.).
+     * @param array $summary  Aggregated metrics and overall risk level.
+     * @param array $segments Hazardous time-range entries (flash/motion).
+     * @param array $charts   Time-series arrays for Chart.js (flashFrequency, motionIntensity, luminance).
+     */
     public function __construct(
         public readonly array $video,
         public readonly array $summary,
@@ -11,8 +31,20 @@ class ReportDTO
         public readonly array $charts,
     ) {}
 
-    public static function fromData(array $video, array $analysisResult, array $segments, array $datapoints): self
-    {
+    /**
+     * Build a complete ReportDTO from typed models.
+     *
+     * @param Video               $video          The video record.
+     * @param AnalysisResult|null $analysisResult The summary metrics (null if not yet analysed).
+     * @param FlaggedSegment[]    $segments       Flagged time segments.
+     * @param AnalysisDatapoint[] $datapoints     Per-second chart data.
+     */
+    public static function fromData(
+        Video $video,
+        ?AnalysisResult $analysisResult,
+        array $segments,
+        array $datapoints,
+    ): self {
         return new self(
             video: self::buildVideoData($video, $analysisResult),
             summary: self::buildSummary($analysisResult, $segments),
@@ -21,6 +53,11 @@ class ReportDTO
         );
     }
 
+    /**
+     * Serialise the report to a plain associative array.
+     *
+     * Used by both the API JSON response and the downloadable export.
+     */
     public function toArray(): array
     {
         return [
@@ -31,77 +68,91 @@ class ReportDTO
         ];
     }
 
-    private static function buildVideoData(array $video, array $analysisResult): array
+    // ──────────────────────────────────────────────
+    //  Section builders
+    // ──────────────────────────────────────────────
+
+    /** Build the video metadata section of the report. */
+    private static function buildVideoData(Video $video, ?AnalysisResult $analysisResult): array
     {
         return [
-            'id' => (int) $video['id'],
-            'originalName' => $video['original_name'],
-            'duration' => (float) ($video['duration_seconds'] ?? 0),
-            'samplingRate' => (int) $video['sampling_rate'],
-            'effectiveSamplingRate' => (int) ($analysisResult['effective_sampling_rate'] ?? $video['sampling_rate']),
-            'uploadedAt' => $video['created_at'],
-            'status' => $video['status'],
+            'id' => $video->id,
+            'originalName' => $video->originalName,
+            'duration' => $video->durationSeconds ?? 0.0,
+            'samplingRate' => $video->samplingRate,
+            'effectiveSamplingRate' => $analysisResult?->effectiveSamplingRate ?? $video->samplingRate,
+            'uploadedAt' => $video->createdAt,
+            'status' => $video->status,
         ];
     }
 
-    private static function buildSummary(array $analysisResult, array $segments): array
+    /**
+     * Compute aggregate summary metrics including the overall risk level.
+     *
+     * @param AnalysisResult|null $analysisResult Summary metrics.
+     * @param FlaggedSegment[]    $segments       Used for severity counting.
+     */
+    private static function buildSummary(?AnalysisResult $analysisResult, array $segments): array
     {
-        $highestFreq = (float) ($analysisResult['highest_flash_frequency'] ?? 0);
-        $avgMotion = (float) ($analysisResult['average_motion_intensity'] ?? 0);
+        $highestFreq = $analysisResult?->highestFlashFrequency ?? 0.0;
+        $avgMotion = $analysisResult?->averageMotionIntensity ?? 0.0;
 
         return [
-            'totalFlashEvents' => (int) ($analysisResult['total_flash_events'] ?? 0),
+            'totalFlashEvents' => $analysisResult?->totalFlashEvents ?? 0,
             'highestFlashFrequency' => $highestFreq,
             'averageMotionIntensity' => $avgMotion,
-            'overallRiskLevel' => self::determineRiskLevel($highestFreq, $avgMotion, $segments),
+            'overallRiskLevel' => self::calculateRiskLevel($highestFreq, $avgMotion, $segments),
         ];
     }
 
-    private static function determineRiskLevel(float $highestFreq, float $avgMotion, array $segments): string
+    /**
+     * Count segment severities and delegate to the shared RiskLevel utility.
+     *
+     * @param FlaggedSegment[] $segments Typed segment objects.
+     */
+    private static function calculateRiskLevel(float $highestFreq, float $avgMotion, array $segments): string
     {
-        $hasHighSeverity = false;
-        $hasMediumSeverity = false;
+        $highSegments = 0;
+        $mediumSegments = 0;
 
         foreach ($segments as $seg) {
-            if ($seg['severity'] === 'high') {
-                $hasHighSeverity = true;
-            } elseif ($seg['severity'] === 'medium') {
-                $hasMediumSeverity = true;
+            if ($seg->severity === 'high') {
+                $highSegments++;
+            } elseif ($seg->severity === 'medium') {
+                $mediumSegments++;
             }
         }
 
-        if ($hasHighSeverity || $highestFreq > 10 || $avgMotion > 120) {
-            return 'high';
-        }
-
-        if ($hasMediumSeverity || $highestFreq > 5 || $avgMotion > 60) {
-            return 'medium';
-        }
-
-        if (!empty($segments) || $highestFreq > 3 || $avgMotion > 30) {
-            return 'low';
-        }
-
-        return 'safe';
+        return RiskLevel::determine(
+            $highestFreq,
+            $avgMotion,
+            $highSegments,
+            $mediumSegments,
+            count($segments),
+        );
     }
 
+    /**
+     * Convert FlaggedSegment models into camelCase frontend arrays.
+     *
+     * @param FlaggedSegment[] $segments Typed segment objects.
+     */
     private static function formatSegments(array $segments): array
     {
         $formatted = [];
 
-        foreach ($segments as $s) {
-            $formatted[] = [
-                'startTime' => (float) $s['start_time'],
-                'endTime' => (float) $s['end_time'],
-                'type' => $s['segment_type'],
-                'severity' => $s['severity'],
-                'metricValue' => (float) ($s['metric_value'] ?? 0),
-            ];
+        foreach ($segments as $segment) {
+            $formatted[] = $segment->toApiArray();
         }
 
         return $formatted;
     }
 
+    /**
+     * Split AnalysisDatapoint models into three Chart.js-compatible time series.
+     *
+     * @param AnalysisDatapoint[] $datapoints Typed datapoint objects.
+     */
     private static function buildCharts(array $datapoints): array
     {
         $flashFrequency = [];
@@ -109,13 +160,12 @@ class ReportDTO
         $luminance = [];
 
         foreach ($datapoints as $dp) {
-            $time = (float) $dp['time_point'];
-            $flashFrequency[] = ['time' => $time, 'frequency' => (float) $dp['flash_frequency']];
-            $motionIntensity[] = ['time' => $time, 'intensity' => (float) $dp['motion_intensity']];
+            $flashFrequency[] = ['time' => $dp->timePoint, 'frequency' => $dp->flashFrequency];
+            $motionIntensity[] = ['time' => $dp->timePoint, 'intensity' => $dp->motionIntensity];
             $luminance[] = [
-                'time' => $time,
-                'luminance' => (float) $dp['luminance'],
-                'flashDetected' => (bool) $dp['flash_detected'],
+                'time' => $dp->timePoint,
+                'luminance' => $dp->luminance,
+                'flashDetected' => $dp->flashDetected,
             ];
         }
 

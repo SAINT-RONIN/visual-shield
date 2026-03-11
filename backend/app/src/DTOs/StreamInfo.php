@@ -1,0 +1,19 @@
+<?php
+
+namespace App\DTOs;
+
+/**
+ * Immutable value object containing the metadata needed to stream a video.
+ *
+ * Returned by VideoService::getStreamInfo() so the controller can send
+ * the correct HTTP headers and file content without the service touching
+ * any HTTP globals.
+ */
+class StreamInfo
+{
+    public function __construct(
+        public readonly string $filePath,
+        public readonly int $fileSize,
+        public readonly string $contentType,
+    ) {}
+}

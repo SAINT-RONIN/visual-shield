@@ -2,33 +2,74 @@
 
 namespace App\Services;
 
+/**
+ * Reads video metadata using the FFprobe command-line tool.
+ *
+ * FFprobe is part of the FFmpeg suite. It can inspect video files and
+ * report things like duration, resolution, codec, etc. This service
+ * wraps the shell commands so the rest of the app doesn't need to know
+ * about FFprobe's command-line flags.
+ */
 class FFprobeService
 {
+    /**
+     * Get the total duration of a video file in seconds.
+     *
+     * Example: a 2-minute video returns 120.0
+     */
     public function getDuration(string $filePath): float
     {
-        $safe = escapeshellarg($filePath);
-        $cmd = "ffprobe -v error -show_entries format=duration -of csv=p=0 {$safe}";
-        $output = shell_exec($cmd);
+        $command = "ffprobe -v error -show_entries format=duration -of csv=p=0";
+        $rawOutput = $this->runCommand($command, $filePath, 'video duration');
 
-        if ($output === null || trim($output) === '') {
-            throw new \RuntimeException('Failed to read video duration');
-        }
-
-        return (float) trim($output);
+        return (float) trim($rawOutput);
     }
 
+    /**
+     * Get the width and height of the video in pixels.
+     *
+     * Example: a 1080p video returns ['width' => 1920, 'height' => 1080]
+     */
     public function getResolution(string $filePath): array
     {
-        $safe = escapeshellarg($filePath);
-        $cmd = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x {$safe}";
-        $output = shell_exec($cmd);
+        $command = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x";
+        $rawOutput = $this->runCommand($command, $filePath, 'video resolution');
+
+        return $this->parseResolutionOutput($rawOutput);
+    }
+
+    // ──────────────────────────────────────────────
+    //  Helpers
+    // ──────────────────────────────────────────────
+
+    /**
+     * Run an FFprobe command and return its output.
+     *
+     * The file path is escaped to prevent shell injection attacks.
+     */
+    private function runCommand(string $baseCommand, string $filePath, string $metadataDescription): string
+    {
+        $safeFilePath = escapeshellarg($filePath);
+        $fullCommand = "{$baseCommand} {$safeFilePath}";
+        $output = shell_exec($fullCommand);
 
         if ($output === null || trim($output) === '') {
-            throw new \RuntimeException('Failed to read video resolution');
+            throw new \RuntimeException("Failed to read {$metadataDescription}");
         }
 
-        $parts = explode('x', trim($output));
+        return $output;
+    }
 
-        return ['width' => (int) $parts[0], 'height' => (int) $parts[1]];
+    /**
+     * Parse FFprobe's resolution output (e.g. "1920x1080") into width and height.
+     */
+    private function parseResolutionOutput(string $rawOutput): array
+    {
+        $parts = explode('x', trim($rawOutput));
+
+        return [
+            'width' => (int) $parts[0],
+            'height' => (int) $parts[1],
+        ];
     }
 }

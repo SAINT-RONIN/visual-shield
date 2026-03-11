@@ -4,174 +4,147 @@ namespace App\Controllers;
 
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
+use App\Framework\ServiceRegistry;
 use App\DTOs\UploadVideoDTO;
-use App\Services\AuthService;
+use App\DTOs\ReanalyzeVideoDTO;
 use App\Services\VideoService;
-use App\Services\FFprobeService;
-use App\Repositories\UserRepository;
-use App\Repositories\TokenRepository;
-use App\Repositories\VideoRepository;
 
+/**
+ * HTTP layer for video management endpoints (upload, list, detail,
+ * reanalyze, delete, stream).
+ *
+ * Accepts HTTP requests, parses input into typed DTOs, delegates business
+ * logic to VideoService, and lets BaseController::handleRequest() map
+ * exceptions to HTTP status codes.
+ */
 class VideoController extends BaseController
 {
     private VideoService $videoService;
 
     public function __construct()
     {
-        $this->videoService = new VideoService(new VideoRepository(), new FFprobeService());
+        $this->videoService = ServiceRegistry::videoService();
     }
 
     public function upload(): void
     {
-        try {
+        $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
             $dto = UploadVideoDTO::fromRequest($_FILES['video'] ?? [], $_POST);
             $video = $this->videoService->handleUpload($userId, $dto);
-            $this->jsonResponse($video, 201);
-        } catch (\InvalidArgumentException $e) {
-            $this->jsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
-        } catch (\RuntimeException $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => $e->getMessage()]], 500);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Upload failed: ' . $e->getMessage()]], 500);
-        }
+            $this->jsonResponse($video->toApiArray(), 201);
+        });
     }
 
     public function getAll(): void
     {
-        try {
+        $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
             $videos = $this->videoService->getAllForUser($userId);
-            $this->jsonResponse($videos, 200);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+            $this->jsonResponse(array_map(fn($v) => $v->toApiArray(), $videos), 200);
+        });
     }
 
     public function getOne(int $id): void
     {
-        try {
+        $this->handleRequest(function () use ($id) {
             $userId = $this->getAuthenticatedUserId();
             $video = $this->videoService->getOneForUser($userId, $id);
-            $this->jsonResponse($video, 200);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+            $this->jsonResponse($video->toApiArray(), 200);
+        });
     }
 
     public function reanalyze(int $id): void
     {
-        try {
+        $this->handleRequest(function () use ($id) {
             $userId = $this->getAuthenticatedUserId();
-            $body = $this->getJsonBody();
-            $samplingRate = (int) ($body['samplingRate'] ?? 15);
-            $video = $this->videoService->reanalyze($userId, $id, $samplingRate);
-            $this->jsonResponse($video, 200);
-        } catch (\InvalidArgumentException $e) {
-            $this->jsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+            $dto = ReanalyzeVideoDTO::fromArray($this->getJsonBody());
+            $video = $this->videoService->reanalyze($userId, $id, $dto->samplingRate);
+            $this->jsonResponse($video->toApiArray(), 200);
+        });
     }
 
     public function delete(int $id): void
     {
-        try {
+        $this->handleRequest(function () use ($id) {
             $userId = $this->getAuthenticatedUserId();
             $this->videoService->delete($userId, $id);
             $this->jsonResponse(['message' => 'Video deleted successfully'], 200);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+        });
     }
 
-    private function authenticateForStream(): int
-    {
-        // Try Authorization header first, then fall back to query parameter
-        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        if (preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
-            $token = $matches[1];
-        } else {
-            $token = $_GET['token'] ?? '';
-        }
-
-        if (!$token) {
-            $this->jsonResponse(['error' => ['code' => 401, 'message' => 'Unauthorized']], 401);
-            exit;
-        }
-
-        $authService = new AuthService(new UserRepository(), new TokenRepository());
-        $user = $authService->getUserFromToken($token);
-
-        if (!$user) {
-            $this->jsonResponse(['error' => ['code' => 401, 'message' => 'Invalid or expired token']], 401);
-            exit;
-        }
-
-        return (int) $user['id'];
-    }
-
+    /**
+     * Stream a video file to the client with HTTP Range request support.
+     *
+     * Uses header-or-query-param auth because HTML <video> elements
+     * cannot set custom Authorization headers on their media requests.
+     */
     public function stream(int $id): void
     {
-        try {
-            $userId = $this->authenticateForStream();
-            $video = $this->videoService->getRawForUser($userId, $id);
+        $this->handleRequest(function () use ($id) {
+            $userId = AuthMiddleware::authenticateFromHeaderOrQueryParam();
+            $streamInfo = $this->videoService->getStreamInfo($userId, $id);
 
-            $filePath = __DIR__ . '/../../' . $video['stored_path'];
+            $this->sendVideoHeaders($streamInfo->contentType);
+            $rangeHeader = $_SERVER['HTTP_RANGE'] ?? null;
 
-            if (!file_exists($filePath)) {
-                $this->jsonResponse(['error' => ['code' => 404, 'message' => 'Video file not found']], 404);
-                return;
-            }
-
-            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-            $mimeTypes = [
-                'mp4' => 'video/mp4',
-                'webm' => 'video/webm',
-                'ogg' => 'video/ogg',
-                'mov' => 'video/quicktime',
-                'avi' => 'video/x-msvideo',
-            ];
-            $contentType = $mimeTypes[$ext] ?? 'application/octet-stream';
-            $fileSize = filesize($filePath);
-
-            header('Content-Type: ' . $contentType);
-            header('Accept-Ranges: bytes');
-
-            if (isset($_SERVER['HTTP_RANGE'])) {
-                preg_match('/bytes=(\d+)-(\d*)/', $_SERVER['HTTP_RANGE'], $matches);
-                $start = (int) $matches[1];
-                $end = $matches[2] !== '' ? (int) $matches[2] : $fileSize - 1;
-                $length = $end - $start + 1;
-
-                http_response_code(206);
-                header("Content-Range: bytes {$start}-{$end}/{$fileSize}");
-                header("Content-Length: {$length}");
-
-                $fp = fopen($filePath, 'rb');
-                fseek($fp, $start);
-                echo fread($fp, $length);
-                fclose($fp);
+            if ($rangeHeader) {
+                $this->sendPartialContent($streamInfo->filePath, $streamInfo->fileSize, $rangeHeader);
             } else {
-                header("Content-Length: {$fileSize}");
-                readfile($filePath);
+                $this->sendFullContent($streamInfo->filePath, $streamInfo->fileSize);
             }
 
             exit;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() === 404 ? 404 : 500;
-            $this->jsonResponse(['error' => ['code' => $code, 'message' => $e->getMessage()]], $code);
-        } catch (\Throwable $e) {
-            $this->jsonResponse(['error' => ['code' => 500, 'message' => 'Internal server error']], 500);
-        }
+        });
+    }
+
+    // ──────────────────────────────────────────────
+    //  Streaming helpers (HTTP concerns belong here)
+    // ──────────────────────────────────────────────
+
+    private function sendVideoHeaders(string $contentType): void
+    {
+        header('Content-Type: ' . $contentType);
+        header('Accept-Ranges: bytes');
+    }
+
+    /**
+     * Send a partial (206) response for an HTTP Range request.
+     *
+     * This is what allows the video player to seek — it requests
+     * just the bytes it needs (e.g. "bytes=1000-1999") and we send
+     * only that chunk.
+     */
+    private function sendPartialContent(string $filePath, int $fileSize, string $rangeHeader): void
+    {
+        ['start' => $start, 'end' => $end] = $this->parseRangeHeader($rangeHeader, $fileSize);
+        $contentLength = $end - $start + 1;
+
+        http_response_code(206);
+        header("Content-Range: bytes {$start}-{$end}/{$fileSize}");
+        header("Content-Length: {$contentLength}");
+
+        $fileHandle = fopen($filePath, 'rb');
+        fseek($fileHandle, $start);
+        echo fread($fileHandle, $contentLength);
+        fclose($fileHandle);
+    }
+
+    /** Send the entire file as a standard 200 response. */
+    private function sendFullContent(string $filePath, int $fileSize): void
+    {
+        header("Content-Length: {$fileSize}");
+        readfile($filePath);
+    }
+
+    /** Parse an HTTP Range header like "bytes=1000-1999" into start and end positions. */
+    private function parseRangeHeader(string $rangeHeader, int $fileSize): array
+    {
+        preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $matches);
+
+        $start = (int) $matches[1];
+        $end = $matches[2] !== '' ? (int) $matches[2] : $fileSize - 1;
+
+        return ['start' => $start, 'end' => $end];
     }
 }

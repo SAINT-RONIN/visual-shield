@@ -3,8 +3,24 @@
 namespace App\Repositories;
 
 use App\Framework\Database;
+use App\Models\FlaggedSegment;
 use PDO;
 
+/**
+ * Data-access layer for the `flagged_segments` table.
+ *
+ * Purpose: Persists and retrieves contiguous time segments that the
+ * detectors flagged as potentially harmful — each record stores the
+ * start/end time, type (flash or motion), severity level, and the peak
+ * metric value within that segment.
+ *
+ * Why do I need it: The SegmentTimeline and SegmentTable components on
+ * the report page render these flagged ranges so users can see exactly
+ * where in the video a compliance issue occurs. VideoRepository also
+ * sub-queries this table to show segment counts (high / medium / total)
+ * on dashboard video cards. Keeping segments in their own table avoids
+ * scanning the much larger analysis_datapoints table at display time.
+ */
 class FlaggedSegmentRepository
 {
     private PDO $db;
@@ -14,6 +30,19 @@ class FlaggedSegmentRepository
         $this->db = Database::getInstance();
     }
 
+    /**
+     * Insert all flagged segments for a video in a single multi-row INSERT.
+     *
+     * Called by AnalysisService after the detectors have identified
+     * contiguous regions that exceed flash or motion thresholds. A no-op
+     * when the segments array is empty (i.e. the video passed all checks).
+     *
+     * @param  int   $videoId  The video these segments belong to.
+     * @param  array $segments Array of associative arrays, each containing
+     *                         startTime, endTime, type, severity, and
+     *                         optional metricValue keys.
+     * @return void
+     */
     public function createBatch(int $videoId, array $segments): void
     {
         if (empty($segments)) {
@@ -41,6 +70,15 @@ class FlaggedSegmentRepository
         $stmt->execute($values);
     }
 
+    /**
+     * Retrieve all flagged segments for a video, ordered by start time.
+     *
+     * Used by ReportService to populate the SegmentTimeline and
+     * SegmentTable on the report page.
+     *
+     * @param  int              $videoId The video to query.
+     * @return FlaggedSegment[] List of segments sorted by start time.
+     */
     public function findByVideoId(int $videoId): array
     {
         $stmt = $this->db->prepare(
@@ -49,9 +87,21 @@ class FlaggedSegmentRepository
         );
         $stmt->execute([$videoId]);
 
-        return $stmt->fetchAll();
+        return array_map(
+            fn(array $row) => FlaggedSegment::fromRow($row),
+            $stmt->fetchAll(),
+        );
     }
 
+    /**
+     * Delete all flagged segments for a video.
+     *
+     * Called during re-analysis reset to clear stale segment data before
+     * the worker produces fresh results.
+     *
+     * @param  int  $videoId The video whose segments should be removed.
+     * @return void
+     */
     public function deleteByVideoId(int $videoId): void
     {
         $stmt = $this->db->prepare('DELETE FROM flagged_segments WHERE video_id = ?');

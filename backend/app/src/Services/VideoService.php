@@ -3,31 +3,65 @@
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
+use App\Models\Video;
 use App\Repositories\VideoRepository;
 
+/**
+ * Manages the full video lifecycle: upload, retrieval, deletion, and re-analysis.
+ *
+ * When a user uploads a video, this service:
+ *   1. Validates the file (correct type? not too large?)
+ *   2. Extracts metadata like duration using FFprobe
+ *   3. Adjusts the sampling rate if needed (to avoid extracting too many frames)
+ *   4. Moves the file to permanent storage with a unique filename
+ *   5. Saves the video record to the database
+ */
 class VideoService
 {
+    /** Video MIME types we accept for upload. */
+    private const ALLOWED_MIME_TYPES = [
+        'video/mp4',
+        'video/webm',
+        'video/quicktime',
+        'video/x-msvideo',
+    ];
+
+    /** Known video file extensions and their MIME types. */
+    private const MIME_TYPES_BY_EXTENSION = [
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogg' => 'video/ogg',
+        'mov' => 'video/quicktime',
+        'avi' => 'video/x-msvideo',
+    ];
+
     public function __construct(
         private VideoRepository $videoRepo,
         private FFprobeService $ffprobe,
     ) {}
 
-    public function handleUpload(int $userId, UploadVideoDTO $dto): array
+    // ──────────────────────────────────────────────
+    //  Upload
+    // ──────────────────────────────────────────────
+
+    /**
+     * Process a new video upload from start to finish.
+     *
+     * @param  int            $userId The ID of the user uploading the video.
+     * @param  UploadVideoDTO $dto    Contains the uploaded file info and requested sampling rate.
+     */
+    public function handleUpload(int $userId, UploadVideoDTO $dto): Video
     {
         $this->validateFileType($dto->file['tmp_name']);
         $this->validateFileSize($dto->file['size']);
 
-        try {
-            $duration = $this->ffprobe->getDuration($dto->file['tmp_name']);
-        } catch (\RuntimeException $e) {
-            throw new \RuntimeException('Could not read video metadata. Ensure the file is a valid video. (' . $e->getMessage() . ')');
-        }
+        $duration = $this->extractVideoDuration($dto->file['tmp_name']);
+        $effectiveRate = $this->calculateSafeSamplingRate($duration, $dto->samplingRate);
+        $storedPath = $this->moveUploadToPermanentStorage($dto->file['tmp_name'], $dto->file['name']);
 
-        $effectiveRate = $this->adjustSamplingRate($duration, $dto->samplingRate);
-        $storedPath = $this->storeFile($dto->file['tmp_name'], $dto->file['name']);
-
-        $id = $this->videoRepo->create(
+        $videoId = $this->videoRepo->create(
             $userId,
             $dto->file['name'],
             $storedPath,
@@ -36,30 +70,276 @@ class VideoService
             $dto->samplingRate,
         );
 
+        // If we had to lower the sampling rate, save the adjusted value
         if ($effectiveRate !== $dto->samplingRate) {
-            $this->videoRepo->updateEffectiveRate($id, $effectiveRate);
+            $this->videoRepo->updateEffectiveRate($videoId, $effectiveRate);
         }
 
-        return $this->formatVideo($this->videoRepo->findById($id));
+        return $this->findVideoOrFail($videoId);
     }
 
+    // ──────────────────────────────────────────────
+    //  Retrieval
+    // ──────────────────────────────────────────────
+
+    /**
+     * Get all videos belonging to a user.
+     *
+     * @return Video[]
+     */
     public function getAllForUser(int $userId): array
     {
-        return array_map([$this, 'formatVideo'], $this->videoRepo->findAllByUserId($userId));
+        return $this->videoRepo->findAllByUserId($userId);
     }
 
-    public function getOneForUser(int $userId, int $videoId): array
+    /** Get a single video belonging to a user. */
+    public function getOneForUser(int $userId, int $videoId): Video
     {
-        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
+        return $this->findUserVideoOrFail($userId, $videoId);
+    }
 
-        if (!$video) {
-            throw new \RuntimeException('Video not found', 404);
+    // ──────────────────────────────────────────────
+    //  Deletion
+    // ──────────────────────────────────────────────
+
+    /** Delete a video's file from disk and its record from the database. */
+    public function delete(int $userId, int $videoId): void
+    {
+        $video = $this->findUserVideoOrFail($userId, $videoId);
+
+        $this->deleteVideoFileFromDisk($video->storedPath);
+        $this->videoRepo->delete($videoId);
+    }
+
+    // ──────────────────────────────────────────────
+    //  Re-analysis
+    // ──────────────────────────────────────────────
+
+    /**
+     * Queue a video for re-analysis at a different sampling rate.
+     *
+     * Resets the video status to "pending" so the background worker
+     * picks it up and runs the analysis pipeline again.
+     */
+    public function reanalyze(int $userId, int $videoId, int $samplingRate): Video
+    {
+        $this->findUserVideoOrFail($userId, $videoId);
+        $this->validateSamplingRate($samplingRate);
+
+        $this->videoRepo->resetForReanalysis($videoId, $samplingRate);
+
+        return $this->findVideoOrFail($videoId);
+    }
+
+    // ──────────────────────────────────────────────
+    //  Streaming
+    // ──────────────────────────────────────────────
+
+    /**
+     * Resolve the file path, size, and content type for streaming a video.
+     *
+     * Verifies ownership and that the file exists on disk, then returns
+     * a StreamInfo DTO the controller uses to send the HTTP response.
+     */
+    public function getStreamInfo(int $userId, int $videoId): StreamInfo
+    {
+        $video = $this->findUserVideoOrFail($userId, $videoId);
+        $filePath = $this->resolveVideoFilePathOrFail($video->storedPath);
+
+        return new StreamInfo(
+            filePath: $filePath,
+            fileSize: filesize($filePath),
+            contentType: $this->detectVideoContentType($filePath),
+        );
+    }
+
+    // ──────────────────────────────────────────────
+    //  Validation helpers
+    // ──────────────────────────────────────────────
+
+    /**
+     * Check that the uploaded file is actually a video.
+     * Uses the file's magic bytes (not the extension) to detect the real type.
+     */
+    private function validateFileType(string $temporaryFilePath): void
+    {
+        $fileInfo = new \finfo(FILEINFO_MIME_TYPE);
+        $detectedMimeType = $fileInfo->file($temporaryFilePath);
+
+        if (!in_array($detectedMimeType, self::ALLOWED_MIME_TYPES, true)) {
+            throw new \InvalidArgumentException('Invalid file type. Allowed: MP4, WebM');
+        }
+    }
+
+    /** Check that the file doesn't exceed the maximum allowed size. */
+    private function validateFileSize(int $fileSizeInBytes): void
+    {
+        if ($fileSizeInBytes > AnalysisConfig::MAX_FILE_SIZE) {
+            $maxSizeInMegabytes = AnalysisConfig::MAX_FILE_SIZE / 1048576;
+            throw new \InvalidArgumentException("File too large. Maximum: {$maxSizeInMegabytes} MB");
+        }
+    }
+
+    /** Check that the requested sampling rate is one of the allowed options. */
+    private function validateSamplingRate(int $samplingRate): void
+    {
+        if (!in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
+            $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
+            throw new \InvalidArgumentException("Invalid sampling rate. Allowed: {$allowedRates}");
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    //  Metadata extraction
+    // ──────────────────────────────────────────────
+
+    /** Use FFprobe to read the video's duration in seconds. */
+    private function extractVideoDuration(string $temporaryFilePath): float
+    {
+        try {
+            return $this->ffprobe->getDuration($temporaryFilePath);
+        } catch (\RuntimeException $e) {
+            throw new \RuntimeException(
+                'Could not read video metadata. Ensure the file is a valid video. (' . $e->getMessage() . ')'
+            );
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    //  Sampling rate adjustment
+    // ──────────────────────────────────────────────
+
+    /**
+     * Lower the sampling rate if needed to stay within the frame limit.
+     *
+     * For example, a 60-minute video at 30fps would produce 108,000 frames,
+     * which is way over our 10,000 frame cap. This function finds the highest
+     * allowed rate that stays under the limit.
+     */
+    private function calculateSafeSamplingRate(float $durationInSeconds, int $requestedRate): int
+    {
+        $totalFramesAtRequestedRate = $durationInSeconds * $requestedRate;
+
+        if ($totalFramesAtRequestedRate <= AnalysisConfig::MAX_TOTAL_FRAMES) {
+            return $requestedRate;
         }
 
-        return $this->formatVideo($video);
+        return $this->findHighestAllowedRate($durationInSeconds);
     }
 
-    public function getRawForUser(int $userId, int $videoId): array
+    /** Find the highest allowed sampling rate that keeps total frames within the cap. */
+    private function findHighestAllowedRate(float $durationInSeconds): int
+    {
+        $maximumSafeRate = (int) floor(AnalysisConfig::MAX_TOTAL_FRAMES / $durationInSeconds);
+
+        // Sort rates highest-first so we pick the best quality that fits
+        $allowedRates = AnalysisConfig::ALLOWED_SAMPLING_RATES;
+        rsort($allowedRates);
+
+        foreach ($allowedRates as $rate) {
+            if ($rate <= $maximumSafeRate) {
+                return $rate;
+            }
+        }
+
+        // If even the lowest rate is too high, use it anyway (best we can do)
+        return end($allowedRates);
+    }
+
+    // ──────────────────────────────────────────────
+    //  File storage
+    // ──────────────────────────────────────────────
+
+    /**
+     * Move the uploaded temp file to permanent storage with a unique filename.
+     *
+     * Uses a UUID-style filename to prevent collisions and avoid exposing
+     * original filenames on disk. Returns the relative path for the database.
+     */
+    private function moveUploadToPermanentStorage(string $temporaryFilePath, string $originalFilename): string
+    {
+        $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION) ?: 'mp4';
+        $uniqueFilename = bin2hex(random_bytes(16)) . '.' . $fileExtension;
+        $storageDirectory = AnalysisConfig::appRoot() . '/storage/videos';
+
+        $this->ensureDirectoryExists($storageDirectory);
+        $this->ensureDirectoryIsWritable($storageDirectory);
+
+        $destinationPath = "{$storageDirectory}/{$uniqueFilename}";
+
+        if (!move_uploaded_file($temporaryFilePath, $destinationPath)) {
+            throw new \RuntimeException('Failed to move uploaded file to storage');
+        }
+
+        return "storage/videos/{$uniqueFilename}";
+    }
+
+    private function ensureDirectoryExists(string $directoryPath): void
+    {
+        if (is_dir($directoryPath)) {
+            return;
+        }
+
+        $created = mkdir($directoryPath, 0755, true);
+
+        if (!$created && !is_dir($directoryPath)) {
+            throw new \RuntimeException('Failed to create upload directory');
+        }
+    }
+
+    private function ensureDirectoryIsWritable(string $directoryPath): void
+    {
+        if (!is_writable($directoryPath)) {
+            throw new \RuntimeException('Upload directory is not writable');
+        }
+    }
+
+    /** Delete the video file from disk if it still exists. */
+    private function deleteVideoFileFromDisk(string $storedPath): void
+    {
+        $fullPath = $this->resolveFullPath($storedPath);
+
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+    }
+
+    /** Resolve a stored_path to an absolute path, verifying the file exists. */
+    private function resolveVideoFilePathOrFail(string $storedPath): string
+    {
+        $fullPath = $this->resolveFullPath($storedPath);
+
+        if (!file_exists($fullPath)) {
+            throw new \RuntimeException('Video file not found', 404);
+        }
+
+        return $fullPath;
+    }
+
+    /** Determine the MIME type of a video file from its extension. */
+    private function detectVideoContentType(string $filePath): string
+    {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        return self::MIME_TYPES_BY_EXTENSION[$extension] ?? 'application/octet-stream';
+    }
+
+    // ──────────────────────────────────────────────
+    //  Path helpers
+    // ──────────────────────────────────────────────
+
+    /** Convert a relative stored_path to an absolute filesystem path. */
+    private function resolveFullPath(string $storedPath): string
+    {
+        return AnalysisConfig::appRoot() . '/' . $storedPath;
+    }
+
+    // ──────────────────────────────────────────────
+    //  Lookup helpers
+    // ──────────────────────────────────────────────
+
+    /** Find a video that belongs to a specific user, or throw a 404 error. */
+    private function findUserVideoOrFail(int $userId, int $videoId): Video
     {
         $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
 
@@ -70,139 +350,15 @@ class VideoService
         return $video;
     }
 
-    public function delete(int $userId, int $videoId): void
+    /** Find a video by ID (with enriched data), or throw an error. */
+    private function findVideoOrFail(int $videoId): Video
     {
-        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
+        $video = $this->videoRepo->findById($videoId);
 
         if (!$video) {
             throw new \RuntimeException('Video not found', 404);
         }
 
-        $fullPath = __DIR__ . '/../../' . $video['stored_path'];
-
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
-        }
-
-        $this->videoRepo->delete($videoId);
-    }
-
-    private function validateFileType(string $tmpPath): void
-    {
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($tmpPath);
-        $allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
-
-        if (!in_array($mime, $allowed, true)) {
-            throw new \InvalidArgumentException('Invalid file type. Allowed: MP4, WebM');
-        }
-    }
-
-    private function validateFileSize(int $size): void
-    {
-        if ($size > AnalysisConfig::MAX_FILE_SIZE) {
-            throw new \InvalidArgumentException('File too large. Maximum: ' . (AnalysisConfig::MAX_FILE_SIZE / 1048576) . ' MB');
-        }
-    }
-
-    private function adjustSamplingRate(float $duration, int $requestedRate): int
-    {
-        $totalFrames = $duration * $requestedRate;
-
-        if ($totalFrames <= AnalysisConfig::MAX_TOTAL_FRAMES) {
-            return $requestedRate;
-        }
-
-        $adjusted = (int) floor(AnalysisConfig::MAX_TOTAL_FRAMES / $duration);
-        $rates = AnalysisConfig::ALLOWED_SAMPLING_RATES;
-        sort($rates);
-
-        foreach (array_reverse($rates) as $rate) {
-            if ($rate <= $adjusted) {
-                return $rate;
-            }
-        }
-
-        return $rates[0];
-    }
-
-    private function storeFile(string $tmpPath, string $originalName): string
-    {
-        $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'mp4';
-        $uuid = bin2hex(random_bytes(16));
-        $filename = "{$uuid}.{$ext}";
-        $dir = __DIR__ . '/../../storage/videos';
-
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
-                throw new \RuntimeException('Failed to create upload directory');
-            }
-        }
-
-        if (!is_writable($dir)) {
-            throw new \RuntimeException('Upload directory is not writable');
-        }
-
-        $dest = "{$dir}/{$filename}";
-
-        if (!move_uploaded_file($tmpPath, $dest)) {
-            throw new \RuntimeException('Failed to move uploaded file to storage');
-        }
-
-        return "storage/videos/{$filename}";
-    }
-
-    public function reanalyze(int $userId, int $videoId, int $samplingRate): array
-    {
-        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
-
-        if (!$video) {
-            throw new \RuntimeException('Video not found', 404);
-        }
-
-        if (!in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
-            throw new \InvalidArgumentException(
-                'Invalid sampling rate. Allowed: ' . implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES)
-            );
-        }
-
-        $this->videoRepo->resetForReanalysis($videoId, $samplingRate);
-
-        return $this->formatVideo($this->videoRepo->findById($videoId));
-    }
-
-    // ...existing code...
-
-    private function formatVideo(array $video): array
-    {
-        return [
-            'id' => (int) $video['id'],
-            'originalName' => $video['original_name'],
-            'fileSize' => (int) $video['file_size'],
-            'duration' => $video['duration_seconds'] ? (float) $video['duration_seconds'] : null,
-            'status' => $video['status'],
-            'samplingRate' => (int) $video['sampling_rate'],
-            'effectiveRate' => $video['effective_rate'] ? (int) $video['effective_rate'] : null,
-            'progress' => (int) ($video['progress'] ?? 0),
-            'progressMessage' => $video['progress_message'] ?? null,
-            'errorMessage' => $video['error_message'] ?? null,
-            'riskLevel' => $video['status'] === 'completed' ? $this->computeRiskLevel($video) : null,
-            'createdAt' => $video['created_at'],
-            'updatedAt' => $video['updated_at'],
-        ];
-    }
-
-    private function computeRiskLevel(array $video): string
-    {
-        $highestFreq = (float) ($video['highest_flash_frequency'] ?? 0);
-        $avgMotion = (float) ($video['average_motion_intensity'] ?? 0);
-        $highSegs = (int) ($video['high_segments'] ?? 0);
-        $medSegs = (int) ($video['medium_segments'] ?? 0);
-        $totalSegs = (int) ($video['total_segments'] ?? 0);
-
-        if ($highSegs > 0 || $highestFreq > 10 || $avgMotion > 120) return 'high';
-        if ($medSegs > 0 || $highestFreq > 5 || $avgMotion > 60) return 'medium';
-        if ($totalSegs > 0 || $highestFreq > 3 || $avgMotion > 30) return 'low';
-        return 'safe';
+        return $video;
     }
 }
