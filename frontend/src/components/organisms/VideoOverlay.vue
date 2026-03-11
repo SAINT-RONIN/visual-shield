@@ -1,9 +1,9 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { getAuthToken } from '@/utils/api.js'
+import { formatTime } from '@/utils/formatters.js'
 
 const props = defineProps({
-  videoId: { type: Number, required: true },
+  videoSrc: { type: String, required: true },
   charts: { type: Object, required: true },
   duration: { type: Number, required: true },
 })
@@ -35,12 +35,6 @@ const seekingVolume = ref(false)
 const fullscreen = ref(false)
 let hideTimeout = null
 let rafId = null
-
-const videoSrc = computed(() => {
-  const base = import.meta.env.VITE_API_BASE_URL
-  const token = getAuthToken()
-  return `${base}/videos/${props.videoId}/stream?token=${encodeURIComponent(token)}`
-})
 
 // ── Overlay layer state ───────────────────────────
 
@@ -692,15 +686,6 @@ function showControls() {
 function onControlsEnter() { hoveringControls.value = true; controlsVisible.value = true }
 function onControlsLeave() { hoveringControls.value = false; showControls() }
 
-// ── Time formatting ───────────────────────────────
-
-function formatTime(seconds) {
-  if (!seconds || isNaN(seconds)) return '0:00'
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
 // ── Canvas sizing ─────────────────────────────────
 
 let resizeObserver = null
@@ -784,7 +769,7 @@ watch(() => props.charts, () => draw(), { deep: true })
     >
       <video
         ref="videoRef"
-        :src="videoSrc"
+        :src="props.videoSrc"
         preload="metadata"
         class="video-element"
         @loadedmetadata="onVideoLoaded"

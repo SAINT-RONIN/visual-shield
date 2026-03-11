@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import '@/utils/chartSetup.js'
+import ChartCard from '@/components/atoms/ChartCard.vue'
+import { buildChartOptions } from '@/utils/chartOptions.js'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -30,36 +32,11 @@ const chartData = computed(() => ({
   ],
 }))
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      mode: 'index',
-      intersect: false,
-    },
-  },
-  scales: {
-    x: {
-      ticks: { color: '#6b7280', maxTicksLimit: 10 },
-      grid: { color: 'rgba(107, 114, 128, 0.15)' },
-    },
-    y: {
-      beginAtZero: true,
-      max: 255,
-      ticks: { color: '#6b7280' },
-      grid: { color: 'rgba(107, 114, 128, 0.15)' },
-    },
-  },
-}
+const chartOptions = buildChartOptions({ y: { max: 255 } })
 </script>
 
 <template>
-  <div class="bg-surface rounded-xl p-4 md:p-6 border border-line">
-    <h3 class="text-base md:text-lg font-semibold text-heading mb-4">Motion Intensity</h3>
-    <div class="h-64">
-      <Line :data="chartData" :options="chartOptions" />
-    </div>
-  </div>
+  <ChartCard title="Motion Intensity">
+    <Line :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>

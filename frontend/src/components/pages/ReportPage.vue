@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '@/utils/api.js'
+import api, { getAuthToken } from '@/utils/api.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import ReportHeader from '@/components/molecules/ReportHeader.vue'
 import StatsPanel from '@/components/organisms/StatsPanel.vue'
@@ -18,6 +18,13 @@ const report = ref(null)
 const isLoading = ref(true)
 const error = ref('')
 const exporting = ref(false)
+
+const videoSrc = computed(() => {
+  if (!report.value) return ''
+  const base = import.meta.env.VITE_API_BASE_URL
+  const token = getAuthToken()
+  return `${base}/videos/${report.value.video.id}/stream?token=${encodeURIComponent(token)}`
+})
 
 onMounted(async () => {
   try {
@@ -64,7 +71,7 @@ async function handleExport(format) {
       />
 
       <VideoOverlay
-        :video-id="report.video.id"
+        :video-src="videoSrc"
         :charts="report.charts"
         :duration="report.video.duration"
       />

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 defineProps({
   displayName: { type: String, default: 'User' },
@@ -8,10 +8,25 @@ defineProps({
 defineEmits(['logout'])
 
 const open = ref(false)
+const dropdownRef = ref(null)
+
+function handleClickOutside(e) {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+    open.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <template>
-  <div class="relative">
+  <div ref="dropdownRef" class="relative">
     <button
       @click="open = !open"
       class="flex items-center gap-2 text-sm text-body hover:text-heading transition-colors"

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { formatTime } from '@/utils/formatters.js'
 
 const props = defineProps({
   segments: { type: Array, required: true },
@@ -29,15 +30,9 @@ function segmentStyle(seg) {
 }
 
 function segmentColor(severity) {
-  if (severity === 'high') return 'bg-red-500'
-  if (severity === 'medium') return 'bg-orange-500'
-  return 'bg-yellow-500'
-}
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
+  if (severity === 'high') return 'bg-error'
+  if (severity === 'medium') return 'bg-warning'
+  return 'bg-warning/60'
 }
 </script>
 
@@ -77,13 +72,13 @@ function formatTime(seconds) {
     <!-- Legend -->
     <div class="flex gap-6 mt-4 text-xs text-muted">
       <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-red-500" /> High
+        <span class="w-3 h-3 rounded-full bg-error" /> High
       </span>
       <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-orange-500" /> Medium
+        <span class="w-3 h-3 rounded-full bg-warning" /> Medium
       </span>
       <span class="flex items-center gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-yellow-500" /> Low
+        <span class="w-3 h-3 rounded-full bg-warning/60" /> Low
       </span>
     </div>
   </div>

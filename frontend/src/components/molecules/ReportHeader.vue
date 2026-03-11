@@ -1,22 +1,16 @@
 <script setup>
 import { computed } from 'vue'
 import SeverityBadge from '@/components/atoms/SeverityBadge.vue'
+import { formatTime, formatDate } from '@/utils/formatters.js'
 
 const props = defineProps({
   video: { type: Object, required: true },
   riskLevel: { type: String, required: true },
 })
 
-const formattedDuration = computed(() => {
-  const sec = props.video.duration || 0
-  const m = Math.floor(sec / 60)
-  const s = Math.round(sec % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-})
+const formattedDuration = computed(() => formatTime(props.video.duration || 0))
 
-const formattedDate = computed(() => {
-  return new Date(props.video.uploadedAt).toLocaleDateString()
-})
+const formattedDate = computed(() => formatDate(props.video.uploadedAt))
 </script>
 
 <template>

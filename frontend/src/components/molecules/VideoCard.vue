@@ -4,6 +4,7 @@ import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import SeverityBadge from '@/components/atoms/SeverityBadge.vue'
 import ProgressBar from '@/components/atoms/ProgressBar.vue'
+import { formatSize, formatDuration, formatDate } from '@/utils/formatters.js'
 
 const props = defineProps({
   video: { type: Object, required: true },
@@ -12,23 +13,6 @@ const props = defineProps({
 const emit = defineEmits(['delete', 'reanalyze'])
 
 const confirmingDelete = ref(false)
-
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / 1048576).toFixed(1) + ' MB'
-}
-
-function formatDuration(seconds) {
-  if (!seconds) return '--'
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString()
-}
 </script>
 
 <template>

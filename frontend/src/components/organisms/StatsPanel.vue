@@ -8,25 +8,25 @@ const props = defineProps({
 
 const flashEventsColor = computed(() => {
   const v = props.summary.totalFlashEvents
-  if (v > 50) return 'text-red-400'
-  if (v > 20) return 'text-orange-400'
-  return 'text-green-400'
+  if (v > 50) return 'text-error'
+  if (v > 20) return 'text-warning'
+  return 'text-success'
 })
 
 const flashFreqColor = computed(() => {
   const v = props.summary.highestFlashFrequency
-  if (v > 10) return 'text-red-400'
-  if (v > 5) return 'text-orange-400'
-  if (v > 3) return 'text-yellow-400'
-  return 'text-green-400'
+  if (v > 10) return 'text-error'
+  if (v > 5) return 'text-warning'
+  if (v > 3) return 'text-warning'
+  return 'text-success'
 })
 
 const motionColor = computed(() => {
   const v = props.summary.averageMotionIntensity
-  if (v > 120) return 'text-red-400'
-  if (v > 60) return 'text-orange-400'
-  if (v > 30) return 'text-yellow-400'
-  return 'text-green-400'
+  if (v > 120) return 'text-error'
+  if (v > 60) return 'text-warning'
+  if (v > 30) return 'text-warning'
+  return 'text-success'
 })
 </script>
 
