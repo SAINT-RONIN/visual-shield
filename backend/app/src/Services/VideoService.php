@@ -179,10 +179,13 @@ class VideoService
         $video = $this->findUserVideoOrFail($userId, $videoId);
         $filePath = $this->resolveVideoFilePathOrFail($video->storedPath);
 
+        $fileSize = filesize($filePath);
+        $contentType = $this->detectVideoContentType($filePath);
+
         return new StreamInfo(
             filePath: $filePath,
-            fileSize: filesize($filePath),
-            contentType: $this->detectVideoContentType($filePath),
+            fileSize: $fileSize,
+            contentType: $contentType,
         );
     }
 

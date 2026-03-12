@@ -90,7 +90,9 @@ class VideoRepository
         $stmt->bindValue('offset', $filters->offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        return array_map(fn(array $row) => Video::fromRow($row), $stmt->fetchAll());
+        $rows = $stmt->fetchAll();
+
+        return array_map(fn(array $videoRow) => Video::fromRow($videoRow), $rows);
     }
 
     /**

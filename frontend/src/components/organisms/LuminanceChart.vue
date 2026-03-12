@@ -11,18 +11,18 @@ const props = defineProps({
 })
 
 const chartData = computed(() => ({
-  labels: props.data.map((d) => d.time.toFixed(0) + 's'),
+  labels: props.data.map((point) => point.time.toFixed(0) + 's'),
   datasets: [
     {
       label: 'Luminance',
-      data: props.data.map((d) => d.luminance),
+      data: props.data.map((point) => point.luminance),
       borderColor: chartColors.luminance,
       backgroundColor: chartColors.luminanceFill,
       fill: true,
       tension: 0.3,
-      pointRadius: props.data.map((d) => (d.flashDetected ? 4 : 0)),
-      pointBackgroundColor: props.data.map((d) => (d.flashDetected ? chartColors.threshold : 'transparent')),
-      pointBorderColor: props.data.map((d) => (d.flashDetected ? chartColors.threshold : 'transparent')),
+      pointRadius: props.data.map((point) => (point.flashDetected ? 4 : 0)),
+      pointBackgroundColor: props.data.map((point) => (point.flashDetected ? chartColors.threshold : 'transparent')),
+      pointBorderColor: props.data.map((point) => (point.flashDetected ? chartColors.threshold : 'transparent')),
     },
   ],
 }))

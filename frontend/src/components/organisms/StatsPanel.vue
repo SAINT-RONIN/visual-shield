@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import StatCard from '@/components/atoms/StatCard.vue'
 import { metricColors } from '@/utils/colors.js'
 
@@ -9,6 +10,25 @@ const props = defineProps({
 const FLASH_COLOR = metricColors.flash
 const MOTION_COLOR = metricColors.motion
 const SAMPLING_COLOR = metricColors.sampling
+
+const highestFlashFrequency = computed(() => {
+  const value = props.summary.highestFlashFrequency != null
+    ? props.summary.highestFlashFrequency.toFixed(1)
+    : '0.0'
+  return value + ' Hz'
+})
+
+const averageMotionIntensity = computed(() => {
+  const value = props.summary.averageMotionIntensity != null
+    ? props.summary.averageMotionIntensity.toFixed(1)
+    : '0.0'
+  return value + '/255'
+})
+
+const samplingRate = computed(() => {
+  const value = props.summary.effectiveSamplingRate || '--'
+  return value + ' FPS'
+})
 </script>
 
 <template>
@@ -27,7 +47,7 @@ const SAMPLING_COLOR = metricColors.sampling
 
     <StatCard
       label="Highest Flash Freq."
-      :value="(summary.highestFlashFrequency != null ? summary.highestFlashFrequency.toFixed(1) : '0.0') + ' Hz'"
+      :value="highestFlashFrequency"
       :color="FLASH_COLOR"
     >
       <template #icon>
@@ -39,7 +59,7 @@ const SAMPLING_COLOR = metricColors.sampling
 
     <StatCard
       label="Avg Motion Intensity"
-      :value="(summary.averageMotionIntensity != null ? summary.averageMotionIntensity.toFixed(1) : '0.0') + '/255'"
+      :value="averageMotionIntensity"
       :color="MOTION_COLOR"
     >
       <template #icon>
@@ -51,7 +71,7 @@ const SAMPLING_COLOR = metricColors.sampling
 
     <StatCard
       label="Sampling Rate"
-      :value="(summary.effectiveSamplingRate || '--') + ' FPS'"
+      :value="samplingRate"
       :color="SAMPLING_COLOR"
     >
       <template #icon>

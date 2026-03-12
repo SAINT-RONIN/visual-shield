@@ -37,8 +37,10 @@ class UpdateProfileDTO
      */
     public static function fromArray(array $data): self
     {
+        $displayName = isset($data['displayName']) ? trim($data['displayName']) : null;
+
         return new self(
-            displayName: isset($data['displayName']) ? trim($data['displayName']) : null
+            displayName: $displayName,
         );
     }
 }

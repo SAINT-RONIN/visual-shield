@@ -55,9 +55,8 @@ class AnalysisService
         $this->videoRepo->updateProgress($videoId, 5, 'Starting analysis...');
 
         try {
-            $this->analyze($videoId, function (int $pct, string $msg) use ($videoId) {
-                $this->videoRepo->updateProgress($videoId, $pct, $msg);
-            });
+            $onProgress = fn(int $percent, string $message) => $this->videoRepo->updateProgress($videoId, $percent, $message);
+            $this->analyze($videoId, $onProgress);
             $this->videoRepo->updateProgress($videoId, 100, 'Completed');
             $this->videoRepo->updateStatus($videoId, 'completed');
         } catch (\Throwable $e) {
@@ -319,13 +318,16 @@ class AnalysisService
 
         for ($second = 0; $second < $totalSeconds; $second++) {
             $flashFrequency = $flashBySecond[$second] ?? 0.0;
+            $motionIntensity = $motionBySecond[$second] ?? 0.0;
+            $luminance = $luminanceBySecond[$second] ?? 0.0;
+            $flashDetected = $flashFrequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER;
 
             $datapoints[] = new DatapointData(
                 timePoint: (float) $second,
                 flashFrequency: $flashFrequency,
-                motionIntensity: $motionBySecond[$second] ?? 0.0,
-                luminance: $luminanceBySecond[$second] ?? 0.0,
-                flashDetected: $flashFrequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER,
+                motionIntensity: $motionIntensity,
+                luminance: $luminance,
+                flashDetected: $flashDetected,
             );
         }
 

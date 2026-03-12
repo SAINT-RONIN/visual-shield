@@ -86,7 +86,7 @@ class ReportController extends BaseController
             $segmentFilters = SegmentFilterDTO::fromQuery($_GET);
             $segments = $this->reportService->getSegments($userId, $videoId, $segmentFilters);
             $this->jsonResponse([
-                'data' => array_map(fn(FlaggedSegment $s) => $s->toApiArray(), $segments),
+                'data' => array_map(fn(FlaggedSegment $segment) => $segment->toApiArray(), $segments),
             ]);
         });
     }
@@ -98,7 +98,7 @@ class ReportController extends BaseController
             $userId = $this->getAuthenticatedUserId();
             $datapoints = $this->reportService->getDatapoints($userId, $videoId);
             $this->jsonResponse([
-                'data' => array_map(fn(AnalysisDatapoint $dp) => $dp->toApiArray(), $datapoints),
+                'data' => array_map(fn(AnalysisDatapoint $datapoint) => $datapoint->toApiArray(), $datapoints),
             ]);
         });
     }
@@ -118,7 +118,7 @@ class ReportController extends BaseController
         return [
             'video' => $this->buildVideoSection($report),
             'summary' => $this->buildSummarySection($report),
-            'segments' => array_map(fn(FlaggedSegment $s) => $s->toApiArray(), $report->segments),
+            'segments' => array_map(fn(FlaggedSegment $segment) => $segment->toApiArray(), $report->segments),
             'charts' => $this->buildChartsSection($report),
         ];
     }

@@ -85,10 +85,9 @@ class AnalysisDatapointRepository
         );
         $stmt->execute([$videoId]);
 
-        return array_map(
-            fn(array $row) => AnalysisDatapoint::fromRow($row),
-            $stmt->fetchAll(),
-        );
+        $rows = $stmt->fetchAll();
+
+        return array_map(fn(array $datapointRow) => AnalysisDatapoint::fromRow($datapointRow), $rows);
     }
 
     /**
@@ -121,14 +120,14 @@ class AnalysisDatapointRepository
         $placeholders = [];
         $values = [];
 
-        foreach ($chunk as $dp) {
+        foreach ($chunk as $datapoint) {
             $placeholders[] = '(?, ?, ?, ?, ?, ?)';
             $values[] = $videoId;
-            $values[] = $dp->timePoint;
-            $values[] = $dp->flashFrequency;
-            $values[] = $dp->motionIntensity;
-            $values[] = $dp->luminance;
-            $values[] = $dp->flashDetected ? 1 : 0;
+            $values[] = $datapoint->timePoint;
+            $values[] = $datapoint->flashFrequency;
+            $values[] = $datapoint->motionIntensity;
+            $values[] = $datapoint->luminance;
+            $values[] = $datapoint->flashDetected ? 1 : 0;
         }
 
         $sql = 'INSERT INTO analysis_datapoints

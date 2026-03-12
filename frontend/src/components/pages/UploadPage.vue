@@ -34,9 +34,9 @@ async function handleSubmit({ file, samplingRate }) {
   formData.append('samplingRate', samplingRate)
 
   try {
-    await uploadVideo(formData, (e) => {
-      if (e.total) {
-        progress.value = Math.round((e.loaded / e.total) * 100)
+    await uploadVideo(formData, (progressEvent) => {
+      if (progressEvent.total) {
+        progress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
       }
     })
     showToast('Video uploaded successfully', 'success')

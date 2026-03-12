@@ -62,7 +62,8 @@ class UploadVideoDTO
         }
 
         // Accept both camelCase and snake_case key names
-        $rate = (int) ($postData['samplingRate'] ?? $postData['sampling_rate'] ?? 0);
+        $rawRate = $postData['samplingRate'] ?? $postData['sampling_rate'] ?? 0;
+        $rate = (int) $rawRate;
 
         if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             throw new ValidationException(

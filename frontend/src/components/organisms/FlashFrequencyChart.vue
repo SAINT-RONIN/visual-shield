@@ -12,11 +12,11 @@ const props = defineProps({
 })
 
 const chartData = computed(() => ({
-  labels: props.data.map((d) => d.time.toFixed(0) + 's'),
+  labels: props.data.map((point) => point.time.toFixed(0) + 's'),
   datasets: [
     {
       label: 'Flash Frequency (Hz)',
-      data: props.data.map((d) => d.frequency),
+      data: props.data.map((point) => point.frequency),
       borderColor: chartColors.flash,
       backgroundColor: chartColors.flashFill,
       fill: true,

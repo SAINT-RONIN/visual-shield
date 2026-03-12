@@ -113,7 +113,9 @@ class UserRepository
              FROM users ORDER BY created_at ASC'
         );
 
-        return array_map(fn(array $row) => User::fromRow($row), $stmt->fetchAll());
+        $rows = $stmt->fetchAll();
+
+        return array_map(fn(array $userRow) => User::fromRow($userRow), $rows);
     }
 
     /** Update a user's role and return the updated user, or null if the ID does not exist. */

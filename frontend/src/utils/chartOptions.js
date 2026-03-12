@@ -11,6 +11,17 @@ const axisTitleFont = { size: 11, weight: '500' }
  * @returns {Object} chart.js options
  */
 export function buildChartOptions(overrides = {}) {
+  const yAxisTitle = overrides.yLabel
+    ? {
+        title: {
+          display: true,
+          text: overrides.yLabel,
+          font: axisTitleFont,
+          color: chartColors.axisTitle,
+        },
+      }
+    : {}
+
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -37,16 +48,7 @@ export function buildChartOptions(overrides = {}) {
         beginAtZero: true,
         ticks: { color: chartColors.axis },
         grid: { color: chartColors.axisGrid },
-        ...(overrides.yLabel
-          ? {
-              title: {
-                display: true,
-                text: overrides.yLabel,
-                font: axisTitleFont,
-                color: chartColors.axisTitle,
-              },
-            }
-          : {}),
+        ...yAxisTitle,
         ...overrides.y,
       },
     },

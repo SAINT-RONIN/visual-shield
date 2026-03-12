@@ -64,14 +64,16 @@ const EQ_SEGMENT_COUNT = 72
 const eqLevels = reactive([0, 0, 0])
 
 const eqBars = computed(() => {
-  return graphs.map((graph, barIdx) => {
-    const litSegs = Math.round(eqLevels[barIdx] * EQ_SEGMENT_COUNT)
+  return graphs.map((graph, graphIndex) => {
+    const litSegmentCount = Math.round(eqLevels[graphIndex] * EQ_SEGMENT_COUNT)
 
     const segments = []
-    for (let segIdx = EQ_SEGMENT_COUNT - 1; segIdx >= 0; segIdx--) {
-      const isLit = segIdx < litSegs
+    for (let segmentIndex = EQ_SEGMENT_COUNT - 1; segmentIndex >= 0; segmentIndex--) {
+      const isLit = segmentIndex < litSegmentCount
       segments.push({
-        bg: isLit ? eqSegmentColor(segIdx, barIdx) : eqSegmentDimColor(segIdx, barIdx),
+        bg: isLit
+          ? eqSegmentColor(segmentIndex, graphIndex)
+          : eqSegmentDimColor(segmentIndex, graphIndex),
       })
     }
 
@@ -83,11 +85,11 @@ const eqBars = computed(() => {
 
 function getValues(key) {
   if (key === 'flashFrequency')
-    return props.charts.flashFrequency.map((d) => ({ time: d.time, value: d.frequency }))
+    return props.charts.flashFrequency.map((point) => ({ time: point.time, value: point.frequency }))
   if (key === 'motionIntensity')
-    return props.charts.motionIntensity.map((d) => ({ time: d.time, value: d.intensity }))
+    return props.charts.motionIntensity.map((point) => ({ time: point.time, value: point.intensity }))
   if (key === 'luminance')
-    return props.charts.luminance.map((d) => ({ time: d.time, value: d.luminance }))
+    return props.charts.luminance.map((point) => ({ time: point.time, value: point.luminance }))
   return []
 }
 
@@ -102,7 +104,7 @@ function getValues(key) {
 function getScaleMax(graphIndex) {
   const graph = graphs[graphIndex]
   const points = getValues(graph.key)
-  const dataMax = Math.max(...points.map((p) => p.value), 1)
+  const dataMax = Math.max(...points.map((point) => point.value), 1)
 
   if (graph.fixedScale) return graph.fixedScale
   if (graph.threshold) return Math.max(dataMax, graph.threshold * 2)
@@ -472,7 +474,7 @@ function draw() {
       if (points.length < 2) continue
 
       const maxVal = getScaleMax(gi)
-      const gDur = props.duration || Math.max(...points.map((p) => p.time), 1)
+      const gDur = props.duration || Math.max(...points.map((point) => point.time), 1)
 
       const normalized = toPixelPoints(points, w, h, maxVal, gDur)
       if (normalized[0].x > 0) normalized.unshift({ x: 0, y: normalized[0].y })
@@ -504,8 +506,15 @@ function togglePlay() {
   else v.pause()
 }
 
-function onPlay() { playing.value = true; startAnimLoop() }
-function onPause() { playing.value = false; stopAnimLoop() }
+function onPlay() {
+  playing.value = true
+  startAnimLoop()
+}
+
+function onPause() {
+  playing.value = false
+  stopAnimLoop()
+}
 
 function onTimeUpdate() {
   const v = videoRef.value
@@ -682,8 +691,15 @@ function showControls() {
   }
 }
 
-function onControlsEnter() { hoveringControls.value = true; controlsVisible.value = true }
-function onControlsLeave() { hoveringControls.value = false; showControls() }
+function onControlsEnter() {
+  hoveringControls.value = true
+  controlsVisible.value = true
+}
+
+function onControlsLeave() {
+  hoveringControls.value = false
+  showControls()
+}
 
 // ── Canvas sizing ─────────────────────────────────
 

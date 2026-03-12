@@ -9,7 +9,7 @@ export function useToast() {
     const id = nextId++
     toasts.value.push({ id, message, type })
     const timeoutId = setTimeout(() => {
-      toasts.value = toasts.value.filter(t => t.id !== id)
+      toasts.value = toasts.value.filter(toast => toast.id !== id)
       timeoutMap.delete(id)
     }, 4000)
     timeoutMap.set(id, timeoutId)
@@ -21,7 +21,7 @@ export function useToast() {
       clearTimeout(timeoutId)
       timeoutMap.delete(id)
     }
-    toasts.value = toasts.value.filter(t => t.id !== id)
+    toasts.value = toasts.value.filter(toast => toast.id !== id)
   }
 
   return { toasts, showToast, removeToast }
