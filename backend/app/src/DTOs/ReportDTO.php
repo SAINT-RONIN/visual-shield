@@ -11,100 +11,77 @@ use App\Models\Video;
 use App\Utils\RiskLevel;
 
 /**
- * Immutable value object that transforms typed models into a
- * frontend-friendly report structure with video, summary, segments,
- * and charts sections.
+ * Immutable value object that holds the typed models needed for a report
+ * and serialises them into a frontend-friendly structure on demand.
  *
- * Centralises all the reshaping so every consumer (API endpoint,
- * JSON export, CSV export) receives an identical structure.
+ * Storing typed models (rather than pre-serialised arrays) keeps the DTO
+ * honest about what it contains and ensures serialisation happens in one
+ * place — toArray() — instead of being scattered across factory methods.
  */
 class ReportDTO
 {
     /**
-     * @param array $video    Formatted video metadata (id, originalName, duration, etc.).
-     * @param array $summary  Aggregated metrics and overall risk level.
-     * @param array $segments Hazardous time-range entries (flash/motion).
-     * @param array $charts   Time-series arrays for Chart.js (flashFrequency, motionIntensity, luminance).
-     */
-    public function __construct(
-        public readonly array $video,
-        public readonly array $summary,
-        public readonly array $segments,
-        public readonly array $charts,
-    ) {}
-
-    /**
-     * Build a complete ReportDTO from typed models.
-     *
      * @param Video               $video          The video record.
      * @param AnalysisResult|null $analysisResult The summary metrics (null if not yet analysed).
      * @param FlaggedSegment[]    $segments       Flagged time segments.
      * @param AnalysisDatapoint[] $datapoints     Per-second chart data.
      */
-    public static function fromData(
-        Video $video,
-        ?AnalysisResult $analysisResult,
-        array $segments,
-        array $datapoints,
-    ): self {
-        return new self(
-            video: self::buildVideoData($video, $analysisResult),
-            summary: self::buildSummary($analysisResult, $segments),
-            segments: self::formatSegments($segments),
-            charts: self::buildCharts($datapoints),
-        );
-    }
+    public function __construct(
+        public readonly Video $video,
+        public readonly ?AnalysisResult $analysisResult,
+        public readonly array $segments,
+        public readonly array $datapoints,
+    ) {}
 
     /**
      * Serialise the report to a plain associative array.
      *
-     * Used by both the API JSON response and the downloadable export.
+     * This is the single point of serialisation — toApiArray() is called
+     * on every model here, never earlier (not in the service, not in a
+     * factory method).
      */
     public function toArray(): array
     {
         return [
-            'video' => $this->video,
-            'summary' => $this->summary,
-            'segments' => $this->segments,
-            'charts' => $this->charts,
+            'video' => $this->buildVideoData(),
+            'summary' => $this->buildSummary(),
+            'segments' => array_map(fn(FlaggedSegment $s) => $s->toApiArray(), $this->segments),
+            'charts' => $this->buildCharts(),
         ];
     }
 
     // ──────────────────────────────────────────────
-    //  Section builders
+    //  Section builders (serialisation only)
     // ──────────────────────────────────────────────
 
     /** Build the video metadata section of the report. */
-    private static function buildVideoData(Video $video, ?AnalysisResult $analysisResult): array
+    private function buildVideoData(): array
     {
         return [
-            'id' => $video->id,
-            'originalName' => $video->originalName,
-            'duration' => $video->durationSeconds ?? 0.0,
-            'samplingRate' => $video->samplingRate,
-            'effectiveSamplingRate' => $analysisResult?->effectiveSamplingRate ?? $video->samplingRate,
-            'uploadedAt' => $video->createdAt,
-            'status' => $video->status,
+            'id' => $this->video->id,
+            'originalName' => $this->video->originalName,
+            'duration' => $this->video->durationSeconds ?? 0.0,
+            'samplingRate' => $this->video->samplingRate,
+            'effectiveSamplingRate' => $this->analysisResult?->effectiveSamplingRate ?? $this->video->samplingRate,
+            'uploadedAt' => $this->video->createdAt,
+            'status' => $this->video->status,
         ];
     }
 
     /**
      * Compute aggregate summary metrics including the overall risk level.
-     *
-     * @param AnalysisResult|null $analysisResult Summary metrics.
-     * @param FlaggedSegment[]    $segments       Used for severity counting.
      */
-    private static function buildSummary(?AnalysisResult $analysisResult, array $segments): array
+    private function buildSummary(): array
     {
-        $totalFlash = $analysisResult?->totalFlashEvents ?? 0;
-        $highestFreq = $analysisResult?->highestFlashFrequency ?? 0.0;
-        $avgMotion = $analysisResult?->averageMotionIntensity ?? 0.0;
+        $totalFlash = $this->analysisResult?->totalFlashEvents ?? 0;
+        $highestFreq = $this->analysisResult?->highestFlashFrequency ?? 0.0;
+        $avgMotion = $this->analysisResult?->averageMotionIntensity ?? 0.0;
 
         return [
             'totalFlashEvents' => $totalFlash,
             'highestFlashFrequency' => $highestFreq,
             'averageMotionIntensity' => $avgMotion,
-            'overallRiskLevel' => self::calculateRiskLevel($highestFreq, $avgMotion, $segments),
+            'overallRiskLevel' => $this->calculateRiskLevel($highestFreq, $avgMotion),
             'flashEventsRisk' => RiskLevel::colorForFlashCount($totalFlash),
             'flashFrequencyRisk' => RiskLevel::colorForFlashFrequency($highestFreq),
             'motionIntensityRisk' => RiskLevel::colorForMotionIntensity($avgMotion),
@@ -114,15 +91,13 @@ class ReportDTO
 
     /**
      * Count segment severities and delegate to the shared RiskLevel utility.
-     *
-     * @param FlaggedSegment[] $segments Typed segment objects.
      */
-    private static function calculateRiskLevel(float $highestFreq, float $avgMotion, array $segments): string
+    private function calculateRiskLevel(float $highestFreq, float $avgMotion): string
     {
         $highSegments = 0;
         $mediumSegments = 0;
 
-        foreach ($segments as $segment) {
+        foreach ($this->segments as $segment) {
             if ($segment->severity === 'high') {
                 $highSegments++;
             } elseif ($segment->severity === 'medium') {
@@ -135,38 +110,20 @@ class ReportDTO
             $avgMotion,
             $highSegments,
             $mediumSegments,
-            count($segments),
+            count($this->segments),
         );
     }
 
     /**
-     * Convert FlaggedSegment models into camelCase frontend arrays.
-     *
-     * @param FlaggedSegment[] $segments Typed segment objects.
-     */
-    private static function formatSegments(array $segments): array
-    {
-        $formatted = [];
-
-        foreach ($segments as $segment) {
-            $formatted[] = $segment->toApiArray();
-        }
-
-        return $formatted;
-    }
-
-    /**
      * Split AnalysisDatapoint models into three Chart.js-compatible time series.
-     *
-     * @param AnalysisDatapoint[] $datapoints Typed datapoint objects.
      */
-    private static function buildCharts(array $datapoints): array
+    private function buildCharts(): array
     {
         $flashFrequency = [];
         $motionIntensity = [];
         $luminance = [];
 
-        foreach ($datapoints as $datapoint) {
+        foreach ($this->datapoints as $datapoint) {
             $flashFrequency[] = ['time' => $datapoint->timePoint, 'frequency' => $datapoint->flashFrequency];
             $motionIntensity[] = ['time' => $datapoint->timePoint, 'intensity' => $datapoint->motionIntensity];
             $luminance[] = [

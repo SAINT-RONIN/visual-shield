@@ -26,6 +26,20 @@ export function formatDate(dateStr) {
 }
 
 /**
+ * Format a date string with abbreviated month (e.g. "Jan 1, 2025").
+ * @param {string} dateStr
+ * @returns {string}
+ */
+export function formatDateShort(dateStr) {
+  if (!dateStr) return '--'
+  return new Date(dateStr).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+/**
  * Format byte count into human-readable size.
  * @param {number} bytes
  * @returns {string}

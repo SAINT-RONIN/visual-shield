@@ -1,14 +1,14 @@
 <script setup>
 import StatCard from '@/components/atoms/StatCard.vue'
+import { metricColors } from '@/utils/colors.js'
 
 const props = defineProps({
   summary: { type: Object, required: true },
 })
 
-/** Fixed colors per metric type — matches UI-EXAMPLE exactly */
-const FLASH_COLOR = '#ef4444'
-const MOTION_COLOR = '#f59e0b'
-const SAMPLING_COLOR = '#22c55e'
+const FLASH_COLOR = metricColors.flash
+const MOTION_COLOR = metricColors.motion
+const SAMPLING_COLOR = metricColors.sampling
 </script>
 
 <template>

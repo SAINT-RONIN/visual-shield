@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
 
 /**
@@ -27,8 +28,8 @@ class MotionDetector
     /**
      * Analyze pre-computed frame data for excessive motion.
      *
-     * @param  array $perFrameData Each frame's luminance and motion data (from AnalysisService).
-     * @param  int   $samplingRate How many frames per second were extracted.
+     * @param  FrameData[] $perFrameData Each frame's luminance and motion data (from AnalysisService).
+     * @param  int         $samplingRate How many frames per second were extracted.
      * @return MotionAnalysisResult Contains average intensity, flagged segments, and per-second data.
      */
     public function detectFromData(array $perFrameData, int $samplingRate): MotionAnalysisResult
@@ -49,6 +50,8 @@ class MotionDetector
      *
      * Frame 0 is skipped because motion is measured as the difference
      * between two consecutive frames, and frame 0 has no predecessor.
+     *
+     * @param FrameData[] $perFrameData
      */
     private function calculateMotionPerSecond(array $perFrameData, int $samplingRate): array
     {
@@ -68,7 +71,11 @@ class MotionDetector
         return $perSecondResults;
     }
 
-    /** Calculate the average motion intensity for frames within a specific second. */
+    /**
+     * Calculate the average motion intensity for frames within a specific second.
+     *
+     * @param FrameData[] $perFrameData
+     */
     private function averageMotionInSecond(
         array $perFrameData,
         int $second,
@@ -87,7 +94,7 @@ class MotionDetector
                 continue;
             }
 
-            $sum += $perFrameData[$frame]['motionIntensity'];
+            $sum += $perFrameData[$frame]->motionIntensity;
             $count++;
         }
 

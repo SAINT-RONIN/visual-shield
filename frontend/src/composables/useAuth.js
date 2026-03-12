@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import api, { setAuthToken } from '@/utils/api.js'
+import { setAuthToken } from '@/utils/api.js'
 
 const user = ref(null)
 const token = ref(localStorage.getItem('auth_token'))
@@ -11,44 +11,24 @@ if (token.value) {
 const isLoggedIn = computed(() => !!token.value)
 const isAdmin = computed(() => user.value?.role === 'admin')
 
-async function login(username, password) {
-  const { data } = await api.post('/auth/login', { username, password })
-  token.value = data.token
-  user.value = data.user
-  localStorage.setItem('auth_token', data.token)
-  setAuthToken(data.token)
-  return data
+function setAuth(newToken, newUser) {
+  token.value = newToken
+  user.value = newUser
+  localStorage.setItem('auth_token', newToken)
+  setAuthToken(newToken)
 }
 
-async function register(username, password, displayName) {
-  const { data } = await api.post('/auth/register', { username, password, displayName })
-  return data
-}
-
-async function fetchProfile() {
-  const { data } = await api.get('/users/me')
-  user.value = data
-  return data
-}
-
-async function updateProfile(displayName) {
-  const { data } = await api.put('/users/me', { displayName })
-  user.value = data
-  return data
-}
-
-async function logout() {
-  try {
-    await api.post('/auth/logout')
-  } catch {
-    // Ignore logout errors
-  }
+function clearAuth() {
   token.value = null
   user.value = null
   localStorage.removeItem('auth_token')
   setAuthToken(null)
 }
 
+function setUser(newUser) {
+  user.value = newUser
+}
+
 export function useAuth() {
-  return { user, token, isLoggedIn, isAdmin, login, register, fetchProfile, updateProfile, logout }
+  return { user, token, isLoggedIn, isAdmin, setAuth, clearAuth, setUser }
 }

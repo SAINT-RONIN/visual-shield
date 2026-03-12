@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
+import { eqZoneColors, eqZoneDimColors } from '@/utils/colors.js'
 
 const props = defineProps({
   videoSrc: { type: String, required: true },
@@ -421,9 +422,9 @@ function eqSegmentColor(segIndex, graphIndex) {
   const segValue = (segIndex / EQ_SEGMENT_COUNT) * scaleMax
   const t = graph.threshold
 
-  if (segValue < t) return '#22c55e'
-  if (segValue < t * 2) return '#fbbf24'
-  return '#ef4444'
+  if (segValue < t) return eqZoneColors.safe
+  if (segValue < t * 2) return eqZoneColors.warning
+  return eqZoneColors.danger
 }
 
 function eqSegmentDimColor(segIndex, graphIndex) {
@@ -434,9 +435,9 @@ function eqSegmentDimColor(segIndex, graphIndex) {
   const segValue = (segIndex / EQ_SEGMENT_COUNT) * scaleMax
   const t = graph.threshold
 
-  if (segValue < t) return 'rgba(34, 197, 94, 0.1)'
-  if (segValue < t * 2) return 'rgba(251, 191, 36, 0.1)'
-  return 'rgba(239, 68, 68, 0.1)'
+  if (segValue < t) return eqZoneDimColors.safe
+  if (segValue < t * 2) return eqZoneDimColors.warning
+  return eqZoneDimColors.danger
 }
 
 // ── Main draw function ────────────────────────────
@@ -732,6 +733,14 @@ onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', onFullscreenChange)
   stopAnimLoop()
   clearTimeout(hideTimeout)
+  window.removeEventListener('mousemove', scrubProgress)
+  window.removeEventListener('mouseup', onProgressMouseUp)
+  window.removeEventListener('mousemove', scrubVolume)
+  window.removeEventListener('mouseup', onVolumeMouseUp)
+  window.removeEventListener('mousemove', scrubGraphSlider)
+  window.removeEventListener('mouseup', onGraphSliderUp)
+  window.removeEventListener('mousemove', scrubGridSlider)
+  window.removeEventListener('mouseup', onGridSliderUp)
 })
 
 watch(() => props.charts, () => draw(), { deep: true })

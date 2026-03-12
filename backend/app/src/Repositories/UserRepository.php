@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Exceptions\NotFoundException;
 use App\Framework\Database;
 use App\Models\User;
 use PDO;
@@ -117,18 +116,12 @@ class UserRepository
         return array_map(fn(array $row) => User::fromRow($row), $stmt->fetchAll());
     }
 
-    /** Update a user's role and return the updated user. */
-    public function updateRole(int $id, string $role): User
+    /** Update a user's role and return the updated user, or null if the ID does not exist. */
+    public function updateRole(int $id, string $role): ?User
     {
         $stmt = $this->db->prepare('UPDATE users SET role = :role WHERE id = :id');
         $stmt->execute(['role' => $role, 'id' => $id]);
 
-        $user = $this->findById($id);
-
-        if (!$user) {
-            throw new NotFoundException('User not found');
-        }
-
-        return $user;
+        return $this->findById($id);
     }
 }

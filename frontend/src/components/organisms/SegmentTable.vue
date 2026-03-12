@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import SeverityBadge from '@/components/atoms/SeverityBadge.vue'
 import { formatTime } from '@/utils/formatters.js'
+import { segmentSortKeyMap } from '@/utils/reportHelpers.js'
 
 const props = defineProps({
   segments: { type: Array, required: true },
@@ -13,21 +14,12 @@ const emit = defineEmits(['sort'])
 
 const hasSegments = computed(() => props.segments.length > 0)
 
-// Map from API snake_case keys to frontend column keys for sort indicator matching
-const apiKeyMap = {
-  startTime: 'start_time',
-  endTime: 'end_time',
-  type: 'type',
-  severity: 'severity',
-  metricValue: 'metric_value',
-}
-
 function handleSort(columnKey) {
   emit('sort', columnKey)
 }
 
 function isActiveSort(columnKey) {
-  return props.sortField === apiKeyMap[columnKey]
+  return props.sortField === segmentSortKeyMap[columnKey]
 }
 
 const columns = [
@@ -111,8 +103,8 @@ const columns = [
         </thead>
         <tbody>
           <tr
-            v-for="(seg, i) in segments"
-            :key="i"
+            v-for="seg in segments"
+            :key="`${seg.startTime}-${seg.endTime}-${seg.type}`"
             class="border-b border-line transition-colors last:border-0 hover:bg-surface-alt/50"
           >
             <td class="px-5 py-3.5 text-heading">{{ formatTime(seg.startTime, true) }}</td>

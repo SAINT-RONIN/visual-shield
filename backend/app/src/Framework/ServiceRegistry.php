@@ -10,6 +10,7 @@ use App\Repositories\VideoRepository;
 use App\Repositories\AnalysisResultRepository;
 use App\Repositories\FlaggedSegmentRepository;
 use App\Repositories\AnalysisDatapointRepository;
+use App\Services\AdminService;
 use App\Services\AnalysisService;
 use App\Services\AuthService;
 use App\Services\FFprobeService;
@@ -37,6 +38,7 @@ class ServiceRegistry
     private static ?AnalysisResultRepository $analysisResultRepository = null;
     private static ?FlaggedSegmentRepository $flaggedSegmentRepository = null;
     private static ?AnalysisDatapointRepository $analysisDatapointRepository = null;
+    private static ?AdminService $adminService = null;
     private static ?AnalysisService $analysisService = null;
     private static ?AuthService $authService = null;
     private static ?VideoService $videoService = null;
@@ -110,6 +112,18 @@ class ServiceRegistry
     // ──────────────────────────────────────────────
     //  Services (lazy singletons, using cached repos)
     // ──────────────────────────────────────────────
+
+    /** Get the shared AdminService instance. */
+    public static function adminService(): AdminService
+    {
+        if (!self::$adminService) {
+            self::$adminService = new AdminService(
+                self::userRepository(),
+            );
+        }
+
+        return self::$adminService;
+    }
 
     /** Get the shared FFprobeService instance. */
     public static function ffprobeService(): FFprobeService
