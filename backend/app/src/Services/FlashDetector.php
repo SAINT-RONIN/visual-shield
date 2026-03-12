@@ -6,7 +6,11 @@ namespace App\Services;
 
 use App\Config\AnalysisConfig;
 use App\DTOs\FlashAnalysisResult;
+use App\DTOs\FlashSegmentAccumulator;
 use App\DTOs\FrameData;
+use App\DTOs\FrameFlashTags;
+use App\DTOs\PerSecondFlash;
+use App\DTOs\SegmentData;
 
 /**
  * Detects dangerous flash/strobe events in video frames.
@@ -54,9 +58,9 @@ class FlashDetector
      *
      * @param FrameData[] $perFrameData
      */
-    private function tagEachFrameAsFlashOrNot(array $perFrameData): array
+    private function tagEachFrameAsFlashOrNot(array $perFrameData): FrameFlashTags
     {
-        $flashTags = [];
+        $tags = [];
 
         foreach ($perFrameData as $frameIndex => $frame) {
             if ($frameIndex === 0) {
@@ -64,10 +68,10 @@ class FlashDetector
             }
 
             $brightnessChangedEnough = $frame->luminanceDiff >= AnalysisConfig::FLASH_THRESHOLD;
-            $flashTags[$frameIndex] = $brightnessChangedEnough ? 1 : 0;
+            $tags[$frameIndex] = $brightnessChangedEnough ? 1 : 0;
         }
 
-        return $flashTags;
+        return new FrameFlashTags(tags: $tags);
     }
 
     // ──────────────────────────────────────────────
@@ -79,8 +83,10 @@ class FlashDetector
      *
      * For example, at 10fps: frames 1–10 belong to second 0,
      * frames 11–20 belong to second 1, etc.
+     *
+     * @return PerSecondFlash[]
      */
-    private function countFlashesPerSecond(array $flashTags, int $samplingRate, int $totalFrames): array
+    private function countFlashesPerSecond(FrameFlashTags $flashTags, int $samplingRate, int $totalFrames): array
     {
         $totalSeconds = (int) ceil($totalFrames / $samplingRate);
         $perSecondCounts = [];
@@ -88,24 +94,24 @@ class FlashDetector
         for ($second = 0; $second < $totalSeconds; $second++) {
             $flashCount = $this->countFlashesInSecond($flashTags, $second, $samplingRate, $totalFrames);
 
-            $perSecondCounts[] = [
-                'second' => $second,
-                'frequency' => (float) $flashCount,
-            ];
+            $perSecondCounts[] = new PerSecondFlash(
+                second: $second,
+                frequency: (float) $flashCount,
+            );
         }
 
         return $perSecondCounts;
     }
 
     /** Count flash events within a specific 1-second window of frames. */
-    private function countFlashesInSecond(array $flashTags, int $second, int $samplingRate, int $totalFrames): int
+    private function countFlashesInSecond(FrameFlashTags $flashTags, int $second, int $samplingRate, int $totalFrames): int
     {
         $firstFrameInSecond = $second * $samplingRate + 1;
         $lastFrameInSecond = min(($second + 1) * $samplingRate, $totalFrames);
         $count = 0;
 
         for ($frame = $firstFrameInSecond; $frame < $lastFrameInSecond; $frame++) {
-            $count += $flashTags[$frame] ?? 0;
+            $count += $flashTags->tags[$frame] ?? 0;
         }
 
         return $count;
@@ -120,6 +126,9 @@ class FlashDetector
      *
      * For example, if seconds 5, 6, 7 are all dangerous, they become
      * one segment: { startTime: 5.0, endTime: 8.0 }.
+     *
+     * @param  PerSecondFlash[] $perSecondFrequencies
+     * @return SegmentData[]
      */
     private function groupDangerousSecondsIntoSegments(array $perSecondFrequencies): array
     {
@@ -127,24 +136,24 @@ class FlashDetector
         $currentSegment = null;
 
         foreach ($perSecondFrequencies as $entry) {
-            $isDangerous = $entry['frequency'] >= AnalysisConfig::FLASH_FREQUENCY_DANGER;
+            $isDangerous = $entry->frequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER;
 
             if ($isDangerous && $currentSegment === null) {
                 // Start a new segment
                 $currentSegment = $this->startNewSegment($entry);
             } elseif ($isDangerous && $currentSegment !== null) {
                 // Extend the current segment
-                $currentSegment = $this->extendSegment($currentSegment, $entry['frequency']);
+                $this->extendSegment($currentSegment, $entry->frequency);
             } elseif (!$isDangerous && $currentSegment !== null) {
                 // Close the current segment
-                $segments[] = $this->closeSegment($currentSegment, $entry['second']);
+                $segments[] = $this->closeSegment($currentSegment, $entry->second);
                 $currentSegment = null;
             }
         }
 
         // If the video ends while still in a dangerous segment, close it
         if ($currentSegment !== null) {
-            $lastSecond = end($perSecondFrequencies)['second'] + 1;
+            $lastSecond = end($perSecondFrequencies)->second + 1;
             $segments[] = $this->closeSegment($currentSegment, $lastSecond);
         }
 
@@ -155,31 +164,29 @@ class FlashDetector
     //  Segment building helpers
     // ──────────────────────────────────────────────
 
-    private function startNewSegment(array $entry): array
+    private function startNewSegment(PerSecondFlash $entry): FlashSegmentAccumulator
     {
-        return [
-            'startSecond' => $entry['second'],
-            'peakFrequency' => $entry['frequency'],
-        ];
+        return new FlashSegmentAccumulator(
+            startSecond: $entry->second,
+            peakFrequency: $entry->frequency,
+        );
     }
 
-    private function extendSegment(array $segment, float $frequency): array
+    private function extendSegment(FlashSegmentAccumulator $segment, float $frequency): void
     {
-        $segment['peakFrequency'] = max($segment['peakFrequency'], $frequency);
-
-        return $segment;
+        $segment->peakFrequency = max($segment->peakFrequency, $frequency);
     }
 
-    /** Convert a tracking segment into the final output format. */
-    private function closeSegment(array $segment, int $endSecond): array
+    /** Convert a tracking segment into a typed SegmentData output DTO. */
+    private function closeSegment(FlashSegmentAccumulator $segment, int $endSecond): SegmentData
     {
-        return [
-            'startTime' => (float) $segment['startSecond'],
-            'endTime' => (float) $endSecond,
-            'type' => 'flash',
-            'severity' => $this->classifySeverity($segment['peakFrequency']),
-            'metricValue' => round($segment['peakFrequency'], 2),
-        ];
+        return new SegmentData(
+            startTime: (float) $segment->startSecond,
+            endTime: (float) $endSecond,
+            type: 'flash',
+            severity: $this->classifySeverity($segment->peakFrequency),
+            metricValue: round($segment->peakFrequency, 2),
+        );
     }
 
     // ──────────────────────────────────────────────
@@ -187,25 +194,23 @@ class FlashDetector
     // ──────────────────────────────────────────────
 
     /** Add up all the flash events across every frame. */
-    private function countTotalFlashEvents(array $flashTags): int
+    private function countTotalFlashEvents(FrameFlashTags $flashTags): int
     {
-        $total = 0;
-
-        foreach ($flashTags as $isFlash) {
-            $total += $isFlash;
-        }
-
-        return $total;
+        return $flashTags->count();
     }
 
-    /** Find the highest flash-per-second value across all seconds. */
+    /**
+     * Find the highest flash-per-second value across all seconds.
+     *
+     * @param PerSecondFlash[] $perSecondFrequencies
+     */
     private function findHighestFrequency(array $perSecondFrequencies): float
     {
         $highest = 0.0;
 
         foreach ($perSecondFrequencies as $entry) {
-            if ($entry['frequency'] > $highest) {
-                $highest = $entry['frequency'];
+            if ($entry->frequency > $highest) {
+                $highest = $entry->frequency;
             }
         }
 

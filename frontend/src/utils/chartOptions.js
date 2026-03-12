@@ -1,5 +1,6 @@
+import { chartColors } from '@/utils/colors.js'
+
 const axisTitleFont = { size: 11, weight: '500' }
-const axisTitleColor = 'rgba(107, 114, 128, 0.75)'
 
 /**
  * Build standard chart options used across all analysis charts.
@@ -23,26 +24,26 @@ export function buildChartOptions(overrides = {}) {
     },
     scales: {
       x: {
-        ticks: { color: '#6b7280', maxTicksLimit: 10 },
-        grid: { color: 'rgba(107, 114, 128, 0.15)' },
+        ticks: { color: chartColors.axis, maxTicksLimit: 10 },
+        grid: { color: chartColors.axisGrid },
         title: {
           display: true,
           text: 'Time (s)',
           font: axisTitleFont,
-          color: axisTitleColor,
+          color: chartColors.axisTitle,
         },
       },
       y: {
         beginAtZero: true,
-        ticks: { color: '#6b7280' },
-        grid: { color: 'rgba(107, 114, 128, 0.15)' },
+        ticks: { color: chartColors.axis },
+        grid: { color: chartColors.axisGrid },
         ...(overrides.yLabel
           ? {
               title: {
                 display: true,
                 text: overrides.yLabel,
                 font: axisTitleFont,
-                color: axisTitleColor,
+                color: chartColors.axisTitle,
               },
             }
           : {}),

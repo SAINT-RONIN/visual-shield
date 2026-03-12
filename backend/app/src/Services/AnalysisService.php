@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\DTOs\DatapointData;
 use App\DTOs\FlashAnalysisResult;
 use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
+use App\DTOs\PerSecondLuminance;
 use App\Exceptions\NotFoundException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
@@ -63,6 +65,18 @@ class AnalysisService
             $this->videoRepo->updateStatus($videoId, 'failed');
             throw $e;
         }
+    }
+
+    /**
+     * Dequeue the next video waiting for analysis.
+     *
+     * Returns the oldest queued video, or null if the queue is empty.
+     * Encapsulates the repository call so worker.php has zero repository
+     * references.
+     */
+    public function dequeueNextVideo(): ?Video
+    {
+        return $this->videoRepo->findNextQueued();
     }
 
     /**
@@ -174,9 +188,9 @@ class AnalysisService
             $comparison = ImageAnalyzer::analyzeFramePair($previousFramePath, $currentFramePath);
 
             $results[] = new FrameData(
-                luminance: $comparison['luminance2'],
-                luminanceDiff: abs($comparison['luminance2'] - $comparison['luminance1']),
-                motionIntensity: $comparison['motionIntensity'],
+                luminance: $comparison->luminance2,
+                luminanceDiff: abs($comparison->luminance2 - $comparison->luminance1),
+                motionIntensity: $comparison->motionIntensity,
             );
         }
 
@@ -192,7 +206,8 @@ class AnalysisService
      *
      * For example, at 10fps: frames 0–9 become second 0, frames 10–19 become second 1, etc.
      *
-     * @param FrameData[] $perFrameData
+     * @param  FrameData[] $perFrameData
+     * @return PerSecondLuminance[]
      */
     private function calculateAverageLuminancePerSecond(array $perFrameData, int $samplingRate): array
     {
@@ -204,10 +219,10 @@ class AnalysisService
             $framesInThisSecond = $this->getFramesInSecond($perFrameData, $second, $samplingRate, $totalFrames);
             $averageLuminance = $this->averageFrameLuminance($framesInThisSecond);
 
-            $luminancePerSecond[] = [
-                'second' => $second,
-                'luminance' => round($averageLuminance, 2),
-            ];
+            $luminancePerSecond[] = new PerSecondLuminance(
+                second: $second,
+                luminance: round($averageLuminance, 2),
+            );
         }
 
         return $luminancePerSecond;
@@ -269,6 +284,11 @@ class AnalysisService
      *
      * Each second gets one row with flash frequency, motion intensity, and luminance.
      * We clear old data first so re-analysis replaces previous results.
+     *
+     * Lookup tables indexed by second number are built inline here for O(1) access
+     * and kept as local variables so no raw arrays cross method boundaries.
+     *
+     * @param PerSecondLuminance[] $luminancePerSecond
      */
     private function saveDatapoints(
         int $videoId,
@@ -278,54 +298,38 @@ class AnalysisService
     ): void {
         $this->datapointRepo->deleteByVideoId($videoId);
 
-        // Build lookup tables so we can quickly find each metric by second number
-        $flashBySecond = $this->indexArrayByKey($flashResult->perSecondFrequencies, 'second', 'frequency');
-        $motionBySecond = $this->indexArrayByKey($motionResult->perSecondIntensities, 'second', 'intensity');
-        $luminanceBySecond = $this->indexArrayByKey($luminancePerSecond, 'second', 'luminance');
-
-        $totalSeconds = max(count($flashBySecond), count($motionBySecond), count($luminanceBySecond), 1);
-        $mergedDatapoints = $this->buildMergedDatapoints($totalSeconds, $flashBySecond, $motionBySecond, $luminanceBySecond);
-
-        $this->datapointRepo->createBatch($videoId, $mergedDatapoints);
-    }
-
-    /**
-     * Convert an array of ['second' => 3, 'frequency' => 5.0] entries
-     * into a lookup like [3 => 5.0] for quick access by second number.
-     */
-    private function indexArrayByKey(array $entries, string $indexKey, string $valueKey): array
-    {
-        $indexed = [];
-
-        foreach ($entries as $entry) {
-            $indexed[$entry[$indexKey]] = $entry[$valueKey];
+        // Build lookup tables indexed by second number for O(1) access
+        $flashBySecond = [];
+        foreach ($flashResult->perSecondFrequencies as $entry) {
+            $flashBySecond[$entry->second] = $entry->frequency;
         }
 
-        return $indexed;
-    }
+        $motionBySecond = [];
+        foreach ($motionResult->perSecondIntensities as $entry) {
+            $motionBySecond[$entry->second] = $entry->intensity;
+        }
 
-    /** Combine flash, motion, and luminance data into one row per second. */
-    private function buildMergedDatapoints(
-        int $totalSeconds,
-        array $flashBySecond,
-        array $motionBySecond,
-        array $luminanceBySecond,
-    ): array {
+        $luminanceBySecond = [];
+        foreach ($luminancePerSecond as $entry) {
+            $luminanceBySecond[$entry->second] = $entry->luminance;
+        }
+
+        $totalSeconds = max(count($flashBySecond), count($motionBySecond), count($luminanceBySecond), 1);
         $datapoints = [];
 
         for ($second = 0; $second < $totalSeconds; $second++) {
             $flashFrequency = $flashBySecond[$second] ?? 0.0;
 
-            $datapoints[] = [
-                'timePoint' => (float) $second,
-                'flashFrequency' => $flashFrequency,
-                'motionIntensity' => $motionBySecond[$second] ?? 0.0,
-                'luminance' => $luminanceBySecond[$second] ?? 0.0,
-                'flashDetected' => $flashFrequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER,
-            ];
+            $datapoints[] = new DatapointData(
+                timePoint: (float) $second,
+                flashFrequency: $flashFrequency,
+                motionIntensity: $motionBySecond[$second] ?? 0.0,
+                luminance: $luminanceBySecond[$second] ?? 0.0,
+                flashDetected: $flashFrequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER,
+            );
         }
 
-        return $datapoints;
+        $this->datapointRepo->createBatch($videoId, $datapoints);
     }
 
     /**

@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
-import api from '@/utils/api.js'
+import { fetchConfig } from '@/api/config.js'
+import { logout } from '@/api/auth.js'
 import { useAuth } from '@/composables/useAuth.js'
 import { useConfig } from '@/composables/useConfig.js'
 import Header from '@/components/organisms/Header.vue'
@@ -17,7 +18,7 @@ const currentRoute = computed(() => route.name || '')
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/config')
+    const data = await fetchConfig()
     setConfig(data.data)
   } catch {
     // Config load failed silently
@@ -26,7 +27,7 @@ onMounted(async () => {
 
 async function handleLogout() {
   try {
-    await api.post('/auth/logout')
+    await logout()
   } catch {
     // Ignore logout errors
   }

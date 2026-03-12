@@ -13,12 +13,10 @@ namespace App\DTOs;
 class FlashAnalysisResult
 {
     /**
-     * @param int   $totalEvents          Total number of frames flagged as flash events.
-     * @param float $highestFrequency     Peak flashes-per-second observed in any 1s window.
-     * @param array $segments             Flagged time segments where flash rate exceeded the danger threshold.
-     *                                    Each entry: {startTime, endTime, type, severity, metricValue}.
-     * @param array $perSecondFrequencies Flash count per second across the entire video.
-     *                                    Each entry: {second, frequency}.
+     * @param int              $totalEvents          Total number of frames flagged as flash events.
+     * @param float            $highestFrequency     Peak flashes-per-second observed in any 1s window.
+     * @param SegmentData[]    $segments             Flagged time segments where flash rate exceeded the danger threshold.
+     * @param PerSecondFlash[] $perSecondFrequencies Flash count per second across the entire video.
      */
     public function __construct(
         public readonly int $totalEvents,

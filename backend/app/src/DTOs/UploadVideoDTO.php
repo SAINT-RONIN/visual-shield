@@ -27,11 +27,11 @@ use App\Exceptions\ValidationException;
 class UploadVideoDTO
 {
     /**
-     * @param array $file         Validated $_FILES entry (tmp_name, name, size, etc.).
-     * @param int   $samplingRate Frames-per-second rate from AnalysisConfig::ALLOWED_SAMPLING_RATES.
+     * @param UploadedFile $file         Validated file upload value object.
+     * @param int          $samplingRate Frames-per-second rate from AnalysisConfig::ALLOWED_SAMPLING_RATES.
      */
     public function __construct(
-        public readonly array $file,
+        public readonly UploadedFile $file,
         public readonly int $samplingRate,
     ) {}
 
@@ -47,7 +47,7 @@ class UploadVideoDTO
      * @param array $postData Raw $_POST data containing samplingRate / sampling_rate.
      * @return self            Validated, immutable DTO.
      *
-     * @throws \InvalidArgumentException If no file is received, upload failed, or sampling rate is invalid.
+     * @throws ValidationException If no file is received, upload failed, or sampling rate is invalid.
      */
     public static function fromRequest(array $fileData, array $postData): self
     {
@@ -70,7 +70,7 @@ class UploadVideoDTO
             );
         }
 
-        return new self($fileData, $rate);
+        return new self(UploadedFile::fromFilesArray($fileData), $rate);
     }
 
     /**

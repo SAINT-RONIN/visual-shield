@@ -1,4 +1,4 @@
-import api, { getAuthToken } from '@/utils/api.js'
+import api, { apiBaseUrl, getAuthToken } from '@/utils/api.js'
 
 /**
  * Fetch a paginated/filtered list of videos.
@@ -19,7 +19,59 @@ export async function fetchVideos(params = {}) {
  * @returns {string}
  */
 export function getVideoStreamUrl(videoId) {
-  const base = import.meta.env.VITE_API_BASE_URL
   const token = getAuthToken()
-  return `${base}/videos/${videoId}/stream?token=${encodeURIComponent(token)}`
+  return `${apiBaseUrl}/videos/${videoId}/stream?token=${encodeURIComponent(token)}`
+}
+
+/**
+ * Delete a video by ID.
+ * @param {string|number} id
+ */
+export async function deleteVideo(id) {
+  await api.delete(`/videos/${id}`)
+}
+
+/**
+ * Queue a video for re-analysis.
+ * @param {string|number} id
+ * @param {number} samplingRate
+ * @returns {Promise<Object>} updated video object
+ */
+export async function reanalyzeVideo(id, samplingRate) {
+  const { data } = await api.put(`/videos/${id}/reanalyze`, { samplingRate })
+  return data
+}
+
+/**
+ * Upload a new video.
+ * @param {FormData} formData
+ * @param {Function} onProgress - Axios onUploadProgress callback
+ */
+export async function uploadVideo(formData, onProgress) {
+  await api.post('/videos', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: onProgress,
+  })
+}
+
+/**
+ * Fetch the analysis report for a video.
+ * @param {string|number} videoId
+ * @param {Object} params - Query parameters (type, severity, segment_sort, segment_order)
+ * @returns {Promise<Object>} report data
+ */
+export async function fetchReport(videoId, params) {
+  const { data } = await api.get(`/videos/${videoId}/report`, { params })
+  return data
+}
+
+/**
+ * Export a report in the specified format.
+ * @param {string|number} videoId
+ * @param {string} format - 'json' or 'csv'
+ * @returns {Promise<Blob>}
+ */
+export async function exportReport(videoId, format) {
+  const response = await api.get(`/videos/${videoId}/report/${format}`, { responseType: 'blob' })
+  return response.data
 }

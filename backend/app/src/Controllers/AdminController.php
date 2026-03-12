@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Exceptions\ValidationException;
+use App\DTOs\UpdateUserRoleDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Models\User;
@@ -16,9 +16,6 @@ use App\Models\User;
  */
 class AdminController extends BaseController
 {
-    /** Roles that can be assigned via the updateUserRole endpoint. */
-    private const ASSIGNABLE_ROLES = ['admin', 'viewer'];
-
     /** List all users (admin only). */
     public function listUsers(): void
     {
@@ -41,15 +38,8 @@ class AdminController extends BaseController
             $this->getAuthenticatedUserId();
             $this->requireRole('admin');
 
-            $input = $this->getJsonBody();
-            $role = $input['role'] ?? '';
-
-            if (!in_array($role, self::ASSIGNABLE_ROLES, true)) {
-                $allowedRoles = implode(', ', self::ASSIGNABLE_ROLES);
-                throw new ValidationException("Invalid role. Allowed: {$allowedRoles}");
-            }
-
-            $user = ServiceRegistry::adminService()->updateUserRole($id, $role);
+            $dto = UpdateUserRoleDTO::fromArray($this->getJsonBody());
+            $user = ServiceRegistry::adminService()->updateUserRole($id, $dto->role);
 
             $this->jsonResponse(['data' => $user->toApiArray()]);
         });

@@ -63,18 +63,18 @@ class VideoService
      */
     public function handleUpload(int $userId, UploadVideoDTO $dto): Video
     {
-        $this->validateFileType($dto->file['tmp_name']);
-        $this->validateFileSize($dto->file['size']);
+        $this->validateFileType($dto->file->tmpName);
+        $this->validateFileSize($dto->file->size);
 
-        $duration = $this->extractVideoDuration($dto->file['tmp_name']);
+        $duration = $this->extractVideoDuration($dto->file->tmpName);
         $effectiveRate = $this->calculateSafeSamplingRate($duration, $dto->samplingRate);
-        $storedPath = $this->moveUploadToPermanentStorage($dto->file['tmp_name'], $dto->file['name']);
+        $storedPath = $this->moveUploadToPermanentStorage($dto->file->tmpName, $dto->file->name);
 
         $videoId = $this->videoRepo->create(
             $userId,
-            $dto->file['name'],
+            $dto->file->name,
             $storedPath,
-            $dto->file['size'],
+            $dto->file->size,
             $duration,
             $dto->samplingRate,
         );

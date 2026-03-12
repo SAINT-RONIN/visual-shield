@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\DTOs\DatapointData;
 use App\Framework\Database;
 use App\Models\AnalysisDatapoint;
 use PDO;
@@ -42,10 +43,8 @@ class AnalysisDatapointRepository
      * complete. The entire write is wrapped in a transaction so that a
      * failure mid-way does not leave partial data in the table.
      *
-     * @param  int   $videoId    The video these datapoints belong to.
-     * @param  array $datapoints Array of associative arrays, each containing
-     *                           timePoint, flashFrequency, motionIntensity,
-     *                           luminance, and flashDetected keys.
+     * @param  int             $videoId    The video these datapoints belong to.
+     * @param  DatapointData[] $datapoints Typed datapoint DTOs from AnalysisService.
      * @return void
      *
      * @throws \Throwable Re-throws any exception after rolling back.
@@ -113,8 +112,8 @@ class AnalysisDatapointRepository
      * Constructs a prepared statement with dynamic placeholders so that
      * up to BATCH_SIZE rows are inserted in one round-trip to the database.
      *
-     * @param  int   $videoId The owning video's ID (prepended to every row).
-     * @param  array $chunk   Subset of datapoints (max BATCH_SIZE items).
+     * @param  int             $videoId The owning video's ID (prepended to every row).
+     * @param  DatapointData[] $chunk   Subset of datapoints (max BATCH_SIZE items).
      * @return void
      */
     private function insertChunk(int $videoId, array $chunk): void
@@ -125,11 +124,11 @@ class AnalysisDatapointRepository
         foreach ($chunk as $dp) {
             $placeholders[] = '(?, ?, ?, ?, ?, ?)';
             $values[] = $videoId;
-            $values[] = $dp['timePoint'];
-            $values[] = $dp['flashFrequency'] ?? 0;
-            $values[] = $dp['motionIntensity'] ?? 0;
-            $values[] = $dp['luminance'] ?? 0;
-            $values[] = $dp['flashDetected'] ? 1 : 0;
+            $values[] = $dp->timePoint;
+            $values[] = $dp->flashFrequency;
+            $values[] = $dp->motionIntensity;
+            $values[] = $dp->luminance;
+            $values[] = $dp->flashDetected ? 1 : 0;
         }
 
         $sql = 'INSERT INTO analysis_datapoints

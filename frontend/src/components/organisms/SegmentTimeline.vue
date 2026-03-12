@@ -42,7 +42,7 @@ function capitalize(str) {
 
     <div class="relative overflow-x-auto">
       <!-- Time labels above bar -->
-      <div class="mb-2 flex justify-between text-muted min-w-0" style="font-size: 0.7rem">
+      <div class="mb-2 flex justify-between text-muted min-w-0 text-[0.7rem]">
         <span v-for="t in timeLabels" :key="t">{{ formatTime(t) }}</span>
       </div>
 
@@ -77,7 +77,7 @@ function capitalize(str) {
       </div>
 
       <!-- Legend -->
-      <div class="mt-3 flex gap-5" style="font-size: 0.7rem">
+      <div class="mt-3 flex gap-5 text-[0.7rem]">
         <span class="flex items-center gap-1.5 text-muted">
           <span class="h-2 w-2 rounded-sm bg-error" /> High
         </span>
@@ -85,7 +85,7 @@ function capitalize(str) {
           <span class="h-2 w-2 rounded-sm bg-warning" /> Medium
         </span>
         <span class="flex items-center gap-1.5 text-muted">
-          <span class="h-2 w-2 rounded-sm" style="background-color: #eab308" /> Low
+          <span class="h-2 w-2 rounded-sm bg-warning" /> Low
         </span>
       </div>
     </div>

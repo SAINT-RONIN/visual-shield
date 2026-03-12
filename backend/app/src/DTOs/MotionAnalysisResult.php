@@ -13,11 +13,9 @@ namespace App\DTOs;
 class MotionAnalysisResult
 {
     /**
-     * @param float $averageIntensity     Mean motion intensity across all seconds of the video.
-     * @param array $segments             Flagged time segments where motion exceeded the threshold.
-     *                                    Each entry: {startTime, endTime, type, severity, metricValue}.
-     * @param array $perSecondIntensities Average motion intensity per second across the entire video.
-     *                                    Each entry: {second, intensity}.
+     * @param float              $averageIntensity     Mean motion intensity across all seconds of the video.
+     * @param SegmentData[]      $segments             Flagged time segments where motion exceeded the threshold.
+     * @param PerSecondMotion[]  $perSecondIntensities Average motion intensity per second across the entire video.
      */
     public function __construct(
         public readonly float $averageIntensity,

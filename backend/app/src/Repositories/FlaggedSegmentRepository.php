@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;
 use App\Framework\Database;
 use App\Models\FlaggedSegment;
@@ -40,10 +41,8 @@ class FlaggedSegmentRepository
      * contiguous regions that exceed flash or motion thresholds. A no-op
      * when the segments array is empty (i.e. the video passed all checks).
      *
-     * @param  int   $videoId  The video these segments belong to.
-     * @param  array $segments Array of associative arrays, each containing
-     *                         startTime, endTime, type, severity, and
-     *                         optional metricValue keys.
+     * @param  int           $videoId  The video these segments belong to.
+     * @param  SegmentData[] $segments Typed segment DTOs from the detectors.
      * @return void
      */
     public function createBatch(int $videoId, array $segments): void
@@ -58,11 +57,11 @@ class FlaggedSegmentRepository
         foreach ($segments as $segment) {
             $placeholders[] = '(?, ?, ?, ?, ?, ?)';
             $values[] = $videoId;
-            $values[] = $segment['startTime'];
-            $values[] = $segment['endTime'];
-            $values[] = $segment['type'];
-            $values[] = $segment['severity'];
-            $values[] = $segment['metricValue'] ?? null;
+            $values[] = $segment->startTime;
+            $values[] = $segment->endTime;
+            $values[] = $segment->type;
+            $values[] = $segment->severity;
+            $values[] = $segment->metricValue;
         }
 
         $sql = 'INSERT INTO flagged_segments

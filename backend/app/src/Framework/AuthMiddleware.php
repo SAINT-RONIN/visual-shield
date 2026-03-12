@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Framework;
 
+use App\Exceptions\UnauthorizedException;
+
 /**
  * Stateless authentication middleware that validates bearer tokens.
  *
  * Extracts tokens from either the Authorization header or a query
  * parameter, resolves them to a user via AuthService, and caches
  * the authenticated user's role for downstream permission checks.
+ *
+ * All authentication methods are called inside controller methods that
+ * are wrapped in BaseController::handleRequest(). Throwing
+ * UnauthorizedException here lets handleRequest() catch it and map it
+ * to a 401 JSON response — the same contract as all other domain errors.
  */
 class AuthMiddleware
 {
@@ -29,7 +36,7 @@ class AuthMiddleware
         $token = self::extractBearerToken($header);
 
         if (!$token) {
-            self::sendUnauthorized('Missing or invalid Authorization header');
+            throw new UnauthorizedException('Missing or invalid Authorization header');
         }
 
         return self::resolveUserIdFromToken($token);
@@ -47,7 +54,7 @@ class AuthMiddleware
         $token = self::extractTokenFromHeaderOrQueryParam();
 
         if (!$token) {
-            self::sendUnauthorized('Unauthorized');
+            throw new UnauthorizedException('Unauthorized');
         }
 
         return self::resolveUserIdFromToken($token);
@@ -66,7 +73,7 @@ class AuthMiddleware
         $token = self::extractBearerToken($header);
 
         if (!$token) {
-            self::sendUnauthorized('Missing or invalid Authorization header');
+            throw new UnauthorizedException('Missing or invalid Authorization header');
         }
 
         return $token;
@@ -104,25 +111,17 @@ class AuthMiddleware
     //  Token validation
     // ──────────────────────────────────────────────
 
-    /** Validate a token and return the owning user's ID, or send 401. */
+    /** Validate a token and return the owning user's ID, or throw 401. */
     private static function resolveUserIdFromToken(string $token): int
     {
         $user = ServiceRegistry::authService()->getUserFromToken($token);
 
         if (!$user) {
-            self::sendUnauthorized('Invalid or expired token');
+            throw new UnauthorizedException('Invalid or expired token');
         }
 
         self::$authenticatedUserRole = $user->role;
 
         return $user->id;
-    }
-
-    private static function sendUnauthorized(string $message): never
-    {
-        http_response_code(401);
-        header('Content-Type: application/json');
-        echo json_encode(['error' => ['code' => 401, 'message' => $message]]);
-        exit;
     }
 }

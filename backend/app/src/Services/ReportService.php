@@ -63,17 +63,18 @@ class ReportService
     // ──────────────────────────────────────────────
 
     /**
-     * Export flagged segments as a CSV string for spreadsheet download.
+     * Return the flagged segments for a video, ready for CSV export.
      *
-     * Columns: Start Time, End Time, Type, Severity, Metric Value.
+     * Ownership is verified here. Serialisation (toCsvRow, fputcsv) is the
+     * controller's responsibility — this method returns typed objects only.
+     *
+     * @return FlaggedSegment[]
      */
-    public function exportAsCsv(int $userId, int $videoId): string
+    public function exportAsCsv(int $userId, int $videoId): array
     {
         $this->findUserVideoOrFail($userId, $videoId);
 
-        $segments = $this->segmentRepo->findByVideoId($videoId);
-
-        return $this->convertSegmentsToCsvString($segments);
+        return $this->segmentRepo->findByVideoId($videoId);
     }
 
     /** Export the full report as a ReportDTO for JSON serialization. */
@@ -129,59 +130,5 @@ class ReportService
         }
 
         return $video;
-    }
-
-    // ──────────────────────────────────────────────
-    //  CSV building
-    // ──────────────────────────────────────────────
-
-    /**
-     * Convert FlaggedSegment models into a CSV-formatted string.
-     *
-     * Uses php://temp (an in-memory stream) so we don't need to write
-     * a temporary file to disk — PHP handles it all in memory.
-     *
-     * @param FlaggedSegment[] $segments Typed segment objects.
-     */
-    private function convertSegmentsToCsvString(array $segments): string
-    {
-        $memoryStream = fopen('php://temp', 'r+');
-
-        $this->writeCsvHeaderRow($memoryStream);
-        $this->writeCsvDataRows($memoryStream, $segments);
-
-        $csvString = $this->readEntireStream($memoryStream);
-        fclose($memoryStream);
-
-        return $csvString;
-    }
-
-    /** @param resource $stream An open file handle to write the header into. */
-    private function writeCsvHeaderRow(mixed $stream): void
-    {
-        fputcsv($stream, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
-    }
-
-    /**
-     * @param resource         $stream   An open file handle to write segment rows into.
-     * @param FlaggedSegment[] $segments Typed segment objects.
-     */
-    private function writeCsvDataRows(mixed $stream, array $segments): void
-    {
-        foreach ($segments as $segment) {
-            fputcsv($stream, $segment->toCsvRow());
-        }
-    }
-
-    /**
-     * Rewind the stream to the beginning and read all its contents.
-     *
-     * @param resource $stream An open file handle to read from.
-     */
-    private function readEntireStream(mixed $stream): string
-    {
-        rewind($stream);
-
-        return stream_get_contents($stream);
     }
 }

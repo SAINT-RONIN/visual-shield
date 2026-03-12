@@ -1,8 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '@/utils/api.js'
-import { getVideoStreamUrl } from '@/api/videos.js'
+import { getVideoStreamUrl, fetchReport as apiFetchReport, exportReport as apiExportReport } from '@/api/videos.js'
 import { useConfig } from '@/composables/useConfig.js'
 import { segmentSortKeyMap } from '@/utils/reportHelpers.js'
 import { downloadBlob } from '@/utils/download.js'
@@ -17,6 +16,7 @@ import SegmentTable from '@/components/organisms/SegmentTable.vue'
 import ExportButtons from '@/components/molecules/ExportButtons.vue'
 import VideoOverlay from '@/components/organisms/VideoOverlay.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
+import AlertMessage from '@/components/atoms/AlertMessage.vue'
 
 const route = useRoute()
 const { config } = useConfig()
@@ -66,7 +66,7 @@ async function fetchReport() {
   params.segment_order = segmentOrder.value
 
   try {
-    const { data } = await api.get(`/videos/${route.params.id}/report`, { params })
+    const data = await apiFetchReport(route.params.id, params)
     report.value = data
     videoSrc.value = buildVideoSrc()
   } catch (err) {
@@ -105,10 +105,8 @@ function handleSegmentSort(columnKey) {
 async function handleExport(format) {
   exporting.value = true
   try {
-    const response = await api.get(`/videos/${route.params.id}/report/${format}`, {
-      responseType: 'blob',
-    })
-    const blob = new Blob([response.data])
+    const blobData = await apiExportReport(route.params.id, format)
+    const blob = new Blob([blobData])
     downloadBlob(blob, `report_${route.params.id}.${format === 'json' ? 'json' : 'csv'}`)
   } catch {
     error.value = 'Export failed. Please try again.'
@@ -124,7 +122,7 @@ async function handleExport(format) {
       <Spinner size="lg" />
     </div>
 
-    <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
+    <AlertMessage v-else-if="error" type="error" :message="error" />
 
     <div v-else-if="report" class="space-y-6 lg:space-y-8">
       <ReportHeader

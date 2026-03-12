@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api.js'
+import { uploadVideo } from '@/api/videos.js'
 import { useConfig } from '@/composables/useConfig.js'
 import { useToast } from '@/composables/useToast.js'
 import { validateVideoFile } from '@/utils/validators.js'
@@ -34,13 +34,10 @@ async function handleSubmit({ file, samplingRate }) {
   formData.append('samplingRate', samplingRate)
 
   try {
-    await api.post('/videos', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress(e) {
-        if (e.total) {
-          progress.value = Math.round((e.loaded / e.total) * 100)
-        }
-      },
+    await uploadVideo(formData, (e) => {
+      if (e.total) {
+        progress.value = Math.round((e.loaded / e.total) * 100)
+      }
     })
     showToast('Video uploaded successfully', 'success')
     router.push('/dashboard')

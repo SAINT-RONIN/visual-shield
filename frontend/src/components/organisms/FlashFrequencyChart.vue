@@ -4,6 +4,7 @@ import { Line } from 'vue-chartjs'
 import '@/utils/chartSetup.js'
 import ChartCard from '@/components/atoms/ChartCard.vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
+import { chartColors } from '@/utils/colors.js'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -16,8 +17,8 @@ const chartData = computed(() => ({
     {
       label: 'Flash Frequency (Hz)',
       data: props.data.map((d) => d.frequency),
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99, 102, 241, 0.15)',
+      borderColor: chartColors.flash,
+      backgroundColor: chartColors.flashFill,
       fill: true,
       tension: 0.3,
       pointRadius: 0,
@@ -25,7 +26,7 @@ const chartData = computed(() => ({
     {
       label: 'Danger Threshold',
       data: props.data.map(() => props.threshold),
-      borderColor: '#ef4444',
+      borderColor: chartColors.threshold,
       borderDash: [6, 4],
       borderWidth: 1,
       pointRadius: 0,
