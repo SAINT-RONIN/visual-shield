@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api.js'
+import { register } from '@/api/auth.js'
 import AuthTemplate from '@/components/templates/AuthTemplate.vue'
 import RegisterForm from '@/components/organisms/RegisterForm.vue'
 
@@ -14,7 +14,7 @@ async function handleSubmit({ username, password, displayName }) {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/auth/register', { username, password, displayName })
+    await register(username, password, displayName)
     router.push('/login')
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Registration failed'

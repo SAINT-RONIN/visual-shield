@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api.js'
+import { login } from '@/api/auth.js'
 import { useAuth } from '@/composables/useAuth.js'
 import AuthTemplate from '@/components/templates/AuthTemplate.vue'
 import LoginForm from '@/components/organisms/LoginForm.vue'
@@ -16,7 +16,7 @@ async function handleSubmit({ username, password }) {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.post('/auth/login', { username, password })
+    const data = await login(username, password)
     setAuth(data.token, data.user)
     router.push('/dashboard')
   } catch (err) {

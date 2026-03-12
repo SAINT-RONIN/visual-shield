@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Utils;
 
+use App\DTOs\FramePairAnalysis;
+
 /**
  * GD-based pixel analysis utility for extracted video frames.
  *
@@ -92,9 +94,9 @@ class ImageAnalyzer
      *
      * @param string $imagePath1 Absolute path to the first JPEG frame.
      * @param string $imagePath2 Absolute path to the second JPEG frame.
-     * @return array{luminance1: float, luminance2: float, motionIntensity: float}
+     * @return FramePairAnalysis Typed DTO containing luminance1, luminance2, and motionIntensity.
      */
-    public static function analyzeFramePair(string $imagePath1, string $imagePath2): array
+    public static function analyzeFramePair(string $imagePath1, string $imagePath2): FramePairAnalysis
     {
         $image1 = self::loadImage($imagePath1);
         $image2 = self::loadImage($imagePath2);
@@ -123,14 +125,14 @@ class ImageAnalyzer
         imagedestroy($image2);
 
         if ($sampleCount === 0) {
-            return ['luminance1' => 0.0, 'luminance2' => 0.0, 'motionIntensity' => 0.0];
+            return new FramePairAnalysis(luminance1: 0.0, luminance2: 0.0, motionIntensity: 0.0);
         }
 
-        return [
-            'luminance1' => $totalLum1 / $sampleCount,
-            'luminance2' => $totalLum2 / $sampleCount,
-            'motionIntensity' => $totalDiff / $sampleCount,
-        ];
+        return new FramePairAnalysis(
+            luminance1: $totalLum1 / $sampleCount,
+            luminance2: $totalLum2 / $sampleCount,
+            motionIntensity: $totalDiff / $sampleCount,
+        );
     }
 
     /**

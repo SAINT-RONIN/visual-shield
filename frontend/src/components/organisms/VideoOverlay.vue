@@ -1,7 +1,7 @@
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
-import { eqZoneColors, eqZoneDimColors } from '@/utils/colors.js'
+import { eqZoneColors, eqZoneDimColors, overlayGraphColors, overlayColors } from '@/utils/colors.js'
 
 const props = defineProps({
   videoSrc: { type: String, required: true },
@@ -50,11 +50,11 @@ let seekingGraphSlider = false
 let seekingGridSlider = false
 
 const graphs = reactive([
-  { key: 'flashFrequency', label: 'Flash', color: '#818cf8', visible: true,
+  { key: 'flashFrequency', label: 'Flash', color: overlayGraphColors.flash, visible: true,
     get threshold() { return props.flashThreshold }, fixedScale: null },
-  { key: 'motionIntensity', label: 'Motion', color: '#fbbf24', visible: true,
+  { key: 'motionIntensity', label: 'Motion', color: overlayGraphColors.motion, visible: true,
     get threshold() { return props.motionThreshold }, fixedScale: null },
-  { key: 'luminance', label: 'Luminance', color: '#22d3ee', visible: true,
+  { key: 'luminance', label: 'Luminance', color: overlayGraphColors.luminance, visible: true,
     threshold: null, get fixedScale() { return props.luminanceMax } },
 ])
 
@@ -328,8 +328,8 @@ function drawGrid(ctx, w, h, dur) {
   ctx.save()
   ctx.globalAlpha = gridOpacity.value
 
-  const lineColor = 'rgba(255, 255, 255, 0.55)'
-  const labelColor = 'rgba(255, 255, 255, 0.7)'
+  const lineColor = overlayColors.gridLine
+  const labelColor = overlayColors.gridLabel
   const labelFont = `${Math.max(9, Math.min(11, w * 0.018))}px sans-serif`
 
   ctx.lineWidth = 0.75
@@ -728,7 +728,7 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   if (resizeObserver) resizeObserver.disconnect()
   document.removeEventListener('fullscreenchange', onFullscreenChange)
   stopAnimLoop()
@@ -747,7 +747,20 @@ watch(() => props.charts, () => draw(), { deep: true })
 </script>
 
 <template>
-  <div class="overlay-card">
+  <div
+    class="overlay-card"
+    :style="{
+      '--vo-bg': overlayColors.videoBg,
+      '--vo-progress': overlayColors.progressBar,
+      '--vo-progress-glow': overlayColors.progressGlow,
+      '--vo-ctrl-text': overlayColors.controlText,
+      '--vo-ctrl-text-dim': overlayColors.controlTextDim,
+      '--vo-ctrl-bg': overlayColors.controlBg,
+      '--vo-ctrl-bg-subtle': overlayColors.controlBgSubtle,
+      '--vo-ctrl-gradient': overlayColors.controlBarGradient,
+      '--vo-thumb': overlayColors.thumbBg,
+    }"
+  >
     <h3 class="overlay-title">Video Analysis Overlay</h3>
 
     <div class="video-with-eq">
@@ -760,7 +773,7 @@ watch(() => props.charts, () => draw(), { deep: true })
         >
           <div
             v-for="(seg, si) in bar.segments"
-            :key="si"
+            :key="bar.key + '-seg-' + si"
             class="eq-segment"
             :style="{ backgroundColor: seg.bg }"
           />
@@ -881,7 +894,7 @@ watch(() => props.charts, () => draw(), { deep: true })
         <div
           ref="graphSliderRef"
           class="opacity-track"
-          :style="{ '--sc': '#818cf8' }"
+          :style="{ '--sc': overlayGraphColors.flash }"
           @mousedown.prevent="onGraphSliderDown"
         >
           <div class="opacity-fill" :style="{ width: (graphOpacity * 100) + '%' }" />
@@ -965,7 +978,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   min-width: 0;
   border-radius: 15px;
   overflow: hidden;
-  background: #000;
+  background: var(--vo-bg);
   cursor: pointer;
 }
 
@@ -994,7 +1007,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   left: 0;
   right: 0;
   padding: 0 0.75rem 0.5rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.85));
+  background: var(--vo-ctrl-gradient);
   opacity: 0;
   transition: opacity 0.25s ease;
   cursor: default;
@@ -1009,7 +1022,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   position: relative;
   width: 100%;
   height: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--vo-ctrl-bg);
   border-radius: 1.5px;
   cursor: pointer;
   margin-bottom: 0.375rem;
@@ -1023,7 +1036,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   top: 0;
   left: 0;
   height: 100%;
-  background: #e11d48;
+  background: var(--vo-progress);
   border-radius: 1.5px;
   pointer-events: none;
 }
@@ -1033,12 +1046,12 @@ watch(() => props.charts, () => draw(), { deep: true })
   top: 50%;
   width: 13px;
   height: 13px;
-  background: #e11d48;
+  background: var(--vo-progress);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   transition: transform 0.15s ease;
   pointer-events: none;
-  box-shadow: 0 0 4px rgba(225, 29, 72, 0.5);
+  box-shadow: 0 0 4px var(--vo-progress-glow);
 }
 
 .progress-track:hover .progress-dot,
@@ -1062,7 +1075,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   justify-content: center;
   background: none;
   border: none;
-  color: #fff;
+  color: var(--vo-ctrl-text);
   cursor: pointer;
   border-radius: 0.25rem;
   padding: 0.25rem;
@@ -1073,7 +1086,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
 .ctrl-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--vo-ctrl-bg-subtle);
 }
 
 .ctrl-btn svg {
@@ -1087,7 +1100,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   position: relative;
   width: 60px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--vo-ctrl-bg);
   border-radius: 1.5px;
   cursor: pointer;
   flex-shrink: 0;
@@ -1098,7 +1111,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   top: 0;
   left: 0;
   height: 100%;
-  background: #fff;
+  background: var(--vo-thumb);
   border-radius: 1.5px;
   pointer-events: none;
 }
@@ -1108,7 +1121,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   top: 50%;
   width: 11px;
   height: 11px;
-  background: #fff;
+  background: var(--vo-thumb);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   transition: transform 0.15s ease;
@@ -1123,7 +1136,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
 .time-display {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--vo-ctrl-text-dim);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   margin-left: 0.25rem;

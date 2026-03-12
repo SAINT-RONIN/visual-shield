@@ -4,6 +4,7 @@ import { Line } from 'vue-chartjs'
 import '@/utils/chartSetup.js'
 import ChartCard from '@/components/atoms/ChartCard.vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
+import { chartColors } from '@/utils/colors.js'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -16,15 +17,15 @@ const chartData = computed(() => ({
     {
       label: 'Motion Intensity',
       data: props.data.map((d) => d.intensity),
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245, 158, 11, 0.08)',
+      borderColor: chartColors.motion,
+      backgroundColor: chartColors.motionFill,
       tension: 0.3,
       pointRadius: 0,
     },
     {
       label: 'Threshold',
       data: props.data.map(() => props.threshold),
-      borderColor: '#ef4444',
+      borderColor: chartColors.threshold,
       borderDash: [6, 4],
       borderWidth: 1,
       pointRadius: 0,

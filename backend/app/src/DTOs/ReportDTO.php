@@ -11,12 +11,10 @@ use App\Models\Video;
 use App\Utils\RiskLevel;
 
 /**
- * Immutable value object that holds the typed models needed for a report
- * and serialises them into a frontend-friendly structure on demand.
+ * Immutable value object that holds the typed models needed for a report.
  *
- * Storing typed models (rather than pre-serialised arrays) keeps the DTO
- * honest about what it contains and ensures serialisation happens in one
- * place — toArray() — instead of being scattered across factory methods.
+ * This is a pure typed property bag — serialisation is the controller's
+ * responsibility. No toArray() or toApiArray() calls live here.
  */
 class ReportDTO
 {
@@ -34,65 +32,12 @@ class ReportDTO
     ) {}
 
     /**
-     * Serialise the report to a plain associative array.
-     *
-     * This is the single point of serialisation — toApiArray() is called
-     * on every model here, never earlier (not in the service, not in a
-     * factory method).
-     */
-    public function toArray(): array
-    {
-        return [
-            'video' => $this->buildVideoData(),
-            'summary' => $this->buildSummary(),
-            'segments' => array_map(fn(FlaggedSegment $s) => $s->toApiArray(), $this->segments),
-            'charts' => $this->buildCharts(),
-        ];
-    }
-
-    // ──────────────────────────────────────────────
-    //  Section builders (serialisation only)
-    // ──────────────────────────────────────────────
-
-    /** Build the video metadata section of the report. */
-    private function buildVideoData(): array
-    {
-        return [
-            'id' => $this->video->id,
-            'originalName' => $this->video->originalName,
-            'duration' => $this->video->durationSeconds ?? 0.0,
-            'samplingRate' => $this->video->samplingRate,
-            'effectiveSamplingRate' => $this->analysisResult?->effectiveSamplingRate ?? $this->video->samplingRate,
-            'uploadedAt' => $this->video->createdAt,
-            'status' => $this->video->status,
-        ];
-    }
-
-    /**
-     * Compute aggregate summary metrics including the overall risk level.
-     */
-    private function buildSummary(): array
-    {
-        $totalFlash = $this->analysisResult?->totalFlashEvents ?? 0;
-        $highestFreq = $this->analysisResult?->highestFlashFrequency ?? 0.0;
-        $avgMotion = $this->analysisResult?->averageMotionIntensity ?? 0.0;
-
-        return [
-            'totalFlashEvents' => $totalFlash,
-            'highestFlashFrequency' => $highestFreq,
-            'averageMotionIntensity' => $avgMotion,
-            'overallRiskLevel' => $this->calculateRiskLevel($highestFreq, $avgMotion),
-            'flashEventsRisk' => RiskLevel::colorForFlashCount($totalFlash),
-            'flashFrequencyRisk' => RiskLevel::colorForFlashFrequency($highestFreq),
-            'motionIntensityRisk' => RiskLevel::colorForMotionIntensity($avgMotion),
-            'samplingRateRisk' => 'safe',
-        ];
-    }
-
-    /**
      * Count segment severities and delegate to the shared RiskLevel utility.
+     *
+     * This is not serialisation — it is pure domain computation over the
+     * typed segment models. The controller calls this to assemble the summary.
      */
-    private function calculateRiskLevel(float $highestFreq, float $avgMotion): string
+    public function calculateRiskLevel(): string
     {
         $highSegments = 0;
         $mediumSegments = 0;
@@ -105,6 +50,9 @@ class ReportDTO
             }
         }
 
+        $highestFreq = $this->analysisResult?->highestFlashFrequency ?? 0.0;
+        $avgMotion = $this->analysisResult?->averageMotionIntensity ?? 0.0;
+
         return RiskLevel::determine(
             $highestFreq,
             $avgMotion,
@@ -112,31 +60,5 @@ class ReportDTO
             $mediumSegments,
             count($this->segments),
         );
-    }
-
-    /**
-     * Split AnalysisDatapoint models into three Chart.js-compatible time series.
-     */
-    private function buildCharts(): array
-    {
-        $flashFrequency = [];
-        $motionIntensity = [];
-        $luminance = [];
-
-        foreach ($this->datapoints as $datapoint) {
-            $flashFrequency[] = ['time' => $datapoint->timePoint, 'frequency' => $datapoint->flashFrequency];
-            $motionIntensity[] = ['time' => $datapoint->timePoint, 'intensity' => $datapoint->motionIntensity];
-            $luminance[] = [
-                'time' => $datapoint->timePoint,
-                'luminance' => $datapoint->luminance,
-                'flashDetected' => $datapoint->flashDetected,
-            ];
-        }
-
-        return [
-            'flashFrequency' => $flashFrequency,
-            'motionIntensity' => $motionIntensity,
-            'luminance' => $luminance,
-        ];
     }
 }

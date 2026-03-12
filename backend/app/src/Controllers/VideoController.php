@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
+use App\DTOs\ByteRange;
 use App\DTOs\UpdateVideoDTO;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\ReanalyzeVideoDTO;
@@ -154,15 +155,15 @@ class VideoController extends BaseController
      */
     private function sendPartialContent(string $filePath, int $fileSize, string $rangeHeader): void
     {
-        ['start' => $start, 'end' => $end] = $this->parseRangeHeader($rangeHeader, $fileSize);
-        $contentLength = $end - $start + 1;
+        $range = $this->parseRangeHeader($rangeHeader, $fileSize);
+        $contentLength = $range->end - $range->start + 1;
 
         http_response_code(206);
-        header("Content-Range: bytes {$start}-{$end}/{$fileSize}");
+        header("Content-Range: bytes {$range->start}-{$range->end}/{$fileSize}");
         header("Content-Length: {$contentLength}");
 
         $fileHandle = fopen($filePath, 'rb');
-        fseek($fileHandle, $start);
+        fseek($fileHandle, $range->start);
         echo fread($fileHandle, $contentLength);
         fclose($fileHandle);
     }
@@ -175,13 +176,13 @@ class VideoController extends BaseController
     }
 
     /** Parse an HTTP Range header like "bytes=1000-1999" into start and end positions. */
-    private function parseRangeHeader(string $rangeHeader, int $fileSize): array
+    private function parseRangeHeader(string $rangeHeader, int $fileSize): ByteRange
     {
         preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $matches);
 
         $start = (int) $matches[1];
         $end = $matches[2] !== '' ? (int) $matches[2] : $fileSize - 1;
 
-        return ['start' => $start, 'end' => $end];
+        return new ByteRange(start: $start, end: $end);
     }
 }

@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/utils/api.js'
+import { fetchUsers, updateUserRole } from '@/api/admin.js'
 import { formatDateShort } from '@/utils/formatters.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
+import Spinner from '@/components/atoms/Spinner.vue'
+import AlertMessage from '@/components/atoms/AlertMessage.vue'
 
 const users = ref([])
 const loading = ref(true)
@@ -15,8 +17,7 @@ const roleOptions = ['admin', 'viewer']
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/admin/users')
-    users.value = Array.isArray(data) ? data : data.data ?? []
+    users.value = await fetchUsers()
   } catch (err) {
     if (err.response?.status === 403) {
       accessDenied.value = true
@@ -32,7 +33,7 @@ async function changeRole(userId, newRole) {
   updatingRole.value = userId
   error.value = ''
   try {
-    await api.patch(`/admin/users/${userId}/role`, { role: newRole })
+    await updateUserRole(userId, newRole)
     const user = users.value.find((u) => u.id === userId)
     if (user) user.role = newRole
   } catch (err) {
@@ -47,7 +48,9 @@ async function changeRole(userId, newRole) {
 
 <template>
   <PageTemplate title="Admin Panel">
-    <div v-if="loading" class="text-body text-center py-12">Loading users...</div>
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <Spinner size="lg" />
+    </div>
 
     <div v-else-if="accessDenied" class="text-center py-16">
       <svg class="w-16 h-16 mx-auto mb-4 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,14 +60,14 @@ async function changeRole(userId, newRole) {
       <p class="text-muted text-sm">You do not have permission to view this page.</p>
     </div>
 
-    <div v-else-if="error && users.length === 0" class="text-error text-center py-12">{{ error }}</div>
+    <AlertMessage v-else-if="error && users.length === 0" type="error" :message="error" />
 
     <div v-else-if="users.length === 0" class="text-center py-12">
       <p class="text-muted text-sm">No users found.</p>
     </div>
 
     <div v-else>
-      <div v-if="error" class="text-error text-sm mb-4">{{ error }}</div>
+      <AlertMessage v-if="error" type="error" :message="error" />
 
       <div class="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table class="w-full text-sm">

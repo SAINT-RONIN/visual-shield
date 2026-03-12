@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import api from '@/utils/api.js'
-import { fetchVideos as apiFetchVideos } from '@/api/videos.js'
+import { fetchVideos as apiFetchVideos, deleteVideo, reanalyzeVideo } from '@/api/videos.js'
 import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import AppSelect from '@/components/atoms/AppSelect.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import EmptyState from '@/components/atoms/EmptyState.vue'
+import AlertMessage from '@/components/atoms/AlertMessage.vue'
 import VideoCard from '@/components/molecules/VideoCard.vue'
 
 const { showToast } = useToast()
@@ -93,7 +93,7 @@ watch(page, async () => {
 
 async function handleDelete(id) {
   try {
-    await api.delete(`/videos/${id}`)
+    await deleteVideo(id)
     videos.value = videos.value.filter((v) => v.id !== id)
     showToast('Video deleted', 'success')
   } catch (err) {
@@ -104,11 +104,9 @@ async function handleDelete(id) {
 async function handleReanalyze(id) {
   const video = videos.value.find((v) => v.id === id)
   try {
-    const { data } = await api.put(`/videos/${id}/reanalyze`, {
-      samplingRate: video?.samplingRate || 15,
-    })
+    const updated = await reanalyzeVideo(id, video?.samplingRate || 15)
     const idx = videos.value.findIndex((v) => v.id === id)
-    if (idx !== -1) videos.value[idx] = data
+    if (idx !== -1) videos.value[idx] = updated
     startPolling()
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to queue re-analysis'
@@ -133,7 +131,7 @@ async function handleReanalyze(id) {
       <Spinner size="lg" />
     </div>
 
-    <div v-else-if="error" class="text-error text-center py-12">{{ error }}</div>
+    <AlertMessage v-else-if="error" type="error" :message="error" />
 
     <EmptyState
       v-else-if="videos.length === 0 && filterStatus === 'all'"

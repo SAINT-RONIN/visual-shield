@@ -4,6 +4,7 @@ import AppInput from '@/components/atoms/AppInput.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
+import { formatDateShort } from '@/utils/formatters.js'
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -60,6 +61,6 @@ function handleSave() {
   </div>
 
   <div class="mt-4 text-sm text-muted">
-    <p>Member since {{ user?.createdAt }}</p>
+    <p>Member since {{ formatDateShort(user?.createdAt) }}</p>
   </div>
 </template>

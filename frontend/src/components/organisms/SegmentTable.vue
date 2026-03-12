@@ -42,14 +42,13 @@ const columns = [
     </div>
 
     <div v-else class="overflow-x-auto">
-      <table class="w-full" style="font-size: 0.875rem">
+      <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-line text-left text-muted">
             <th
               v-for="col in columns"
               :key="col.key"
-              class="cursor-pointer px-5 py-3 transition-colors hover:text-heading"
-              style="font-weight: 500; font-size: 0.75rem"
+              class="cursor-pointer px-5 py-3 transition-colors hover:text-heading font-medium text-xs"
               @click="handleSort(col.key)"
             >
               <span class="flex items-center gap-1.5">
@@ -145,7 +144,7 @@ const columns = [
             <td class="px-5 py-3.5">
               <SeverityBadge :severity="seg.severity" />
             </td>
-            <td class="px-5 py-3.5 font-mono text-heading" style="font-size: 0.8125rem">
+            <td class="px-5 py-3.5 font-mono text-heading text-[0.8125rem]">
               {{ seg.metricValue.toFixed(2) }}
             </td>
           </tr>

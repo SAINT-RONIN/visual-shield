@@ -4,13 +4,12 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Framework\ServiceRegistry;
 
-$videoRepo = ServiceRegistry::videoRepository();
 $analysisService = ServiceRegistry::analysisService();
 
 echo "Worker started. Waiting for queued videos...\n";
 
 while (true) {
-    $video = $videoRepo->findNextQueued();
+    $video = $analysisService->dequeueNextVideo();
 
     if (!$video) {
         sleep(5);

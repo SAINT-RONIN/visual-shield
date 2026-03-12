@@ -4,6 +4,7 @@ import { Line } from 'vue-chartjs'
 import '@/utils/chartSetup.js'
 import ChartCard from '@/components/atoms/ChartCard.vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
+import { chartColors } from '@/utils/colors.js'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -15,13 +16,13 @@ const chartData = computed(() => ({
     {
       label: 'Luminance',
       data: props.data.map((d) => d.luminance),
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+      borderColor: chartColors.luminance,
+      backgroundColor: chartColors.luminanceFill,
       fill: true,
       tension: 0.3,
       pointRadius: props.data.map((d) => (d.flashDetected ? 4 : 0)),
-      pointBackgroundColor: props.data.map((d) => (d.flashDetected ? '#ef4444' : 'transparent')),
-      pointBorderColor: props.data.map((d) => (d.flashDetected ? '#ef4444' : 'transparent')),
+      pointBackgroundColor: props.data.map((d) => (d.flashDetected ? chartColors.threshold : 'transparent')),
+      pointBorderColor: props.data.map((d) => (d.flashDetected ? chartColors.threshold : 'transparent')),
     },
   ],
 }))
