@@ -2,7 +2,8 @@ import api from '@/utils/api'
 
 export async function fetchUsers() {
   const { data } = await api.get('/admin/users')
-  return Array.isArray(data) ? data : data.data ?? []
+  if (Array.isArray(data)) return data
+  return data.data ?? []
 }
 
 export async function updateUserRole(userId, role) {

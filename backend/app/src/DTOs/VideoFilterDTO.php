@@ -37,19 +37,25 @@ final class VideoFilterDTO
         $validStatuses = ['queued', 'processing', 'completed', 'failed'];
 
         $status = isset($query['status']) && in_array($query['status'], $validStatuses, true)
-            ? $query['status'] : null;
-        $search = isset($query['search']) && trim($query['search']) !== ''
-            ? trim($query['search']) : null;
+            ? $query['status']
+            : null;
+
+        $searchRaw = isset($query['search']) ? trim($query['search']) : '';
+        $search = $searchRaw !== '' ? $searchRaw : null;
+
         $sort = isset($query['sort']) && in_array($query['sort'], $validSorts, true)
-            ? $query['sort'] : 'created_at';
+            ? $query['sort']
+            : 'created_at';
+
         $order = isset($query['order']) && in_array($query['order'], $validOrders, true)
-            ? $query['order'] : 'desc';
+            ? $query['order']
+            : 'desc';
 
-        $limit = isset($query['limit']) ? (int) $query['limit'] : 20;
-        $limit = max(AnalysisConfig::PAGINATION_MIN_LIMIT, min(AnalysisConfig::PAGINATION_MAX_LIMIT, $limit));
+        $rawLimit = isset($query['limit']) ? (int) $query['limit'] : 20;
+        $limit = max(AnalysisConfig::PAGINATION_MIN_LIMIT, min(AnalysisConfig::PAGINATION_MAX_LIMIT, $rawLimit));
 
-        $offset = isset($query['offset']) ? (int) $query['offset'] : 0;
-        $offset = max(0, $offset);
+        $rawOffset = isset($query['offset']) ? (int) $query['offset'] : 0;
+        $offset = max(0, $rawOffset);
 
         return new self(
             status: $status,

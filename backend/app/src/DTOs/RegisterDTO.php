@@ -54,10 +54,12 @@ class RegisterDTO
             throw new ValidationException('Password is required');
         }
 
+        $displayName = isset($data['displayName']) ? trim($data['displayName']) : null;
+
         return new self(
             username: trim($data['username']),
             password: $data['password'],
-            displayName: isset($data['displayName']) ? trim($data['displayName']) : null
+            displayName: $displayName,
         );
     }
 }

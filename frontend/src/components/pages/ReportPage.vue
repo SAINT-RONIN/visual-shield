@@ -53,6 +53,14 @@ const severityFilters = [
 
 const videoSrc = ref('')
 
+const statsSummary = computed(() => {
+  if (!report.value) return null
+  return {
+    ...report.value.summary,
+    effectiveSamplingRate: report.value.video.effectiveSamplingRate,
+  }
+})
+
 function buildVideoSrc() {
   if (!report.value) return ''
   return getVideoStreamUrl(report.value.video.id)
@@ -107,7 +115,8 @@ async function handleExport(format) {
   try {
     const blobData = await apiExportReport(route.params.id, format)
     const blob = new Blob([blobData])
-    downloadBlob(blob, `report_${route.params.id}.${format === 'json' ? 'json' : 'csv'}`)
+    const fileExtension = format === 'json' ? 'json' : 'csv'
+    downloadBlob(blob, `report_${route.params.id}.${fileExtension}`)
   } catch {
     error.value = 'Export failed. Please try again.'
   } finally {
@@ -139,7 +148,7 @@ async function handleExport(format) {
         :luminance-max="config?.luminanceMax ?? 255"
       />
 
-      <StatsPanel :summary="{ ...report.summary, effectiveSamplingRate: report.video.effectiveSamplingRate }" />
+      <StatsPanel :summary="statsSummary" />
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FlashFrequencyChart

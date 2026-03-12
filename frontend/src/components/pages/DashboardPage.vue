@@ -25,6 +25,11 @@ const limit = ref(20)
 const total = ref(0)
 const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1)
 
+const videoCountLabel = computed(() => {
+  const suffix = total.value !== 1 ? 's' : ''
+  return `${total.value} video${suffix}`
+})
+
 const filterOptions = [
   { value: 'all', label: 'All Videos' },
   { value: 'queued', label: 'Queued' },
@@ -34,7 +39,7 @@ const filterOptions = [
 ]
 
 const hasPendingVideos = computed(() =>
-  videos.value.some((v) => v.status === 'queued' || v.status === 'processing')
+  videos.value.some((video) => video.status === 'queued' || video.status === 'processing')
 )
 
 async function fetchVideos() {
@@ -94,7 +99,7 @@ watch(page, async () => {
 async function handleDelete(id) {
   try {
     await deleteVideo(id)
-    videos.value = videos.value.filter((v) => v.id !== id)
+    videos.value = videos.value.filter((video) => video.id !== id)
     showToast('Video deleted', 'success')
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to delete video'
@@ -102,11 +107,11 @@ async function handleDelete(id) {
 }
 
 async function handleReanalyze(id) {
-  const video = videos.value.find((v) => v.id === id)
+  const video = videos.value.find((video) => video.id === id)
   try {
     const updated = await reanalyzeVideo(id, video?.samplingRate || 15)
-    const idx = videos.value.findIndex((v) => v.id === id)
-    if (idx !== -1) videos.value[idx] = updated
+    const videoIndex = videos.value.findIndex((video) => video.id === id)
+    if (videoIndex !== -1) videos.value[videoIndex] = updated
     startPolling()
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to queue re-analysis'
@@ -118,7 +123,7 @@ async function handleReanalyze(id) {
   <PageTemplate title="Your Videos" max-width="max-w-none">
     <div class="flex items-center justify-between mb-6 -mt-2 gap-4 flex-wrap">
       <div class="flex items-center gap-3">
-        <p class="text-body text-sm">{{ total }} video{{ total !== 1 ? 's' : '' }}</p>
+        <p class="text-body text-sm">{{ videoCountLabel }}</p>
         <AppSelect v-if="videos.length > 0 || filterStatus !== 'all'" v-model="filterStatus" :options="filterOptions" />
         <span v-if="filterLoading" class="text-muted text-xs animate-pulse">Updating...</span>
       </div>

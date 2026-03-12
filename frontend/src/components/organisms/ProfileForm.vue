@@ -21,8 +21,8 @@ const errors = reactive({
   displayName: '',
 })
 
-watch(() => props.user, (u) => {
-  if (u) displayName.value = u.displayName || ''
+watch(() => props.user, (newUser) => {
+  if (newUser) displayName.value = newUser.displayName || ''
 }, { immediate: true })
 
 function handleSave() {

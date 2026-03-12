@@ -114,10 +114,9 @@ class FlaggedSegmentRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        return array_map(
-            fn(array $row) => FlaggedSegment::fromRow($row),
-            $stmt->fetchAll(),
-        );
+        $rows = $stmt->fetchAll();
+
+        return array_map(fn(array $segmentRow) => FlaggedSegment::fromRow($segmentRow), $rows);
     }
 
     /**

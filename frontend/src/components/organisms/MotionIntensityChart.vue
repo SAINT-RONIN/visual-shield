@@ -12,11 +12,11 @@ const props = defineProps({
 })
 
 const chartData = computed(() => ({
-  labels: props.data.map((d) => d.time.toFixed(0) + 's'),
+  labels: props.data.map((point) => point.time.toFixed(0) + 's'),
   datasets: [
     {
       label: 'Motion Intensity',
-      data: props.data.map((d) => d.intensity),
+      data: props.data.map((point) => point.intensity),
       borderColor: chartColors.motion,
       backgroundColor: chartColors.motionFill,
       tension: 0.3,

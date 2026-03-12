@@ -34,7 +34,7 @@ async function changeRole(userId, newRole) {
   error.value = ''
   try {
     await updateUserRole(userId, newRole)
-    const user = users.value.find((u) => u.id === userId)
+    const user = users.value.find((user) => user.id === userId)
     if (user) user.role = newRole
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to update role'
@@ -83,35 +83,35 @@ async function changeRole(userId, newRole) {
           </thead>
           <tbody>
             <tr
-              v-for="u in users"
-              :key="u.id"
+              v-for="user in users"
+              :key="user.id"
               class="border-b border-line last:border-0 transition-colors hover:bg-surface-alt/50"
             >
-              <td class="px-3 sm:px-5 py-3.5 text-muted font-mono text-xs">{{ u.id }}</td>
-              <td class="px-3 sm:px-5 py-3.5 text-heading font-medium">{{ u.username }}</td>
-              <td class="px-3 sm:px-5 py-3.5 text-body hidden sm:table-cell">{{ u.displayName || '--' }}</td>
+              <td class="px-3 sm:px-5 py-3.5 text-muted font-mono text-xs">{{ user.id }}</td>
+              <td class="px-3 sm:px-5 py-3.5 text-heading font-medium">{{ user.username }}</td>
+              <td class="px-3 sm:px-5 py-3.5 text-body hidden sm:table-cell">{{ user.displayName || '--' }}</td>
               <td class="px-3 sm:px-5 py-3.5">
                 <span
                   class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  :class="u.role === 'admin'
+                  :class="user.role === 'admin'
                     ? 'bg-primary/15 text-primary'
                     : 'bg-surface-alt text-muted'"
                 >
-                  {{ u.role }}
+                  {{ user.role }}
                 </span>
               </td>
-              <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDateShort(u.createdAt) }}</td>
+              <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDateShort(user.createdAt) }}</td>
               <td class="px-3 sm:px-5 py-3.5">
                 <div class="flex gap-1 flex-wrap">
                   <AppButton
-                    v-for="role in roleOptions.filter(r => r !== u.role)"
+                    v-for="role in roleOptions.filter(option => option !== user.role)"
                     :key="role"
                     variant="secondary"
                     size="sm"
-                    :disabled="updatingRole === u.id"
-                    @click="changeRole(u.id, role)"
+                    :disabled="updatingRole === user.id"
+                    @click="changeRole(user.id, role)"
                   >
-                    {{ updatingRole === u.id ? '...' : `Make ${role}` }}
+                    {{ updatingRole === user.id ? '...' : `Make ${role}` }}
                   </AppButton>
                 </div>
               </td>

@@ -180,7 +180,8 @@ class AuthService
     {
         $token = bin2hex(random_bytes(AnalysisConfig::TOKEN_RANDOM_BYTES));
         $expiryHours = AnalysisConfig::TOKEN_EXPIRY_HOURS;
-        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryHours} hours"));
+        $expiryTimestamp = strtotime("+{$expiryHours} hours");
+        $expiresAt = date('Y-m-d H:i:s', $expiryTimestamp);
 
         $this->tokenRepo->store($userId, $token, $expiresAt);
 

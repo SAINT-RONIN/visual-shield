@@ -36,7 +36,8 @@ class ReanalyzeVideoDTO
      */
     public static function fromArray(array $body): self
     {
-        $rate = (int) ($body['samplingRate'] ?? $body['sampling_rate'] ?? self::DEFAULT_SAMPLING_RATE);
+        $rawRate = $body['samplingRate'] ?? $body['sampling_rate'] ?? self::DEFAULT_SAMPLING_RATE;
+        $rate = (int) $rawRate;
 
         if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
