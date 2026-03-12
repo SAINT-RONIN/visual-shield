@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api.js'
+import { fetchVideos as apiFetchVideos } from '@/api/videos.js'
 import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
@@ -43,15 +44,9 @@ async function fetchVideos() {
   params.offset = (page.value - 1) * limit.value
 
   try {
-    const { data } = await api.get('/videos', { params })
-    // Support both paginated { data, pagination } and legacy array responses
-    if (Array.isArray(data)) {
-      videos.value = data
-      total.value = data.length
-    } else {
-      videos.value = data.data
-      total.value = data.pagination?.total ?? 0
-    }
+    const { items, total: totalCount } = await apiFetchVideos(params)
+    videos.value = items
+    total.value = totalCount
   } catch (err) {
     error.value = err.response?.data?.error?.message || 'Failed to load videos'
   }

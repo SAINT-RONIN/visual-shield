@@ -26,7 +26,7 @@ class AdminController extends BaseController
             $this->getAuthenticatedUserId();
             $this->requireRole('admin');
 
-            $users = ServiceRegistry::userRepository()->findAll();
+            $users = ServiceRegistry::adminService()->listUsers();
 
             $this->jsonResponse([
                 'data' => array_map(fn(User $user) => $user->toApiArray(), $users),
@@ -49,7 +49,7 @@ class AdminController extends BaseController
                 throw new ValidationException("Invalid role. Allowed: {$allowedRoles}");
             }
 
-            $user = ServiceRegistry::userRepository()->updateRole($id, $role);
+            $user = ServiceRegistry::adminService()->updateUserRole($id, $role);
 
             $this->jsonResponse(['data' => $user->toApiArray()]);
         });

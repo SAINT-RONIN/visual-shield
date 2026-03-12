@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Config\AnalysisConfig;
 use App\DTOs\FlashAnalysisResult;
+use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
 use App\Exceptions\NotFoundException;
 use App\Models\Video;
@@ -38,6 +39,31 @@ class AnalysisService
         private FlashDetector $flashDetector,
         private MotionDetector $motionDetector,
     ) {}
+
+    /**
+     * Manage the full lifecycle of video processing.
+     *
+     * Sets status/progress bookends, delegates to analyze(), and handles
+     * success and failure transitions. This is the entry point the worker
+     * calls — it owns all status transitions so worker.php stays thin.
+     */
+    public function processVideo(int $videoId): void
+    {
+        $this->videoRepo->updateStatus($videoId, 'processing');
+        $this->videoRepo->updateProgress($videoId, 5, 'Starting analysis...');
+
+        try {
+            $this->analyze($videoId, function (int $pct, string $msg) use ($videoId) {
+                $this->videoRepo->updateProgress($videoId, $pct, $msg);
+            });
+            $this->videoRepo->updateProgress($videoId, 100, 'Completed');
+            $this->videoRepo->updateStatus($videoId, 'completed');
+        } catch (\Throwable $e) {
+            $this->videoRepo->updateError($videoId, $e->getMessage());
+            $this->videoRepo->updateStatus($videoId, 'failed');
+            throw $e;
+        }
+    }
 
     /**
      * Run the complete analysis pipeline for a single video.
@@ -106,10 +132,7 @@ class AnalysisService
      * diff and motion values are zero. Every subsequent frame is compared
      * to the one before it to measure how much changed.
      *
-     * Returns an array like:
-     *   [ 0 => ['luminance' => 128.5, 'luminanceDiff' => 0.0, 'motionIntensity' => 0.0],
-     *     1 => ['luminance' => 135.2, 'luminanceDiff' => 6.7, 'motionIntensity' => 12.3],
-     *     ... ]
+     * @return FrameData[]
      */
     private function computePerFrameData(array $framePaths): array
     {
@@ -124,18 +147,22 @@ class AnalysisService
     }
 
     /** The first frame only has luminance — no diff or motion since there's nothing before it. */
-    private function buildFirstFrameData(string $framePath): array
+    private function buildFirstFrameData(string $framePath): FrameData
     {
         $luminance = ImageAnalyzer::calculateAverageLuminance($framePath);
 
-        return [
-            'luminance' => $luminance,
-            'luminanceDiff' => 0.0,
-            'motionIntensity' => 0.0,
-        ];
+        return new FrameData(
+            luminance: $luminance,
+            luminanceDiff: 0.0,
+            motionIntensity: 0.0,
+        );
     }
 
-    /** Compare each frame to its predecessor and record the differences. */
+    /**
+     * Compare each frame to its predecessor and record the differences.
+     *
+     * @return FrameData[]
+     */
     private function buildRemainingFramesData(array $framePaths): array
     {
         $frameCount = count($framePaths);
@@ -146,11 +173,11 @@ class AnalysisService
             $currentFramePath = $framePaths[$i];
             $comparison = ImageAnalyzer::analyzeFramePair($previousFramePath, $currentFramePath);
 
-            $results[] = [
-                'luminance' => $comparison['luminance2'],
-                'luminanceDiff' => abs($comparison['luminance2'] - $comparison['luminance1']),
-                'motionIntensity' => $comparison['motionIntensity'],
-            ];
+            $results[] = new FrameData(
+                luminance: $comparison['luminance2'],
+                luminanceDiff: abs($comparison['luminance2'] - $comparison['luminance1']),
+                motionIntensity: $comparison['motionIntensity'],
+            );
         }
 
         return $results;
@@ -164,6 +191,8 @@ class AnalysisService
      * Group frame luminance values into 1-second windows and average each window.
      *
      * For example, at 10fps: frames 0–9 become second 0, frames 10–19 become second 1, etc.
+     *
+     * @param FrameData[] $perFrameData
      */
     private function calculateAverageLuminancePerSecond(array $perFrameData, int $samplingRate): array
     {
@@ -173,7 +202,7 @@ class AnalysisService
 
         for ($second = 0; $second < $totalSeconds; $second++) {
             $framesInThisSecond = $this->getFramesInSecond($perFrameData, $second, $samplingRate, $totalFrames);
-            $averageLuminance = $this->averageOfKey($framesInThisSecond, 'luminance');
+            $averageLuminance = $this->averageFrameLuminance($framesInThisSecond);
 
             $luminancePerSecond[] = [
                 'second' => $second,
@@ -184,7 +213,12 @@ class AnalysisService
         return $luminancePerSecond;
     }
 
-    /** Extract the slice of per-frame data that falls within a given second. */
+    /**
+     * Extract the slice of per-frame data that falls within a given second.
+     *
+     * @param  FrameData[] $perFrameData
+     * @return FrameData[]
+     */
     private function getFramesInSecond(array $perFrameData, int $second, int $samplingRate, int $totalFrames): array
     {
         $startFrame = $second * $samplingRate;
@@ -193,19 +227,23 @@ class AnalysisService
         return array_slice($perFrameData, $startFrame, $endFrame - $startFrame);
     }
 
-    /** Calculate the average of a specific key across an array of associative arrays. */
-    private function averageOfKey(array $items, string $key): float
+    /**
+     * Calculate the average luminance across a slice of FrameData objects.
+     *
+     * @param FrameData[] $frames
+     */
+    private function averageFrameLuminance(array $frames): float
     {
-        if (empty($items)) {
+        if (empty($frames)) {
             return 0.0;
         }
 
         $sum = 0.0;
-        foreach ($items as $item) {
-            $sum += $item[$key];
+        foreach ($frames as $frame) {
+            $sum += $frame->luminance;
         }
 
-        return $sum / count($items);
+        return $sum / count($frames);
     }
 
     // ──────────────────────────────────────────────

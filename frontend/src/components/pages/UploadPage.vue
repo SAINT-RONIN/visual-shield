@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api.js'
 import { useConfig } from '@/composables/useConfig.js'
 import { useToast } from '@/composables/useToast.js'
+import { validateVideoFile } from '@/utils/validators.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import UploadForm from '@/components/organisms/UploadForm.vue'
 
@@ -21,9 +22,9 @@ async function handleSubmit({ file, samplingRate }) {
   error.value = ''
 
   const maxSize = config.value?.maxUploadSize ?? 500 * 1024 * 1024
-  if (file.size > maxSize) {
-    const maxMB = Math.round(maxSize / 1048576)
-    error.value = `File is too large (${(file.size / 1048576).toFixed(0)} MB). Maximum allowed size is ${maxMB} MB.`
+  const validationError = validateVideoFile(file, maxSize)
+  if (validationError) {
+    error.value = validationError
     uploading.value = false
     return
   }

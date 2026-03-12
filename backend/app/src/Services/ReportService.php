@@ -55,7 +55,7 @@ class ReportService
         $segments = $this->segmentRepo->findByVideoId($videoId, $segmentFilters);
         $datapoints = $this->datapointRepo->findByVideoId($videoId);
 
-        return ReportDTO::fromData($video, $analysisResult, $segments, $datapoints);
+        return new ReportDTO($video, $analysisResult, $segments, $datapoints);
     }
 
     // ──────────────────────────────────────────────

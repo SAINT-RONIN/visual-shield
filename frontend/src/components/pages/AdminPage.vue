@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api.js'
+import { formatDateShort } from '@/utils/formatters.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 
@@ -41,14 +42,7 @@ async function changeRole(userId, newRole) {
   }
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '--'
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+
 </script>
 
 <template>
@@ -103,7 +97,7 @@ function formatDate(dateStr) {
                   {{ u.role }}
                 </span>
               </td>
-              <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDate(u.createdAt) }}</td>
+              <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDateShort(u.createdAt) }}</td>
               <td class="px-3 sm:px-5 py-3.5">
                 <div class="flex gap-1 flex-wrap">
                   <AppButton

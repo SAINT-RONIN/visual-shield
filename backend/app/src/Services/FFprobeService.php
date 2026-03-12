@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\VideoResolution;
+
 /**
  * Reads video metadata using the FFprobe command-line tool.
  *
@@ -30,9 +32,9 @@ class FFprobeService
     /**
      * Get the width and height of the video in pixels.
      *
-     * Example: a 1080p video returns ['width' => 1920, 'height' => 1080]
+     * Example: a 1080p video returns VideoResolution(width: 1920, height: 1080)
      */
-    public function getResolution(string $filePath): array
+    public function getResolution(string $filePath): VideoResolution
     {
         $command = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x";
         $rawOutput = $this->runCommand($command, $filePath, 'video resolution');
@@ -63,15 +65,15 @@ class FFprobeService
     }
 
     /**
-     * Parse FFprobe's resolution output (e.g. "1920x1080") into width and height.
+     * Parse FFprobe's resolution output (e.g. "1920x1080") into a VideoResolution DTO.
      */
-    private function parseResolutionOutput(string $rawOutput): array
+    private function parseResolutionOutput(string $rawOutput): VideoResolution
     {
         $parts = explode('x', trim($rawOutput));
 
-        return [
-            'width' => (int) $parts[0],
-            'height' => (int) $parts[1],
-        ];
+        return new VideoResolution(
+            width: (int) $parts[0],
+            height: (int) $parts[1],
+        );
     }
 }

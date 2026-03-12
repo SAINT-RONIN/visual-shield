@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Config\AnalysisConfig;
 use App\DTOs\FlashAnalysisResult;
+use App\DTOs\FrameData;
 
 /**
  * Detects dangerous flash/strobe events in video frames.
@@ -24,8 +25,8 @@ class FlashDetector
     /**
      * Analyze pre-computed frame data for flash events.
      *
-     * @param  array $perFrameData Each frame's luminance and motion data (from AnalysisService).
-     * @param  int   $samplingRate How many frames per second were extracted.
+     * @param  FrameData[] $perFrameData Each frame's luminance and motion data (from AnalysisService).
+     * @param  int         $samplingRate How many frames per second were extracted.
      * @return FlashAnalysisResult Contains total events, peak frequency, segments, and per-second data.
      */
     public function detectFromData(array $perFrameData, int $samplingRate): FlashAnalysisResult
@@ -50,6 +51,8 @@ class FlashDetector
      * A frame counts as a flash when its brightness changed by more than
      * FLASH_THRESHOLD compared to the previous frame. Frame 0 is skipped
      * because it has no previous frame to compare against.
+     *
+     * @param FrameData[] $perFrameData
      */
     private function tagEachFrameAsFlashOrNot(array $perFrameData): array
     {
@@ -60,7 +63,7 @@ class FlashDetector
                 continue;
             }
 
-            $brightnessChangedEnough = $frame['luminanceDiff'] >= AnalysisConfig::FLASH_THRESHOLD;
+            $brightnessChangedEnough = $frame->luminanceDiff >= AnalysisConfig::FLASH_THRESHOLD;
             $flashTags[$frameIndex] = $brightnessChangedEnough ? 1 : 0;
         }
 

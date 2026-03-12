@@ -1,8 +1,11 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api, { getAuthToken } from '@/utils/api.js'
+import api from '@/utils/api.js'
+import { getVideoStreamUrl } from '@/api/videos.js'
 import { useConfig } from '@/composables/useConfig.js'
+import { segmentSortKeyMap } from '@/utils/reportHelpers.js'
+import { downloadBlob } from '@/utils/download.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import ReportHeader from '@/components/molecules/ReportHeader.vue'
 import StatsPanel from '@/components/organisms/StatsPanel.vue'
@@ -47,22 +50,12 @@ const severityFilters = [
   { key: 'low', label: 'Low' },
 ]
 
-// Map frontend sort keys (camelCase) to API sort keys (snake_case)
-const sortKeyMap = {
-  startTime: 'start_time',
-  endTime: 'end_time',
-  type: 'type',
-  severity: 'severity',
-  metricValue: 'metric_value',
-}
 
 const videoSrc = ref('')
 
 function buildVideoSrc() {
   if (!report.value) return ''
-  const base = import.meta.env.VITE_API_BASE_URL
-  const token = getAuthToken()
-  return `${base}/videos/${report.value.video.id}/stream?token=${encodeURIComponent(token)}`
+  return getVideoStreamUrl(report.value.video.id)
 }
 
 async function fetchReport() {
@@ -100,7 +93,7 @@ watch([activeTypeFilter, activeSeverityFilter, segmentSort, segmentOrder], async
 })
 
 function handleSegmentSort(columnKey) {
-  const apiKey = sortKeyMap[columnKey] || columnKey
+  const apiKey = segmentSortKeyMap[columnKey] || columnKey
   if (segmentSort.value === apiKey) {
     segmentOrder.value = segmentOrder.value === 'asc' ? 'desc' : 'asc'
   } else {
@@ -116,12 +109,7 @@ async function handleExport(format) {
       responseType: 'blob',
     })
     const blob = new Blob([response.data])
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `report_${route.params.id}.${format === 'json' ? 'json' : 'csv'}`
-    link.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(blob, `report_${route.params.id}.${format === 'json' ? 'json' : 'csv'}`)
   } catch {
     error.value = 'Export failed. Please try again.'
   } finally {

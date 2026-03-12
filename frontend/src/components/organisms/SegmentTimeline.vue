@@ -49,8 +49,8 @@ function capitalize(str) {
       <!-- Timeline bar -->
       <div class="relative h-10 overflow-hidden rounded-lg bg-surface-alt">
         <div
-          v-for="(seg, i) in segments"
-          :key="i"
+          v-for="seg in segments"
+          :key="`${seg.startTime}-${seg.endTime}-${seg.type}`"
           class="absolute top-0 h-full cursor-pointer transition-opacity"
           :style="{
             ...segmentStyle(seg),
