@@ -63,8 +63,7 @@ function capitalize(str) {
           <!-- Tooltip -->
           <div
             v-if="hoveredSegment === seg"
-            class="absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 shadow-xl"
-            style="font-size: 0.75rem"
+            class="absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 shadow-xl text-xs"
           >
             <p class="font-medium text-heading capitalize">
               {{ seg.type }} &middot; {{ capitalize(seg.severity) }} Severity

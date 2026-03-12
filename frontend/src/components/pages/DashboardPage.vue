@@ -70,8 +70,11 @@ function stopPolling() {
 }
 
 onMounted(async () => {
-  await fetchVideos()
-  loading.value = false
+  try {
+    await fetchVideos()
+  } finally {
+    loading.value = false
+  }
   if (hasPendingVideos.value) startPolling()
 })
 
