@@ -282,7 +282,7 @@ function drawGraph(ctx, pixelPoints, color, w, h, playheadX) {
 
 function drawPlayheadIndicators(ctx, graphDataList, w, h, playheadX) {
   ctx.save()
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+  ctx.strokeStyle = overlayColors.playheadLine
   ctx.lineWidth = 1
   ctx.setLineDash([4, 4])
   ctx.beginPath()
@@ -309,7 +309,7 @@ function drawPlayheadIndicators(ctx, graphDataList, w, h, playheadX) {
 
     ctx.beginPath()
     ctx.arc(playheadX, y, 2, 0, Math.PI * 2)
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = overlayColors.thumbBg
     ctx.fill()
   }
 }
@@ -775,6 +775,7 @@ watch(() => props.charts, () => draw(), { deep: true })
       '--vo-ctrl-bg-subtle': overlayColors.controlBgSubtle,
       '--vo-ctrl-gradient': overlayColors.controlBarGradient,
       '--vo-thumb': overlayColors.thumbBg,
+      '--vo-gc-fallback': overlayColors.gridControlFallback,
     }"
   >
     <h3 class="overlay-title">Video Analysis Overlay</h3>
@@ -892,7 +893,7 @@ watch(() => props.charts, () => draw(), { deep: true })
       <button
         class="toggle-btn"
         :class="{ active: gridOn }"
-        :style="{ '--gc': '#94a3b8' }"
+        :style="{ '--gc': overlayColors.gridControl }"
         @click="toggleGridOnOff"
       >
         <svg class="toggle-grid-icon" viewBox="0 0 16 16" fill="currentColor">
@@ -925,7 +926,7 @@ watch(() => props.charts, () => draw(), { deep: true })
         <div
           ref="gridSliderRef"
           class="opacity-track"
-          :style="{ '--sc': '#94a3b8' }"
+          :style="{ '--sc': overlayColors.gridControl }"
           @mousedown.prevent="onGridSliderDown"
         >
           <div class="opacity-fill" :style="{ width: (gridOpacity * 100) + '%' }" />
@@ -1172,7 +1173,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 }
 
 .toggle-btn {
-  --gc: #888;
+  --gc: var(--vo-gc-fallback);
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;

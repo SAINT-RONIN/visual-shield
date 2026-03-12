@@ -6,6 +6,7 @@ import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
+import RoleBadge from '@/components/atoms/RoleBadge.vue'
 
 const users = ref([])
 const loading = ref(true)
@@ -91,14 +92,7 @@ async function changeRole(userId, newRole) {
               <td class="px-3 sm:px-5 py-3.5 text-heading font-medium">{{ user.username }}</td>
               <td class="px-3 sm:px-5 py-3.5 text-body hidden sm:table-cell">{{ user.displayName || '--' }}</td>
               <td class="px-3 sm:px-5 py-3.5">
-                <span
-                  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  :class="user.role === 'admin'
-                    ? 'bg-primary/15 text-primary'
-                    : 'bg-surface-alt text-muted'"
-                >
-                  {{ user.role }}
-                </span>
+                <RoleBadge :role="user.role" />
               </td>
               <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDateShort(user.createdAt) }}</td>
               <td class="px-3 sm:px-5 py-3.5">

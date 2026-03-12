@@ -235,8 +235,8 @@ class VideoService
         try {
             return $this->ffprobe->getDuration($temporaryFilePath);
         } catch (\RuntimeException $e) {
-            throw new \RuntimeException(
-                'Could not read video metadata. Ensure the file is a valid video. (' . $e->getMessage() . ')'
+            throw new ValidationException(
+                'Could not read video metadata. Please ensure the file is a valid video.'
             );
         }
     }

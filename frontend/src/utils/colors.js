@@ -49,6 +49,9 @@ export const overlayColors = {
   controlBgSubtle: 'rgba(255, 255, 255, 0.1)',
   controlBarGradient: 'linear-gradient(transparent, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.85))',
   thumbBg: '#fff',
+  gridControl: '#94a3b8',
+  gridControlFallback: '#888888',
+  playheadLine: 'rgba(255, 255, 255, 0.2)',
 }
 
 /** Colors used across analysis charts */

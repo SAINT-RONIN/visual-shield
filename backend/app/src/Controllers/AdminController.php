@@ -8,6 +8,7 @@ use App\DTOs\UpdateUserRoleDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Models\User;
+use App\Services\AdminService;
 
 /**
  * HTTP layer for admin-only endpoints (user management).
@@ -16,6 +17,13 @@ use App\Models\User;
  */
 class AdminController extends BaseController
 {
+    private AdminService $adminService;
+
+    public function __construct()
+    {
+        $this->adminService = ServiceRegistry::adminService();
+    }
+
     /** List all users (admin only). */
     public function listUsers(): void
     {
@@ -23,7 +31,7 @@ class AdminController extends BaseController
             $this->getAuthenticatedUserId();
             $this->requireRole('admin');
 
-            $users = ServiceRegistry::adminService()->listUsers();
+            $users = $this->adminService->listUsers();
 
             $this->jsonResponse([
                 'data' => array_map(fn(User $user) => $user->toApiArray(), $users),
@@ -39,7 +47,7 @@ class AdminController extends BaseController
             $this->requireRole('admin');
 
             $dto = UpdateUserRoleDTO::fromArray($this->getJsonBody());
-            $user = ServiceRegistry::adminService()->updateUserRole($id, $dto->role);
+            $user = $this->adminService->updateUserRole($id, $dto->role);
 
             $this->jsonResponse(['data' => $user->toApiArray()]);
         });
