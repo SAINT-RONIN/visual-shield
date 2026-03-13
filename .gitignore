@@ -1,4 +1,10 @@
 # ========================
+# AI Tools (never commit)
+# ========================
+.claude/
+CLAUDE.md
+
+# ========================
 # Project Documentation (private)
 # ========================
 AGENTS.md
