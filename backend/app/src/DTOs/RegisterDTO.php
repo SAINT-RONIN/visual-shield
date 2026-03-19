@@ -42,7 +42,7 @@ class RegisterDTO
      * @param array $data Raw request payload (e.g. from json_decode).
      * @return self       Validated, immutable DTO.
      *
-     * @throws \InvalidArgumentException If username or password is missing/invalid.
+     * @throws ValidationException If username or password is missing/invalid.
      */
     public static function fromArray(array $data): self
     {

@@ -1,10 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { Line } from 'vue-chartjs'
-import '@/utils/chartSetup.js'
-import ChartCard from '@/components/atoms/ChartCard.vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
 import { chartColors } from '@/utils/colors.js'
+import BaseLineChart from '@/components/organisms/BaseLineChart.vue'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -37,7 +35,9 @@ const chartOptions = buildChartOptions({ yLabel: 'Intensity', y: { max: 255 } })
 </script>
 
 <template>
-  <ChartCard title="Motion Intensity Over Time">
-    <Line :data="chartData" :options="chartOptions" />
-  </ChartCard>
+  <BaseLineChart
+    title="Motion Intensity Over Time"
+    :chart-data="chartData"
+    :chart-options="chartOptions"
+  />
 </template>

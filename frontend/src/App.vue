@@ -6,7 +6,7 @@ import { logout } from '@/api/auth.js'
 import { useAuth } from '@/composables/useAuth.js'
 import { useConfig } from '@/composables/useConfig.js'
 import Header from '@/components/organisms/Header.vue'
-import ToastContainer from '@/components/atoms/ToastContainer.vue'
+import ToastContainer from '@/components/molecules/ToastContainer.vue'
 
 const router = useRouter()
 const route = useRoute()

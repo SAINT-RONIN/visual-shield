@@ -1,3 +1,10 @@
+<script setup>
+import { useToast } from '@/composables/useToast.js'
+import Toast from '@/components/atoms/Toast.vue'
+
+const { toasts, removeToast } = useToast()
+</script>
+
 <template>
   <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
     <TransitionGroup
@@ -19,10 +26,3 @@
     </TransitionGroup>
   </div>
 </template>
-
-<script setup>
-import { useToast } from '@/composables/useToast.js'
-import Toast from '@/components/atoms/Toast.vue'
-
-const { toasts, removeToast } = useToast()
-</script>

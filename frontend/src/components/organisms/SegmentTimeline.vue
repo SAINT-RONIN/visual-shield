@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
-import { getSeverityColor } from '@/utils/colors.js'
 
 const props = defineProps({
   segments: { type: Array, required: true },
@@ -27,8 +26,14 @@ function segmentStyle(seg) {
   return { left: `${left}%`, width: `${Math.max(width, 0.5)}%` }
 }
 
-function severityFill(severity) {
-  return getSeverityColor(severity)
+const severityBgClass = {
+  high: 'bg-error',
+  medium: 'bg-warning',
+  low: 'bg-warning/60',
+}
+
+function getSeverityClass(severity) {
+  return severityBgClass[severity] ?? 'bg-muted'
 }
 
 function capitalize(str) {
@@ -52,11 +57,8 @@ function capitalize(str) {
           v-for="seg in segments"
           :key="`${seg.startTime}-${seg.endTime}-${seg.type}`"
           class="absolute top-0 h-full cursor-pointer transition-opacity"
-          :style="{
-            ...segmentStyle(seg),
-            backgroundColor: severityFill(seg.severity),
-            opacity: hoveredSegment === seg ? 1 : 0.6,
-          }"
+          :class="[getSeverityClass(seg.severity), hoveredSegment === seg ? 'opacity-100' : 'opacity-60']"
+          :style="segmentStyle(seg)"
           @mouseenter="hoveredSegment = seg"
           @mouseleave="hoveredSegment = null"
         >

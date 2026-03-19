@@ -34,7 +34,7 @@ class AuthController extends BaseController
         $this->handleRequest(function () {
             $dto = RegisterDTO::fromArray($this->getJsonBody());
             $user = $this->authService->register($dto);
-            $this->jsonResponse($user->toApiArray(), 201);
+            $this->jsonResponse(['data' => $user->toApiArray()], 201);
         });
     }
 
@@ -67,7 +67,7 @@ class AuthController extends BaseController
         $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
             $user = $this->authService->getProfile($userId);
-            $this->jsonResponse($user->toApiArray(), 200);
+            $this->jsonResponse(['data' => $user->toApiArray()], 200);
         });
     }
 
@@ -78,7 +78,7 @@ class AuthController extends BaseController
             $userId = $this->getAuthenticatedUserId();
             $dto = UpdateProfileDTO::fromArray($this->getJsonBody());
             $user = $this->authService->updateProfile($userId, $dto);
-            $this->jsonResponse($user->toApiArray(), 200);
+            $this->jsonResponse(['data' => $user->toApiArray()], 200);
         });
     }
 }

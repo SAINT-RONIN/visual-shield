@@ -53,16 +53,20 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminPage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
   ],
 })
 
 router.beforeEach((to) => {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isAdmin } = useAuth()
 
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return { name: 'login' }
+  }
+
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    return { name: 'dashboard' }
   }
 
   if ((to.name === 'login' || to.name === 'register') && isLoggedIn.value) {

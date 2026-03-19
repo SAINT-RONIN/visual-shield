@@ -17,6 +17,11 @@ export async function fetchVideos(params = {}) {
  * Build the authenticated stream URL for a video.
  * @param {string|number} videoId
  * @returns {string}
+ *
+ * NOTE: The auth token is intentionally passed as a query parameter here.
+ * The HTML <video> element does not support setting custom headers (e.g. Authorization),
+ * so the token must be embedded in the URL. The backend accepts query-param token auth
+ * for streaming endpoints only. This is an accepted exception to the header-auth rule.
  */
 export function getVideoStreamUrl(videoId) {
   const token = getAuthToken()
@@ -39,7 +44,7 @@ export async function deleteVideo(id) {
  */
 export async function reanalyzeVideo(id, samplingRate) {
   const { data } = await api.put(`/videos/${id}/reanalyze`, { samplingRate })
-  return data
+  return data.data
 }
 
 /**
@@ -48,10 +53,11 @@ export async function reanalyzeVideo(id, samplingRate) {
  * @param {Function} onProgress - Axios onUploadProgress callback
  */
 export async function uploadVideo(formData, onProgress) {
-  await api.post('/videos', formData, {
+  const { data } = await api.post('/videos', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: onProgress,
   })
+  return data.data
 }
 
 /**

@@ -7,7 +7,7 @@ export async function login(username, password) {
 
 export async function register(username, password, displayName) {
   const { data } = await api.post('/auth/register', { username, password, displayName })
-  return data
+  return data.data
 }
 
 export async function logout() {

@@ -21,7 +21,7 @@ import AlertMessage from '@/components/atoms/AlertMessage.vue'
 const route = useRoute()
 const { config } = useConfig()
 const report = ref(null)
-const isLoading = ref(true)
+const loading = ref(true)
 const filterLoading = ref(false)
 const error = ref('')
 const exporting = ref(false)
@@ -83,11 +83,14 @@ async function fetchReport() {
 }
 
 onMounted(async () => {
-  await fetchReport()
-  if (report.value) {
-    totalSegmentCount.value = report.value.segments.length
+  try {
+    await fetchReport()
+    if (report.value) {
+      totalSegmentCount.value = report.value.segments.length
+    }
+  } finally {
+    loading.value = false
   }
-  isLoading.value = false
 })
 
 watch([activeTypeFilter, activeSeverityFilter, segmentSort, segmentOrder], async () => {
@@ -127,7 +130,7 @@ async function handleExport(format) {
 
 <template>
   <PageTemplate title="Analysis Report">
-    <div v-if="isLoading" class="flex items-center justify-center py-20">
+    <div v-if="loading" class="flex items-center justify-center py-20">
       <Spinner size="lg" />
     </div>
 

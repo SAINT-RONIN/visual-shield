@@ -235,9 +235,18 @@ class VideoService
         try {
             return $this->ffprobe->getDuration($temporaryFilePath);
         } catch (\RuntimeException $e) {
-            throw new ValidationException(
-                'Could not read video metadata. Please ensure the file is a valid video.'
-            );
+            // FFprobe returns empty/null output when the file is not a valid video
+            // (unrecognised format, corrupt file). That is a user error — 400.
+            // Any other failure (binary missing, disk error, unexpected output)
+            // keeps its RuntimeException so BaseController maps it to a 500.
+            $message = $e->getMessage();
+            if (str_contains($message, 'Failed to read video duration')) {
+                throw new ValidationException(
+                    'Could not read video metadata. Please ensure the file is a valid video.'
+                );
+            }
+
+            throw $e;
         }
     }
 

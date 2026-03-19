@@ -1,10 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { Line } from 'vue-chartjs'
-import '@/utils/chartSetup.js'
-import ChartCard from '@/components/atoms/ChartCard.vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
 import { chartColors } from '@/utils/colors.js'
+import BaseLineChart from '@/components/organisms/BaseLineChart.vue'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -21,8 +19,12 @@ const chartData = computed(() => ({
       fill: true,
       tension: 0.3,
       pointRadius: props.data.map((point) => (point.flashDetected ? 4 : 0)),
-      pointBackgroundColor: props.data.map((point) => (point.flashDetected ? chartColors.threshold : 'transparent')),
-      pointBorderColor: props.data.map((point) => (point.flashDetected ? chartColors.threshold : 'transparent')),
+      pointBackgroundColor: props.data.map((point) =>
+        point.flashDetected ? chartColors.threshold : 'transparent'
+      ),
+      pointBorderColor: props.data.map((point) =>
+        point.flashDetected ? chartColors.threshold : 'transparent'
+      ),
     },
   ],
 }))
@@ -42,7 +44,9 @@ const chartOptions = buildChartOptions({
 </script>
 
 <template>
-  <ChartCard title="Luminance (Brightness) Over Time">
-    <Line :data="chartData" :options="chartOptions" />
-  </ChartCard>
+  <BaseLineChart
+    title="Luminance (Brightness) Over Time"
+    :chart-data="chartData"
+    :chart-options="chartOptions"
+  />
 </template>

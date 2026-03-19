@@ -84,8 +84,11 @@ watch(filterStatus, async () => {
   page.value = 1
   filterLoading.value = true
   error.value = ''
-  await fetchVideos()
-  filterLoading.value = false
+  try {
+    await fetchVideos()
+  } finally {
+    filterLoading.value = false
+  }
   if (hasPendingVideos.value) startPolling()
   else stopPolling()
 })
@@ -93,8 +96,11 @@ watch(filterStatus, async () => {
 watch(page, async () => {
   filterLoading.value = true
   error.value = ''
-  await fetchVideos()
-  filterLoading.value = false
+  try {
+    await fetchVideos()
+  } finally {
+    filterLoading.value = false
+  }
   if (hasPendingVideos.value) startPolling()
   else stopPolling()
 })

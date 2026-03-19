@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Framework;
 
+use App\Controllers\AdminController;
+use App\Controllers\AuthController;
+use App\Controllers\ConfigController;
+use App\Controllers\ReportController;
+use App\Controllers\VideoController;
 use App\Repositories\UserRepository;
 use App\Repositories\TokenRepository;
 use App\Repositories\VideoRepository;
@@ -32,6 +37,11 @@ use App\Services\VideoService;
  */
 class ServiceRegistry
 {
+    private static ?AdminController $adminController = null;
+    private static ?AuthController $authController = null;
+    private static ?ConfigController $configController = null;
+    private static ?ReportController $reportController = null;
+    private static ?VideoController $videoController = null;
     private static ?UserRepository $userRepository = null;
     private static ?TokenRepository $tokenRepository = null;
     private static ?VideoRepository $videoRepository = null;
@@ -193,5 +203,59 @@ class ServiceRegistry
         }
 
         return self::$reportService;
+    }
+
+    // ──────────────────────────────────────────────
+    //  Controllers (lazy singletons)
+    // ──────────────────────────────────────────────
+
+    /** Get the shared AdminController instance. */
+    public static function adminController(): AdminController
+    {
+        if (!self::$adminController) {
+            self::$adminController = new AdminController();
+        }
+
+        return self::$adminController;
+    }
+
+    /** Get the shared AuthController instance. */
+    public static function authController(): AuthController
+    {
+        if (!self::$authController) {
+            self::$authController = new AuthController();
+        }
+
+        return self::$authController;
+    }
+
+    /** Get the shared ConfigController instance. */
+    public static function configController(): ConfigController
+    {
+        if (!self::$configController) {
+            self::$configController = new ConfigController();
+        }
+
+        return self::$configController;
+    }
+
+    /** Get the shared ReportController instance. */
+    public static function reportController(): ReportController
+    {
+        if (!self::$reportController) {
+            self::$reportController = new ReportController();
+        }
+
+        return self::$reportController;
+    }
+
+    /** Get the shared VideoController instance. */
+    public static function videoController(): VideoController
+    {
+        if (!self::$videoController) {
+            self::$videoController = new VideoController();
+        }
+
+        return self::$videoController;
     }
 }

@@ -39,7 +39,7 @@ class VideoController extends BaseController
             $userId = $this->getAuthenticatedUserId();
             $dto = UploadVideoDTO::fromRequest($_FILES['video'] ?? [], $_POST);
             $video = $this->videoService->handleUpload($userId, $dto);
-            $this->jsonResponse($video->toApiArray(), 201);
+            $this->jsonResponse(['data' => $video->toApiArray()], 201);
         });
     }
 
@@ -68,7 +68,7 @@ class VideoController extends BaseController
         $this->handleRequest(function () use ($id) {
             $userId = $this->getAuthenticatedUserId();
             $video = $this->videoService->getOneForUser($userId, $id);
-            $this->jsonResponse($video->toApiArray(), 200);
+            $this->jsonResponse(['data' => $video->toApiArray()], 200);
         });
     }
 
@@ -90,7 +90,7 @@ class VideoController extends BaseController
             $userId = $this->getAuthenticatedUserId();
             $dto = ReanalyzeVideoDTO::fromArray($this->getJsonBody());
             $video = $this->videoService->reanalyze($userId, $id, $dto->samplingRate);
-            $this->jsonResponse($video->toApiArray(), 200);
+            $this->jsonResponse(['data' => $video->toApiArray()], 200);
         });
     }
 

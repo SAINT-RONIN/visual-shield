@@ -106,6 +106,11 @@ class FrameExtractor
     private function collectExtractedFramePaths(string $outputDirectory): array
     {
         $framePaths = glob($outputDirectory . '/frame_*.jpg');
+
+        if ($framePaths === false) {
+            throw new \RuntimeException("Failed to read frame files from directory: {$outputDirectory}");
+        }
+
         sort($framePaths);
 
         if (empty($framePaths)) {
@@ -119,6 +124,10 @@ class FrameExtractor
     private function deleteAllFrameFiles(string $outputDirectory): void
     {
         $frameFiles = glob($outputDirectory . '/frame_*.jpg');
+
+        if ($frameFiles === false) {
+            return;
+        }
 
         foreach ($frameFiles as $filePath) {
             unlink($filePath);

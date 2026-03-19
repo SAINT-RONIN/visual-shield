@@ -94,7 +94,9 @@ class Video
             'progress' => $this->progress,
             'progressMessage' => $this->progressMessage,
             'errorMessage' => $this->errorMessage,
-            'riskLevel' => $this->status === 'completed' ? $this->determineRiskLevel() : null,
+            'riskLevel' => $this->status === 'completed' && $this->hasEnrichedAnalysisData()
+                ? $this->determineRiskLevel()
+                : null,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
         ];
@@ -110,6 +112,21 @@ class Video
     public function getEffectiveSamplingRate(): int
     {
         return $this->effectiveRate ?? $this->samplingRate;
+    }
+
+    /**
+     * Return true only when the analysis JOIN data is actually present.
+     *
+     * All three fields being null means the Video was loaded without the
+     * analysis JOIN (e.g. findByIdAndUserId). In that case we must not
+     * call determineRiskLevel(), which would silently return 'safe' by
+     * substituting 0 for every null — a misleading result.
+     */
+    private function hasEnrichedAnalysisData(): bool
+    {
+        return $this->highestFlashFrequency !== null
+            || $this->averageMotionIntensity !== null
+            || $this->totalSegments !== null;
     }
 
     /** Delegate risk calculation to the shared RiskLevel utility. */

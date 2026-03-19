@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // CORS headers
@@ -32,98 +34,88 @@ $router->get('/api/health/db', function () {
 });
 
 // Config routes (public, no auth required)
-$config = new \App\Controllers\ConfigController();
-
-$router->get('/api/config', function () use ($config) {
-    $config->getConfig();
+$router->get('/api/config', function () {
+    \App\Framework\ServiceRegistry::configController()->getConfig();
 });
 
 // Auth routes
-$auth = new \App\Controllers\AuthController();
-
-$router->post('/api/auth/register', function () use ($auth) {
-    $auth->register();
+$router->post('/api/auth/register', function () {
+    \App\Framework\ServiceRegistry::authController()->register();
 });
 
-$router->post('/api/auth/login', function () use ($auth) {
-    $auth->login();
+$router->post('/api/auth/login', function () {
+    \App\Framework\ServiceRegistry::authController()->login();
 });
 
-$router->post('/api/auth/logout', function () use ($auth) {
-    $auth->logout();
+$router->post('/api/auth/logout', function () {
+    \App\Framework\ServiceRegistry::authController()->logout();
 });
 
-$router->get('/api/users/me', function () use ($auth) {
-    $auth->getProfile();
+$router->get('/api/users/me', function () {
+    \App\Framework\ServiceRegistry::authController()->getProfile();
 });
 
-$router->put('/api/users/me', function () use ($auth) {
-    $auth->updateProfile();
+$router->put('/api/users/me', function () {
+    \App\Framework\ServiceRegistry::authController()->updateProfile();
 });
 
 // Video routes
-$video = new \App\Controllers\VideoController();
-
-$router->post('/api/videos', function () use ($video) {
-    $video->upload();
+$router->post('/api/videos', function () {
+    \App\Framework\ServiceRegistry::videoController()->upload();
 });
 
-$router->get('/api/videos', function () use ($video) {
-    $video->getAll();
+$router->get('/api/videos', function () {
+    \App\Framework\ServiceRegistry::videoController()->getAll();
 });
 
-$router->get('/api/videos/(\d+)', function ($id) use ($video) {
-    $video->getOne((int) $id);
+$router->get('/api/videos/(\d+)', function ($id) {
+    \App\Framework\ServiceRegistry::videoController()->getOne((int) $id);
 });
 
-$router->patch('/api/videos/(\d+)', function ($id) use ($video) {
-    $video->update((int) $id);
+$router->patch('/api/videos/(\d+)', function ($id) {
+    \App\Framework\ServiceRegistry::videoController()->update((int) $id);
 });
 
-$router->delete('/api/videos/(\d+)', function ($id) use ($video) {
-    $video->delete((int) $id);
+$router->delete('/api/videos/(\d+)', function ($id) {
+    \App\Framework\ServiceRegistry::videoController()->delete((int) $id);
 });
 
-$router->put('/api/videos/(\d+)/reanalyze', function ($id) use ($video) {
-    $video->reanalyze((int) $id);
+$router->put('/api/videos/(\d+)/reanalyze', function ($id) {
+    \App\Framework\ServiceRegistry::videoController()->reanalyze((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/stream', function ($id) use ($video) {
-    $video->stream((int) $id);
+$router->get('/api/videos/(\d+)/stream', function ($id) {
+    \App\Framework\ServiceRegistry::videoController()->stream((int) $id);
 });
 
 // Report routes
-$report = new \App\Controllers\ReportController();
-
-$router->get('/api/videos/(\d+)/report', function ($id) use ($report) {
-    $report->getReport((int) $id);
+$router->get('/api/videos/(\d+)/report', function ($id) {
+    \App\Framework\ServiceRegistry::reportController()->getReport((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/report/json', function ($id) use ($report) {
-    $report->exportJson((int) $id);
+$router->get('/api/videos/(\d+)/report/json', function ($id) {
+    \App\Framework\ServiceRegistry::reportController()->exportJson((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/report/csv', function ($id) use ($report) {
-    $report->exportCsv((int) $id);
+$router->get('/api/videos/(\d+)/report/csv', function ($id) {
+    \App\Framework\ServiceRegistry::reportController()->exportCsv((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/segments', function ($id) use ($report) {
-    $report->getSegments((int) $id);
+$router->get('/api/videos/(\d+)/segments', function ($id) {
+    \App\Framework\ServiceRegistry::reportController()->getSegments((int) $id);
 });
 
-$router->get('/api/videos/(\d+)/datapoints', function ($id) use ($report) {
-    $report->getDatapoints((int) $id);
+$router->get('/api/videos/(\d+)/datapoints', function ($id) {
+    \App\Framework\ServiceRegistry::reportController()->getDatapoints((int) $id);
 });
 
 // Admin routes
-$admin = new \App\Controllers\AdminController();
-
-$router->get('/api/admin/users', function () use ($admin) {
-    $admin->listUsers();
+$router->get('/api/admin/users', function () {
+    \App\Framework\ServiceRegistry::adminController()->listUsers();
 });
 
-$router->patch('/api/admin/users/(\d+)/role', function ($id) use ($admin) {
-    $admin->updateUserRole((int) $id);
+$router->patch('/api/admin/users/(\d+)/role', function ($id) {
+    \App\Framework\ServiceRegistry::adminController()->updateUserRole((int) $id);
 });
 
 $router->run();

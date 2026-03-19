@@ -1,3 +1,14 @@
+<script setup>
+import { RouterLink } from 'vue-router'
+
+defineProps({
+  title: { type: String, required: true },
+  description: { type: String, default: '' },
+  actionLabel: { type: String, default: '' },
+  actionTo: { type: String, default: '' },
+})
+</script>
+
 <template>
   <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
     <h3 class="text-lg font-semibold text-heading mb-2">{{ title }}</h3>
@@ -11,14 +22,3 @@
     </RouterLink>
   </div>
 </template>
-
-<script setup>
-import { RouterLink } from 'vue-router'
-
-defineProps({
-  title: { type: String, required: true },
-  description: { type: String, default: '' },
-  actionLabel: { type: String, default: '' },
-  actionTo: { type: String, default: '' },
-})
-</script>
