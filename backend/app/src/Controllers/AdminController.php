@@ -28,8 +28,7 @@ class AdminController extends BaseController
     public function listUsers(): void
     {
         $this->handleRequest(function () {
-            $this->getAuthenticatedUserId();
-            $this->requireRole('admin');
+            $this->requireAdmin();
 
             $users = $this->adminService->listUsers();
 
@@ -43,13 +42,18 @@ class AdminController extends BaseController
     public function updateUserRole(int $id): void
     {
         $this->handleRequest(function () use ($id) {
-            $this->getAuthenticatedUserId();
-            $this->requireRole('admin');
+            $this->requireAdmin();
 
             $dto = UpdateUserRoleDTO::fromArray($this->getJsonBody());
             $user = $this->adminService->updateUserRole($id, $dto->role);
 
             $this->jsonResponse(['data' => $user->toApiArray()]);
         });
+    }
+
+    private function requireAdmin(): void
+    {
+        $this->getAuthenticatedUserId();
+        $this->requireRole('admin');
     }
 }

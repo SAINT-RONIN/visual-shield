@@ -7,9 +7,7 @@ namespace App\Utils;
 use App\Config\AnalysisConfig;
 use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
-use App\DTOs\MotionSegmentAccumulator;
 use App\DTOs\PerSecondMotion;
-use App\DTOs\SegmentData;
 
 /**
  * Detects excessive or rapid motion in video frames.
@@ -125,71 +123,14 @@ class MotionDetector
      */
     private function groupHighMotionSecondsIntoSegments(array $perSecondIntensities): array
     {
-        $completedSegments = [];
-        $currentSegment = null;
-        $consecutiveHighSeconds = 0;
-
-        foreach ($perSecondIntensities as $entry) {
-            $isHighMotion = $entry->intensity >= AnalysisConfig::MOTION_THRESHOLD;
-
-            if ($isHighMotion) {
-                $currentSegment = $this->handleHighMotionSecond($currentSegment, $entry);
-                $consecutiveHighSeconds++;
-            } else {
-                // The high-motion streak ended — save the segment if it was long enough
-                if ($currentSegment !== null && $consecutiveHighSeconds >= self::MIN_SUSTAINED_SECONDS) {
-                    $completedSegments[] = $this->closeSegment($currentSegment, $entry->second);
-                }
-                $currentSegment = null;
-                $consecutiveHighSeconds = 0;
-            }
-        }
-
-        // If the video ends during a high-motion segment, close it
-        if ($currentSegment !== null && $consecutiveHighSeconds >= self::MIN_SUSTAINED_SECONDS) {
-            $lastSecond = end($perSecondIntensities)->second + 1;
-            $completedSegments[] = $this->closeSegment($currentSegment, $lastSecond);
-        }
-
-        return $completedSegments;
-    }
-
-    /**
-     * Start a new segment or extend the current one for a high-motion second.
-     *
-     * Returns a MotionSegmentAccumulator — either newly created (when there was
-     * no current segment) or the same instance with an updated peakIntensity.
-     */
-    private function handleHighMotionSecond(
-        ?MotionSegmentAccumulator $currentSegment,
-        PerSecondMotion $entry,
-    ): MotionSegmentAccumulator {
-        if ($currentSegment === null) {
-            return new MotionSegmentAccumulator(
-                startSecond: $entry->second,
-                peakIntensity: $entry->intensity,
-            );
-        }
-
-        // Extend the existing segment
-        $currentSegment->peakIntensity = max($currentSegment->peakIntensity, $entry->intensity);
-
-        return $currentSegment;
-    }
-
-    // ──────────────────────────────────────────────
-    //  Segment building helpers
-    // ──────────────────────────────────────────────
-
-    /** Convert a tracking segment into a typed SegmentData output DTO. */
-    private function closeSegment(MotionSegmentAccumulator $segment, int $endSecond): SegmentData
-    {
-        return new SegmentData(
-            startTime: (float) $segment->startSecond,
-            endTime: (float) $endSecond,
+        return SegmentGrouper::group(
+            perSecondEntries: $perSecondIntensities,
+            getMetric: fn(PerSecondMotion $e) => $e->intensity,
+            getSecond: fn(PerSecondMotion $e) => $e->second,
+            threshold: AnalysisConfig::MOTION_THRESHOLD,
             type: 'motion',
-            severity: $this->classifySeverity($segment->peakIntensity),
-            metricValue: round($segment->peakIntensity, 2),
+            classifySeverity: $this->classifySeverity(...),
+            minSustainedSeconds: self::MIN_SUSTAINED_SECONDS,
         );
     }
 

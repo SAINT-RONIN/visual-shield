@@ -6,11 +6,9 @@ namespace App\Utils;
 
 use App\Config\AnalysisConfig;
 use App\DTOs\FlashAnalysisResult;
-use App\DTOs\FlashSegmentAccumulator;
 use App\DTOs\FrameData;
 use App\DTOs\FrameFlashTags;
 use App\DTOs\PerSecondFlash;
-use App\DTOs\SegmentData;
 
 /**
  * Detects dangerous flash/strobe events in video frames.
@@ -132,60 +130,13 @@ class FlashDetector
      */
     private function groupDangerousSecondsIntoSegments(array $perSecondFrequencies): array
     {
-        $segments = [];
-        $currentSegment = null;
-
-        foreach ($perSecondFrequencies as $entry) {
-            $isDangerous = $entry->frequency >= AnalysisConfig::FLASH_FREQUENCY_DANGER;
-
-            if ($isDangerous && $currentSegment === null) {
-                // Start a new segment
-                $currentSegment = $this->startNewSegment($entry);
-            } elseif ($isDangerous && $currentSegment !== null) {
-                // Extend the current segment
-                $this->extendSegment($currentSegment, $entry->frequency);
-            } elseif (!$isDangerous && $currentSegment !== null) {
-                // Close the current segment
-                $segments[] = $this->closeSegment($currentSegment, $entry->second);
-                $currentSegment = null;
-            }
-        }
-
-        // If the video ends while still in a dangerous segment, close it
-        if ($currentSegment !== null) {
-            $lastSecond = end($perSecondFrequencies)->second + 1;
-            $segments[] = $this->closeSegment($currentSegment, $lastSecond);
-        }
-
-        return $segments;
-    }
-
-    // ──────────────────────────────────────────────
-    //  Segment building helpers
-    // ──────────────────────────────────────────────
-
-    private function startNewSegment(PerSecondFlash $entry): FlashSegmentAccumulator
-    {
-        return new FlashSegmentAccumulator(
-            startSecond: $entry->second,
-            peakFrequency: $entry->frequency,
-        );
-    }
-
-    private function extendSegment(FlashSegmentAccumulator $segment, float $frequency): void
-    {
-        $segment->peakFrequency = max($segment->peakFrequency, $frequency);
-    }
-
-    /** Convert a tracking segment into a typed SegmentData output DTO. */
-    private function closeSegment(FlashSegmentAccumulator $segment, int $endSecond): SegmentData
-    {
-        return new SegmentData(
-            startTime: (float) $segment->startSecond,
-            endTime: (float) $endSecond,
+        return SegmentGrouper::group(
+            perSecondEntries: $perSecondFrequencies,
+            getMetric: fn(PerSecondFlash $e) => (float) $e->frequency,
+            getSecond: fn(PerSecondFlash $e) => $e->second,
+            threshold: AnalysisConfig::FLASH_FREQUENCY_DANGER,
             type: 'flash',
-            severity: $this->classifySeverity($segment->peakFrequency),
-            metricValue: round($segment->peakFrequency, 2),
+            classifySeverity: $this->classifySeverity(...),
         );
     }
 
