@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\ReportServiceInterface;
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
 use App\Exceptions\NotFoundException;
@@ -26,7 +27,7 @@ use App\Repositories\AnalysisDatapointRepository;
  *   - JSON: the full report as a structured object
  *   - CSV: just the flagged segments as a spreadsheet-friendly format
  */
-class ReportService
+class ReportService implements ReportServiceInterface
 {
     public function __construct(
         private VideoRepository $videoRepo,

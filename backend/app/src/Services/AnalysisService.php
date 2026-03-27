@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\Contracts\AnalysisServiceInterface;
 use App\DTOs\DatapointData;
 use App\DTOs\FlashAnalysisResult;
 use App\DTOs\FrameData;
@@ -29,7 +30,7 @@ use App\Utils\ImageAnalyzer;
  *   4. Runs motion detection (is there excessive/jarring movement?)
  *   5. Saves all results to the database
  */
-class AnalysisService
+class AnalysisService implements AnalysisServiceInterface
 {
     public function __construct(
         private VideoRepository $videoRepo,

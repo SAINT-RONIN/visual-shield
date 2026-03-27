@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Contracts\AdminServiceInterface;
 use App\DTOs\UpdateUserRoleDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Models\User;
-use App\Services\AdminService;
 
 /**
  * HTTP layer for admin-only endpoints (user management).
@@ -17,7 +17,7 @@ use App\Services\AdminService;
  */
 class AdminController extends BaseController
 {
-    private AdminService $adminService;
+    private AdminServiceInterface $adminService;
 
     public function __construct()
     {

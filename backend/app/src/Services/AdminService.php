@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\AdminServiceInterface;
 use App\Exceptions\NotFoundException;
 use App\Models\User;
 use App\Repositories\UserRepository;
@@ -15,7 +16,7 @@ use App\Repositories\UserRepository;
  * the domain rules here — e.g. the null-check after a role update
  * belongs to business logic, not to the repository.
  */
-class AdminService
+class AdminService implements AdminServiceInterface
 {
     public function __construct(
         private UserRepository $userRepository,

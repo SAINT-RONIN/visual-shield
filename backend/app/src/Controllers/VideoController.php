@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Contracts\VideoServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
@@ -13,7 +14,6 @@ use App\DTOs\UploadVideoDTO;
 use App\DTOs\ReanalyzeVideoDTO;
 use App\DTOs\VideoFilterDTO;
 use App\Models\Video;
-use App\Services\VideoService;
 
 /**
  * HTTP layer for video management endpoints (upload, list, detail,
@@ -25,7 +25,7 @@ use App\Services\VideoService;
  */
 class VideoController extends BaseController
 {
-    private VideoService $videoService;
+    private VideoServiceInterface $videoService;
 
     public function __construct()
     {

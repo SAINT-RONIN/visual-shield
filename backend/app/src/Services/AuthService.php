@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\Contracts\AuthServiceInterface;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
@@ -28,7 +29,7 @@ use App\Repositories\TokenRepository;
  * Passwords are hashed with Argon2id (the strongest PHP algorithm).
  * Tokens are random 64-character hex strings that expire after 24 hours.
  */
-class AuthService
+class AuthService implements AuthServiceInterface
 {
     public function __construct(
         private UserRepository $userRepo,

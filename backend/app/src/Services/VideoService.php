@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
+use App\Contracts\VideoServiceInterface;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
@@ -24,7 +25,7 @@ use App\Repositories\VideoRepository;
  *   4. Moves the file to permanent storage with a unique filename
  *   5. Saves the video record to the database
  */
-class VideoService
+class VideoService implements VideoServiceInterface
 {
     /** Video MIME types we accept for upload. */
     private const ALLOWED_MIME_TYPES = [

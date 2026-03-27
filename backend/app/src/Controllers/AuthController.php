@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Contracts\AuthServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
-use App\Services\AuthService;
 use App\DTOs\RegisterDTO;
 use App\DTOs\LoginDTO;
 use App\DTOs\UpdateProfileDTO;
@@ -21,7 +21,7 @@ use App\DTOs\UpdateProfileDTO;
  */
 class AuthController extends BaseController
 {
-    private AuthService $authService;
+    private AuthServiceInterface $authService;
 
     public function __construct()
     {
