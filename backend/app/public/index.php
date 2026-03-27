@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Framework\ServiceRegistry;
+use FastRoute\RouteCollector;
+use function FastRoute\simpleDispatcher;
+
 // CORS headers
 $corsOrigin = getenv('CORS_ORIGIN') ?: '*';
 header("Access-Control-Allow-Origin: {$corsOrigin}");
@@ -17,105 +21,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$router = new \Bramus\Router\Router();
+$dispatcher = simpleDispatcher(function (RouteCollector $r) {
+    // Health routes
+    $r->addRoute('GET', '/api/health', ['health', 'status']);
+    $r->addRoute('GET', '/api/health/db', ['health', 'db']);
 
-$router->get('/api/health', function () {
-    echo json_encode(['status' => 'ok']);
+    // Config routes (public, no auth required)
+    $r->addRoute('GET', '/api/config', ['configController', 'getConfig']);
+
+    // Auth routes
+    $r->addRoute('POST', '/api/auth/register', ['authController', 'register']);
+    $r->addRoute('POST', '/api/auth/login', ['authController', 'login']);
+    $r->addRoute('POST', '/api/auth/logout', ['authController', 'logout']);
+    $r->addRoute('GET', '/api/users/me', ['authController', 'getProfile']);
+    $r->addRoute('PUT', '/api/users/me', ['authController', 'updateProfile']);
+
+    // Video routes
+    $r->addRoute('POST', '/api/videos', ['videoController', 'upload']);
+    $r->addRoute('GET', '/api/videos', ['videoController', 'getAll']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}', ['videoController', 'getOne']);
+    $r->addRoute('PATCH', '/api/videos/{id:\d+}', ['videoController', 'update']);
+    $r->addRoute('DELETE', '/api/videos/{id:\d+}', ['videoController', 'delete']);
+    $r->addRoute('PUT', '/api/videos/{id:\d+}/reanalyze', ['videoController', 'reanalyze']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}/stream', ['videoController', 'stream']);
+
+    // Report routes
+    $r->addRoute('GET', '/api/videos/{id:\d+}/report', ['reportController', 'getReport']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}/report/json', ['reportController', 'exportJson']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}/report/csv', ['reportController', 'exportCsv']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}/segments', ['reportController', 'getSegments']);
+    $r->addRoute('GET', '/api/videos/{id:\d+}/datapoints', ['reportController', 'getDatapoints']);
+
+    // Admin routes
+    $r->addRoute('GET', '/api/admin/users', ['adminController', 'listUsers']);
+    $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/role', ['adminController', 'updateUserRole']);
 });
 
-$router->get('/api/health/db', function () {
-    try {
-        \App\Framework\Database::getInstance();
-        echo json_encode(['database' => 'connected']);
-    } catch (\Throwable $e) {
-        http_response_code(500);
-        echo json_encode(['error' => ['code' => 500, 'message' => 'Database connection failed']]);
-    }
-});
+$httpMethod = $_SERVER['REQUEST_METHOD'];
+$uri = strtok($_SERVER['REQUEST_URI'], '?');
+$routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 
-// Config routes (public, no auth required)
-$router->get('/api/config', function () {
-    \App\Framework\ServiceRegistry::configController()->getConfig();
-});
+switch ($routeInfo[0]) {
+    case FastRoute\Dispatcher::NOT_FOUND:
+        http_response_code(404);
+        echo json_encode(['error' => ['code' => 404, 'message' => 'Not Found']]);
+        break;
 
-// Auth routes
-$router->post('/api/auth/register', function () {
-    \App\Framework\ServiceRegistry::authController()->register();
-});
+    case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+        http_response_code(405);
+        echo json_encode(['error' => ['code' => 405, 'message' => 'Method Not Allowed']]);
+        break;
 
-$router->post('/api/auth/login', function () {
-    \App\Framework\ServiceRegistry::authController()->login();
-});
+    case FastRoute\Dispatcher::FOUND:
+        [$registryMethod, $method] = $routeInfo[1];
+        $vars = $routeInfo[2];
 
-$router->post('/api/auth/logout', function () {
-    \App\Framework\ServiceRegistry::authController()->logout();
-});
+        // Health routes are inline (no controller)
+        if ($registryMethod === 'health') {
+            if ($method === 'status') {
+                echo json_encode(['status' => 'ok']);
+            } elseif ($method === 'db') {
+                try {
+                    \App\Framework\Database::getInstance();
+                    echo json_encode(['database' => 'connected']);
+                } catch (\Throwable $e) {
+                    http_response_code(500);
+                    echo json_encode(['error' => ['code' => 500, 'message' => 'Database connection failed']]);
+                }
+            }
+            break;
+        }
 
-$router->get('/api/users/me', function () {
-    \App\Framework\ServiceRegistry::authController()->getProfile();
-});
-
-$router->put('/api/users/me', function () {
-    \App\Framework\ServiceRegistry::authController()->updateProfile();
-});
-
-// Video routes
-$router->post('/api/videos', function () {
-    \App\Framework\ServiceRegistry::videoController()->upload();
-});
-
-$router->get('/api/videos', function () {
-    \App\Framework\ServiceRegistry::videoController()->getAll();
-});
-
-$router->get('/api/videos/(\d+)', function ($id) {
-    \App\Framework\ServiceRegistry::videoController()->getOne((int) $id);
-});
-
-$router->patch('/api/videos/(\d+)', function ($id) {
-    \App\Framework\ServiceRegistry::videoController()->update((int) $id);
-});
-
-$router->delete('/api/videos/(\d+)', function ($id) {
-    \App\Framework\ServiceRegistry::videoController()->delete((int) $id);
-});
-
-$router->put('/api/videos/(\d+)/reanalyze', function ($id) {
-    \App\Framework\ServiceRegistry::videoController()->reanalyze((int) $id);
-});
-
-$router->get('/api/videos/(\d+)/stream', function ($id) {
-    \App\Framework\ServiceRegistry::videoController()->stream((int) $id);
-});
-
-// Report routes
-$router->get('/api/videos/(\d+)/report', function ($id) {
-    \App\Framework\ServiceRegistry::reportController()->getReport((int) $id);
-});
-
-$router->get('/api/videos/(\d+)/report/json', function ($id) {
-    \App\Framework\ServiceRegistry::reportController()->exportJson((int) $id);
-});
-
-$router->get('/api/videos/(\d+)/report/csv', function ($id) {
-    \App\Framework\ServiceRegistry::reportController()->exportCsv((int) $id);
-});
-
-$router->get('/api/videos/(\d+)/segments', function ($id) {
-    \App\Framework\ServiceRegistry::reportController()->getSegments((int) $id);
-});
-
-$router->get('/api/videos/(\d+)/datapoints', function ($id) {
-    \App\Framework\ServiceRegistry::reportController()->getDatapoints((int) $id);
-});
-
-// Admin routes
-$router->get('/api/admin/users', function () {
-    \App\Framework\ServiceRegistry::adminController()->listUsers();
-});
-
-$router->patch('/api/admin/users/(\d+)/role', function ($id) {
-    \App\Framework\ServiceRegistry::adminController()->updateUserRole((int) $id);
-});
-
-$router->run();
+        // All other routes go through ServiceRegistry
+        $controller = ServiceRegistry::$registryMethod();
+        $controller->$method(...array_map('intval', $vars));
+        break;
+}
