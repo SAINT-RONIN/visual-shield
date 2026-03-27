@@ -18,12 +18,12 @@ use App\Repositories\AnalysisDatapointRepository;
 use App\Services\AdminService;
 use App\Services\AnalysisService;
 use App\Services\AuthService;
-use App\Services\FFprobeService;
-use App\Services\FlashDetector;
-use App\Services\FrameExtractor;
-use App\Services\MotionDetector;
 use App\Services\ReportService;
 use App\Services\VideoService;
+use App\Utils\FFprobe;
+use App\Utils\FlashDetector;
+use App\Utils\FrameExtractor;
+use App\Utils\MotionDetector;
 
 /**
  * Lightweight service registry that wires dependencies in one place.
@@ -53,7 +53,7 @@ class ServiceRegistry
     private static ?AuthService $authService = null;
     private static ?VideoService $videoService = null;
     private static ?ReportService $reportService = null;
-    private static ?FFprobeService $ffprobeService = null;
+    private static ?FFprobe $ffprobeService = null;
 
     // ──────────────────────────────────────────────
     //  Repositories (lazy singletons)
@@ -135,11 +135,11 @@ class ServiceRegistry
         return self::$adminService;
     }
 
-    /** Get the shared FFprobeService instance. */
-    public static function ffprobeService(): FFprobeService
+    /** Get the shared FFprobe instance. */
+    public static function ffprobeService(): FFprobe
     {
         if (!self::$ffprobeService) {
-            self::$ffprobeService = new FFprobeService();
+            self::$ffprobeService = new FFprobe();
         }
 
         return self::$ffprobeService;

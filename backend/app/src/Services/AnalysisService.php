@@ -17,7 +17,12 @@ use App\Repositories\VideoRepository;
 use App\Repositories\AnalysisResultRepository;
 use App\Repositories\FlaggedSegmentRepository;
 use App\Repositories\AnalysisDatapointRepository;
+use App\Utils\FFprobe;
+use App\Utils\FlashDetector;
+use App\Utils\FrameExtractor;
 use App\Utils\ImageAnalyzer;
+use App\Utils\MotionDetector;
+use App\Utils\PathResolver;
 
 /**
  * Orchestrates the full video analysis pipeline.
@@ -38,7 +43,7 @@ class AnalysisService implements AnalysisServiceInterface
         private FlaggedSegmentRepository $segmentRepo,
         private AnalysisDatapointRepository $datapointRepo,
         private FrameExtractor $frameExtractor,
-        private FFprobeService $ffprobe,
+        private FFprobe $ffprobe,
         private FlashDetector $flashDetector,
         private MotionDetector $motionDetector,
     ) {}
@@ -89,7 +94,7 @@ class AnalysisService implements AnalysisServiceInterface
     public function analyze(int $videoId, ?callable $onProgress = null): void
     {
         $video = $this->findVideoOrFail($videoId);
-        $videoPath = $this->resolveVideoFilePath($video->storedPath);
+        $videoPath = PathResolver::resolveOrFail($video->storedPath);
         $frameOutputDirectory = $this->buildFrameOutputDirectory($videoId);
         $samplingRate = $video->getEffectiveSamplingRate();
 
@@ -388,18 +393,6 @@ class AnalysisService implements AnalysisServiceInterface
         }
 
         return $video;
-    }
-
-    /** Convert the database's relative stored_path into an absolute filesystem path. */
-    private function resolveVideoFilePath(string $storedPath): string
-    {
-        $fullPath = AnalysisConfig::appRoot() . '/' . $storedPath;
-
-        if (!file_exists($fullPath)) {
-            throw new NotFoundException('Video file not found on disk');
-        }
-
-        return $fullPath;
     }
 
     /** Build the temporary directory path where extracted frames will be stored. */

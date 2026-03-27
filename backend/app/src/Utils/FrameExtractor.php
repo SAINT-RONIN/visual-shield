@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Utils;
 
 /**
  * Extracts individual JPEG frames from a video using FFmpeg.
  *
  * When we analyze a video, we can't look at the video file directly —
  * we need individual image files (frames) that we can compare to each other.
- * This service uses FFmpeg to take "screenshots" of the video at regular
+ * This utility uses FFmpeg to take "screenshots" of the video at regular
  * intervals and saves them as numbered JPEG files.
  *
  * Example: at 10fps, a 5-second video produces 50 frame files:
@@ -31,7 +31,7 @@ class FrameExtractor
      */
     public function extract(string $videoPath, int $samplingRate, string $outputDirectory): array
     {
-        $this->ensureDirectoryExists($outputDirectory);
+        FileSystem::ensureDirectoryExists($outputDirectory);
         $this->runFFmpegFrameExtraction($videoPath, $samplingRate, $outputDirectory);
 
         return $this->collectExtractedFramePaths($outputDirectory);
@@ -47,20 +47,6 @@ class FrameExtractor
     // ──────────────────────────────────────────────
     //  Directory management
     // ──────────────────────────────────────────────
-
-    /** Create the output directory if it doesn't already exist. */
-    private function ensureDirectoryExists(string $directoryPath): void
-    {
-        if (is_dir($directoryPath)) {
-            return;
-        }
-
-        $created = mkdir($directoryPath, 0755, true);
-
-        if (!$created) {
-            throw new \RuntimeException("Failed to create output directory: {$directoryPath}");
-        }
-    }
 
     private function removeDirectoryIfEmpty(string $directoryPath): void
     {

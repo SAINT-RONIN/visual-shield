@@ -14,6 +14,9 @@ use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
+use App\Utils\FFprobe;
+use App\Utils\FileSystem;
+use App\Utils\PathResolver;
 
 /**
  * Manages the full video lifecycle: upload, retrieval, deletion, and re-analysis.
@@ -49,7 +52,7 @@ class VideoService implements VideoServiceInterface
 
     public function __construct(
         private VideoRepository $videoRepo,
-        private FFprobeService $ffprobe,
+        private FFprobe $ffprobe,
     ) {}
 
     // ──────────────────────────────────────────────
@@ -178,7 +181,7 @@ class VideoService implements VideoServiceInterface
     public function getStreamInfo(int $userId, int $videoId): StreamInfo
     {
         $video = $this->findUserVideoOrFail($userId, $videoId);
-        $filePath = $this->resolveVideoFilePathOrFail($video->storedPath);
+        $filePath = PathResolver::resolveOrFail($video->storedPath);
 
         $fileSize = filesize($filePath);
         $contentType = $this->detectVideoContentType($filePath);
@@ -308,8 +311,8 @@ class VideoService implements VideoServiceInterface
         $uniqueFilename = bin2hex(random_bytes(AnalysisConfig::STORAGE_FILENAME_RANDOM_BYTES)) . '.' . $fileExtension;
         $storageDirectory = AnalysisConfig::appRoot() . '/storage/videos';
 
-        $this->ensureDirectoryExists($storageDirectory);
-        $this->ensureDirectoryIsWritable($storageDirectory);
+        FileSystem::ensureDirectoryExists($storageDirectory);
+        FileSystem::ensureWritable($storageDirectory);
 
         $destinationPath = "{$storageDirectory}/{$uniqueFilename}";
 
@@ -320,46 +323,14 @@ class VideoService implements VideoServiceInterface
         return "storage/videos/{$uniqueFilename}";
     }
 
-    private function ensureDirectoryExists(string $directoryPath): void
-    {
-        if (is_dir($directoryPath)) {
-            return;
-        }
-
-        $created = mkdir($directoryPath, 0755, true);
-
-        if (!$created && !is_dir($directoryPath)) {
-            throw new \RuntimeException('Failed to create upload directory');
-        }
-    }
-
-    private function ensureDirectoryIsWritable(string $directoryPath): void
-    {
-        if (!is_writable($directoryPath)) {
-            throw new \RuntimeException('Upload directory is not writable');
-        }
-    }
-
     /** Delete the video file from disk if it still exists. */
     private function deleteVideoFileFromDisk(string $storedPath): void
     {
-        $fullPath = $this->resolveFullPath($storedPath);
+        $fullPath = PathResolver::resolve($storedPath);
 
         if (file_exists($fullPath)) {
             unlink($fullPath);
         }
-    }
-
-    /** Resolve a stored_path to an absolute path, verifying the file exists. */
-    private function resolveVideoFilePathOrFail(string $storedPath): string
-    {
-        $fullPath = $this->resolveFullPath($storedPath);
-
-        if (!file_exists($fullPath)) {
-            throw new NotFoundException('Video file not found');
-        }
-
-        return $fullPath;
     }
 
     /** Determine the MIME type of a video file from its extension. */
@@ -368,16 +339,6 @@ class VideoService implements VideoServiceInterface
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         return self::MIME_TYPES_BY_EXTENSION[$extension] ?? 'application/octet-stream';
-    }
-
-    // ──────────────────────────────────────────────
-    //  Path helpers
-    // ──────────────────────────────────────────────
-
-    /** Convert a relative stored_path to an absolute filesystem path. */
-    private function resolveFullPath(string $storedPath): string
-    {
-        return AnalysisConfig::appRoot() . '/' . $storedPath;
     }
 
     // ──────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Utils;
 
 use App\Config\AnalysisConfig;
 use App\DTOs\FrameData;

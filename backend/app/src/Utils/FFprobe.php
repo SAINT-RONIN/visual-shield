@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Utils;
 
 use App\DTOs\VideoResolution;
 
@@ -10,11 +10,11 @@ use App\DTOs\VideoResolution;
  * Reads video metadata using the FFprobe command-line tool.
  *
  * FFprobe is part of the FFmpeg suite. It can inspect video files and
- * report things like duration, resolution, codec, etc. This service
+ * report things like duration, resolution, codec, etc. This utility
  * wraps the shell commands so the rest of the app doesn't need to know
  * about FFprobe's command-line flags.
  */
-class FFprobeService
+class FFprobe
 {
     /**
      * Get the total duration of a video file in seconds.
@@ -70,6 +70,12 @@ class FFprobeService
     private function parseResolutionOutput(string $rawOutput): VideoResolution
     {
         $parts = explode('x', trim($rawOutput));
+
+        if (count($parts) !== 2) {
+            throw new \RuntimeException(
+                "Unexpected FFprobe resolution output format: expected 'WxH', got '{$rawOutput}'"
+            );
+        }
 
         return new VideoResolution(
             width: (int) $parts[0],
