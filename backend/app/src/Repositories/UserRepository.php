@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\UserRepositoryInterface;
 use App\Models\User;
 
 /**
@@ -13,7 +14,7 @@ use App\Models\User;
  * instead of a raw associative array. This gives the rest of the app
  * IDE autocompletion and type safety for user data.
  */
-class UserRepository extends BaseRepository
+class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
     /**
      * Look up a user by their unique username.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\VideoRepositoryInterface;
 use App\DTOs\VideoFilterDTO;
 use App\Models\Video;
 use PDO;
@@ -15,7 +16,7 @@ use PDO;
  * instead of a raw associative array. Some queries JOIN analysis data
  * for dashboard display — the Video model handles both shapes.
  */
-class VideoRepository extends BaseRepository
+class VideoRepository extends BaseRepository implements VideoRepositoryInterface
 {
 
     /**

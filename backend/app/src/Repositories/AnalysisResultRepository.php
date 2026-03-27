@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\AnalysisResultRepositoryInterface;
 use App\Models\AnalysisResult;
 
 /**
@@ -19,7 +20,7 @@ use App\Models\AnalysisResult;
  * Keeping summary metrics in their own table avoids expensive aggregation
  * over the much larger analysis_datapoints table on every page load.
  */
-class AnalysisResultRepository extends BaseRepository
+class AnalysisResultRepository extends BaseRepository implements AnalysisResultRepositoryInterface
 {
 
     /**

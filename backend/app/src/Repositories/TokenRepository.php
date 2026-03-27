@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\TokenRepositoryInterface;
 use App\Models\Token;
 
 /**
@@ -19,7 +20,7 @@ use App\Models\Token;
  * enforce expiry rules, revoke tokens on logout, and periodically purge
  * stale rows.
  */
-class TokenRepository extends BaseRepository
+class TokenRepository extends BaseRepository implements TokenRepositoryInterface
 {
 
     /**

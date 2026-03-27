@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\FlaggedSegmentRepositoryInterface;
 use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;
 use App\Models\FlaggedSegment;
@@ -23,7 +24,7 @@ use App\Models\FlaggedSegment;
  * on dashboard video cards. Keeping segments in their own table avoids
  * scanning the much larger analysis_datapoints table at display time.
  */
-class FlaggedSegmentRepository extends BaseRepository
+class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentRepositoryInterface
 {
 
     /**

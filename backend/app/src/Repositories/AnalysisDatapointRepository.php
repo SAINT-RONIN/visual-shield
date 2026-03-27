@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\AnalysisDatapointRepositoryInterface;
 use App\DTOs\DatapointData;
 use App\Models\AnalysisDatapoint;
 
@@ -22,7 +23,7 @@ use App\Models\AnalysisDatapoint;
  * transaction) keeps write performance acceptable even for long videos
  * that produce thousands of rows.
  */
-class AnalysisDatapointRepository extends BaseRepository
+class AnalysisDatapointRepository extends BaseRepository implements AnalysisDatapointRepositoryInterface
 {
     /** @var int Number of rows inserted per prepared statement to balance query size and round-trips. */
     private const BATCH_SIZE = 50;
