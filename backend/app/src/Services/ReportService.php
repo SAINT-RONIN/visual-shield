@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Contracts\ReportServiceInterface;
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
-use App\Exceptions\NotFoundException;
 use App\Models\AnalysisDatapoint;
 use App\Models\FlaggedSegment;
 use App\Models\Video;
@@ -27,7 +26,7 @@ use App\Repositories\AnalysisDatapointRepository;
  *   - JSON: the full report as a structured object
  *   - CSV: just the flagged segments as a spreadsheet-friendly format
  */
-class ReportService implements ReportServiceInterface
+class ReportService extends BaseService implements ReportServiceInterface
 {
     public function __construct(
         private VideoRepository $videoRepo,
@@ -50,7 +49,7 @@ class ReportService implements ReportServiceInterface
      */
     public function getReport(int $userId, int $videoId, ?SegmentFilterDTO $segmentFilters = null): ReportDTO
     {
-        $video = $this->findUserVideoOrFail($userId, $videoId);
+        $video = $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
 
         $analysisResult = $this->analysisResultRepo->findByVideoId($videoId);
         $segments = $this->segmentRepo->findByVideoId($videoId, $segmentFilters);
@@ -73,7 +72,7 @@ class ReportService implements ReportServiceInterface
      */
     public function exportAsCsv(int $userId, int $videoId): array
     {
-        $this->findUserVideoOrFail($userId, $videoId);
+        $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
 
         return $this->segmentRepo->findByVideoId($videoId);
     }
@@ -96,7 +95,7 @@ class ReportService implements ReportServiceInterface
      */
     public function getSegments(int $userId, int $videoId, ?SegmentFilterDTO $segmentFilters = null): array
     {
-        $this->findUserVideoOrFail($userId, $videoId);
+        $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
 
         return $this->segmentRepo->findByVideoId($videoId, $segmentFilters);
     }
@@ -112,24 +111,9 @@ class ReportService implements ReportServiceInterface
      */
     public function getDatapoints(int $userId, int $videoId): array
     {
-        $this->findUserVideoOrFail($userId, $videoId);
+        $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
 
         return $this->datapointRepo->findByVideoId($videoId);
     }
 
-    // ──────────────────────────────────────────────
-    //  Lookup helpers
-    // ──────────────────────────────────────────────
-
-    /** Find a video that belongs to a specific user, or throw a 404 error. */
-    private function findUserVideoOrFail(int $userId, int $videoId): Video
-    {
-        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
-
-        if (!$video) {
-            throw new NotFoundException('Video not found');
-        }
-
-        return $video;
-    }
 }

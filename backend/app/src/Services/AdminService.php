@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\AdminServiceInterface;
-use App\Exceptions\NotFoundException;
 use App\Models\User;
 use App\Repositories\UserRepository;
 
@@ -16,7 +15,7 @@ use App\Repositories\UserRepository;
  * the domain rules here — e.g. the null-check after a role update
  * belongs to business logic, not to the repository.
  */
-class AdminService implements AdminServiceInterface
+class AdminService extends BaseService implements AdminServiceInterface
 {
     public function __construct(
         private UserRepository $userRepository,
@@ -39,12 +38,6 @@ class AdminService implements AdminServiceInterface
      */
     public function updateUserRole(int $id, string $role): User
     {
-        $user = $this->userRepository->updateRole($id, $role);
-
-        if (!$user) {
-            throw new NotFoundException('User not found');
-        }
-
-        return $user;
+        return $this->findOrFail($this->userRepository->updateRole($id, $role), 'User not found');
     }
 }

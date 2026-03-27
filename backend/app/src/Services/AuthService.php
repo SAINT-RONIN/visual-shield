@@ -10,7 +10,6 @@ use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
 use App\DTOs\UpdateProfileDTO;
-use App\Exceptions\NotFoundException;
 use App\Exceptions\UnauthorizedException;
 use App\Exceptions\ValidationException;
 use App\Models\User;
@@ -29,7 +28,7 @@ use App\Repositories\TokenRepository;
  * Passwords are hashed with Argon2id (the strongest PHP algorithm).
  * Tokens are random 64-character hex strings that expire after 24 hours.
  */
-class AuthService implements AuthServiceInterface
+class AuthService extends BaseService implements AuthServiceInterface
 {
     public function __construct(
         private UserRepository $userRepo,
@@ -128,13 +127,7 @@ class AuthService implements AuthServiceInterface
     /** Find a user by ID, or throw if they don't exist. */
     private function findUserOrFail(int $userId): User
     {
-        $user = $this->userRepo->findById($userId);
-
-        if (!$user) {
-            throw new NotFoundException('User not found');
-        }
-
-        return $user;
+        return $this->findOrFail($this->userRepo->findById($userId), 'User not found');
     }
 
     // ──────────────────────────────────────────────

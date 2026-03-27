@@ -11,7 +11,6 @@ use App\DTOs\FlashAnalysisResult;
 use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
 use App\DTOs\PerSecondLuminance;
-use App\Exceptions\NotFoundException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
 use App\Repositories\AnalysisResultRepository;
@@ -35,7 +34,7 @@ use App\Utils\PathResolver;
  *   4. Runs motion detection (is there excessive/jarring movement?)
  *   5. Saves all results to the database
  */
-class AnalysisService implements AnalysisServiceInterface
+class AnalysisService extends BaseService implements AnalysisServiceInterface
 {
     public function __construct(
         private VideoRepository $videoRepo,
@@ -93,7 +92,7 @@ class AnalysisService implements AnalysisServiceInterface
      */
     public function analyze(int $videoId, ?callable $onProgress = null): void
     {
-        $video = $this->findVideoOrFail($videoId);
+        $video = $this->findOrFail($this->videoRepo->findById($videoId), 'Video not found');
         $videoPath = PathResolver::resolveOrFail($video->storedPath);
         $frameOutputDirectory = $this->buildFrameOutputDirectory($videoId);
         $samplingRate = $video->getEffectiveSamplingRate();
@@ -383,17 +382,6 @@ class AnalysisService implements AnalysisServiceInterface
     // ──────────────────────────────────────────────
     //  Utility helpers
     // ──────────────────────────────────────────────
-
-    private function findVideoOrFail(int $videoId): Video
-    {
-        $video = $this->videoRepo->findById($videoId);
-
-        if (!$video) {
-            throw new NotFoundException('Video not found');
-        }
-
-        return $video;
-    }
 
     /** Build the temporary directory path where extracted frames will be stored. */
     private function buildFrameOutputDirectory(int $videoId): string

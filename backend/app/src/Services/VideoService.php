@@ -10,7 +10,6 @@ use App\DTOs\PaginatedResultDTO;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\VideoFilterDTO;
-use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Models\Video;
 use App\Repositories\VideoRepository;
@@ -28,7 +27,7 @@ use App\Utils\PathResolver;
  *   4. Moves the file to permanent storage with a unique filename
  *   5. Saves the video record to the database
  */
-class VideoService implements VideoServiceInterface
+class VideoService extends BaseService implements VideoServiceInterface
 {
     /** Video MIME types we accept for upload. */
     private const ALLOWED_MIME_TYPES = [
@@ -114,7 +113,7 @@ class VideoService implements VideoServiceInterface
     /** Update a video's metadata (title/original name). */
     public function updateMetadata(int $userId, int $videoId, string $originalName): Video
     {
-        $this->findUserVideoOrFail($userId, $videoId);
+        $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
         $this->videoRepo->updateOriginalName($videoId, $originalName);
 
         return $this->findVideoOrFail($videoId);
@@ -123,7 +122,7 @@ class VideoService implements VideoServiceInterface
     /** Get a single video belonging to a user. */
     public function getOneForUser(int $userId, int $videoId): Video
     {
-        return $this->findUserVideoOrFail($userId, $videoId);
+        return $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
     }
 
     // ──────────────────────────────────────────────
@@ -133,7 +132,7 @@ class VideoService implements VideoServiceInterface
     /** Delete a video's file from disk and its record from the database. */
     public function delete(int $userId, int $videoId): void
     {
-        $video = $this->findUserVideoOrFail($userId, $videoId);
+        $video = $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
 
         $this->deleteVideoFileFromDisk($video->storedPath);
         $this->videoRepo->delete($videoId);
@@ -160,7 +159,7 @@ class VideoService implements VideoServiceInterface
      */
     public function reanalyze(int $userId, int $videoId, int $samplingRate): Video
     {
-        $this->findUserVideoOrFail($userId, $videoId);
+        $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
         $this->validateSamplingRate($samplingRate);
 
         $this->videoRepo->resetForReanalysis($videoId, $samplingRate);
@@ -180,7 +179,7 @@ class VideoService implements VideoServiceInterface
      */
     public function getStreamInfo(int $userId, int $videoId): StreamInfo
     {
-        $video = $this->findUserVideoOrFail($userId, $videoId);
+        $video = $this->findUserVideoOrFail($this->videoRepo, $userId, $videoId);
         $filePath = PathResolver::resolveOrFail($video->storedPath);
 
         $fileSize = filesize($filePath);
@@ -345,27 +344,9 @@ class VideoService implements VideoServiceInterface
     //  Lookup helpers
     // ──────────────────────────────────────────────
 
-    /** Find a video that belongs to a specific user, or throw a 404 error. */
-    private function findUserVideoOrFail(int $userId, int $videoId): Video
-    {
-        $video = $this->videoRepo->findByIdAndUserId($videoId, $userId);
-
-        if (!$video) {
-            throw new NotFoundException('Video not found');
-        }
-
-        return $video;
-    }
-
     /** Find a video by ID (with enriched data), or throw an error. */
     private function findVideoOrFail(int $videoId): Video
     {
-        $video = $this->videoRepo->findById($videoId);
-
-        if (!$video) {
-            throw new NotFoundException('Video not found');
-        }
-
-        return $video;
+        return $this->findOrFail($this->videoRepo->findById($videoId), 'Video not found');
     }
 }
