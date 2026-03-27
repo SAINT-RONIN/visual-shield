@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Framework\Database;
 use App\Models\Token;
-use PDO;
 
 /**
  * Data-access layer for the `auth_tokens` table.
@@ -21,14 +19,8 @@ use PDO;
  * enforce expiry rules, revoke tokens on logout, and periodically purge
  * stale rows.
  */
-class TokenRepository
+class TokenRepository extends BaseRepository
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     /**
      * Persist a new bearer token for a given user.
@@ -61,13 +53,8 @@ class TokenRepository
     {
         $stmt = $this->db->prepare('SELECT id, user_id, token, expires_at, created_at FROM auth_tokens WHERE token = :token AND expires_at > NOW()');
         $stmt->execute(['token' => $token]);
-        $row = $stmt->fetch();
 
-        if (!$row) {
-            return null;
-        }
-
-        return Token::fromRow($row);
+        return $this->fetchOneOrNull($stmt, Token::fromRow(...));
     }
 
     /**

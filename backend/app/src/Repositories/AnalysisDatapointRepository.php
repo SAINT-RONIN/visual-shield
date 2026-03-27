@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\DTOs\DatapointData;
-use App\Framework\Database;
 use App\Models\AnalysisDatapoint;
-use PDO;
 
 /**
  * Data-access layer for the `analysis_datapoints` table.
@@ -24,17 +22,10 @@ use PDO;
  * transaction) keeps write performance acceptable even for long videos
  * that produce thousands of rows.
  */
-class AnalysisDatapointRepository
+class AnalysisDatapointRepository extends BaseRepository
 {
     /** @var int Number of rows inserted per prepared statement to balance query size and round-trips. */
     private const BATCH_SIZE = 50;
-
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     /**
      * Insert all datapoints for a video in batched chunks within a transaction.
@@ -85,9 +76,7 @@ class AnalysisDatapointRepository
         );
         $stmt->execute([$videoId]);
 
-        $rows = $stmt->fetchAll();
-
-        return array_map(fn(array $datapointRow) => AnalysisDatapoint::fromRow($datapointRow), $rows);
+        return $this->fetchAllHydrated($stmt, AnalysisDatapoint::fromRow(...));
     }
 
     /**

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Framework\Database;
 use App\Models\AnalysisResult;
-use PDO;
 
 /**
  * Data-access layer for the `analysis_results` table.
@@ -21,14 +19,8 @@ use PDO;
  * Keeping summary metrics in their own table avoids expensive aggregation
  * over the much larger analysis_datapoints table on every page load.
  */
-class AnalysisResultRepository
+class AnalysisResultRepository extends BaseRepository
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     /**
      * Insert a new analysis-summary row for a video.
@@ -84,13 +76,8 @@ class AnalysisResultRepository
              FROM analysis_results WHERE video_id = ?'
         );
         $stmt->execute([$videoId]);
-        $row = $stmt->fetch();
 
-        if (!$row) {
-            return null;
-        }
-
-        return AnalysisResult::fromRow($row);
+        return $this->fetchOneOrNull($stmt, AnalysisResult::fromRow(...));
     }
 
     /**

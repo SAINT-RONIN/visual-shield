@@ -6,9 +6,7 @@ namespace App\Repositories;
 
 use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;
-use App\Framework\Database;
 use App\Models\FlaggedSegment;
-use PDO;
 
 /**
  * Data-access layer for the `flagged_segments` table.
@@ -25,14 +23,8 @@ use PDO;
  * on dashboard video cards. Keeping segments in their own table avoids
  * scanning the much larger analysis_datapoints table at display time.
  */
-class FlaggedSegmentRepository
+class FlaggedSegmentRepository extends BaseRepository
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     /**
      * Insert all flagged segments for a video in a single multi-row INSERT.
@@ -114,9 +106,7 @@ class FlaggedSegmentRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        $rows = $stmt->fetchAll();
-
-        return array_map(fn(array $segmentRow) => FlaggedSegment::fromRow($segmentRow), $rows);
+        return $this->fetchAllHydrated($stmt, FlaggedSegment::fromRow(...));
     }
 
     /**

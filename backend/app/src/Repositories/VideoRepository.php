@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\DTOs\VideoFilterDTO;
-use App\Framework\Database;
 use App\Models\Video;
 use PDO;
 
@@ -16,14 +15,8 @@ use PDO;
  * instead of a raw associative array. Some queries JOIN analysis data
  * for dashboard display — the Video model handles both shapes.
  */
-class VideoRepository
+class VideoRepository extends BaseRepository
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     /**
      * Insert a new video record after a successful upload.
@@ -90,9 +83,7 @@ class VideoRepository
         $stmt->bindValue('offset', $filters->offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        $rows = $stmt->fetchAll();
-
-        return array_map(fn(array $videoRow) => Video::fromRow($videoRow), $rows);
+        return $this->fetchAllHydrated($stmt, Video::fromRow(...));
     }
 
     /**
@@ -130,9 +121,8 @@ class VideoRepository
     {
         $stmt = $this->db->prepare('SELECT * FROM videos WHERE id = ? AND user_id = ?');
         $stmt->execute([$id, $userId]);
-        $row = $stmt->fetch();
 
-        return $row ? Video::fromRow($row) : null;
+        return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
     /**
@@ -153,9 +143,8 @@ class VideoRepository
              WHERE v.id = ?'
         );
         $stmt->execute([$id]);
-        $row = $stmt->fetch();
 
-        return $row ? Video::fromRow($row) : null;
+        return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
     /** Set the video's analysis status (e.g. queued, processing, completed, failed). */
@@ -205,9 +194,8 @@ class VideoRepository
     {
         $stmt = $this->db->prepare("SELECT * FROM videos WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1");
         $stmt->execute();
-        $row = $stmt->fetch();
 
-        return $row ? Video::fromRow($row) : null;
+        return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
     /** Update a video's original name (title). */

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Framework\Database;
 use App\Models\User;
-use PDO;
 
 /**
  * Data-access layer for the `users` table.
@@ -15,15 +13,8 @@ use PDO;
  * instead of a raw associative array. This gives the rest of the app
  * IDE autocompletion and type safety for user data.
  */
-class UserRepository
+class UserRepository extends BaseRepository
 {
-    private PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
-
     /**
      * Look up a user by their unique username.
      *
@@ -37,9 +28,8 @@ class UserRepository
              FROM users WHERE username = :username'
         );
         $stmt->execute(['username' => $username]);
-        $row = $stmt->fetch();
 
-        return $row ? User::fromRow($row) : null;
+        return $this->fetchOneOrNull($stmt, User::fromRow(...));
     }
 
     /**
@@ -54,9 +44,8 @@ class UserRepository
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
 
-        return $row ? User::fromRow($row) : null;
+        return $this->fetchOneOrNull($stmt, User::fromRow(...));
     }
 
     /**
@@ -113,9 +102,7 @@ class UserRepository
              FROM users ORDER BY created_at ASC'
         );
 
-        $rows = $stmt->fetchAll();
-
-        return array_map(fn(array $userRow) => User::fromRow($userRow), $rows);
+        return $this->fetchAllHydrated($stmt, User::fromRow(...));
     }
 
     /** Update a user's role and return the updated user, or null if the ID does not exist. */
