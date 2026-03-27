@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Framework;
 
+use App\Exceptions\AppException;
 use App\Exceptions\ForbiddenException;
-use App\Exceptions\NotFoundException;
-use App\Exceptions\UnauthorizedException;
-use App\Exceptions\ValidationException;
 
 class BaseController
 {
@@ -18,10 +16,7 @@ class BaseController
      * Execute a controller action with standardised error handling.
      *
      * Catches domain exceptions and maps them to HTTP status codes:
-     *   - ValidationException → 400 Bad Request
-     *   - UnauthorizedException → 401 Unauthorized
-     *   - ForbiddenException → 403 Forbidden
-     *   - NotFoundException → 404 Not Found
+     *   - AppException (and subclasses) → uses the exception's code directly
      *   - InvalidArgumentException → 400 Bad Request (legacy)
      *   - RuntimeException → uses the exception's code (allowlist) or 500 (legacy)
      *   - Any other Throwable → 500 Internal Server Error
@@ -33,14 +28,8 @@ class BaseController
     {
         try {
             $action();
-        } catch (ValidationException $e) {
-            $this->errorResponse(400, $e->getMessage());
-        } catch (UnauthorizedException $e) {
-            $this->errorResponse(401, $e->getMessage());
-        } catch (ForbiddenException $e) {
-            $this->errorResponse(403, $e->getMessage());
-        } catch (NotFoundException $e) {
-            $this->errorResponse(404, $e->getMessage());
+        } catch (AppException $e) {
+            $this->errorResponse($e->getCode(), $e->getMessage());
         } catch (\InvalidArgumentException $e) {
             $this->errorResponse(400, $e->getMessage());
         } catch (\RuntimeException $e) {
