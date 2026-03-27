@@ -95,7 +95,7 @@ switch ($routeInfo[0]) {
 
         // All other routes go through ServiceRegistry
         $controller = ServiceRegistry::$registryMethod();
-        $args = array_map('intval', $vars);
+        $args = array_map('intval', array_values($vars));
         $controller->$method(...$args);
         break;
 }
