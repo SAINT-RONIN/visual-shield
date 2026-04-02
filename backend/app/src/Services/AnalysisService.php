@@ -24,15 +24,11 @@ use App\Utils\MotionDetector;
 use App\Utils\PathResolver;
 
 /**
- * Orchestrates the full video analysis pipeline.
+ * Runs the end-to-end analysis pipeline for queued videos.
  *
- * This is the "brain" of the analysis flow. After a video is uploaded, the
- * background worker calls analyze() which:
- *   1. Extracts frames from the video (like taking screenshots at regular intervals)
- *   2. Compares each frame to the one before it (measuring brightness changes and motion)
- *   3. Runs flash detection (are there dangerous strobe-like effects?)
- *   4. Runs motion detection (is there excessive/jarring movement?)
- *   5. Saves all results to the database
+ * This service is where the project stops being "just uploads and database
+ * rows" and actually becomes a video analysis tool, because this is the part
+ * that turns one stored file into frames, measurements, warnings, and charts.
  */
 class AnalysisService extends BaseService implements AnalysisServiceInterface
 {
@@ -72,11 +68,10 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     }
 
     /**
-     * Dequeue the next video waiting for analysis.
-     *
-     * Returns the oldest queued video, or null if the queue is empty.
-     * Encapsulates the repository call so worker.php has zero repository
-     * references.
+     * This asks the repository for the oldest queued video so the worker can
+     * process uploads in a predictable first-in, first-out order.
+     * Keeping this logic here means the worker does not need to know anything
+     * about repositories or queue rules.
      */
     public function dequeueNextVideo(): ?Video
     {
@@ -114,11 +109,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Run all three analysis passes and save the results.
-     *
-     * First we compute per-frame data (brightness + motion for each frame),
-     * then feed that data into the flash and motion detectors, and finally
-     * calculate average luminance per second for the timeline chart.
+     * This is the middle of the pipeline where raw extracted frames become
+     * useful measurements, then useful measurements become detector results,
+     * and finally those results get prepared for storage.
      */
     private function runFullAnalysis(
         int $videoId,
@@ -144,11 +137,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Compute brightness and motion data for every extracted frame.
-     *
-     * The first frame has no predecessor to compare against, so its
-     * diff and motion values are zero. Every subsequent frame is compared
-     * to the one before it to measure how much changed.
+     * This converts the ordered frame images into a simpler data structure the
+     * detectors can work with, so they do not each have to reopen and compare
+     * JPEG files on their own.
      *
      * @return FrameData[]
      */
@@ -177,7 +168,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     }
 
     /**
-     * Compare each frame to its predecessor and record the differences.
+     * This walks forward through the frame list and records how much each new
+     * frame changed compared with the one just before it, which is the basic
+     * input both flash detection and motion detection rely on.
      *
      * @return FrameData[]
      */
@@ -233,7 +226,8 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     }
 
     /**
-     * Extract the slice of per-frame data that falls within a given second.
+     * This grabs just the frame data that belongs to one second of playback so
+     * the averaging step can work on a small, well-defined slice at a time.
      *
      * @param  FrameData[] $perFrameData
      * @return FrameData[]
@@ -247,7 +241,8 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     }
 
     /**
-     * Calculate the average luminance across a slice of FrameData objects.
+     * This turns one slice of frame data into a single average brightness
+     * value, which is the number we later plot on the luminance chart.
      *
      * @param FrameData[] $frames
      */
@@ -269,7 +264,11 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     //  Saving results to the database
     // ──────────────────────────────────────────────
 
-    /** Persist all analysis outputs: datapoints, segments, and the summary row. */
+    /**
+     * This is the last step of the pipeline and writes everything useful to
+     * the database so the report page does not have to recalculate anything
+     * when a user opens the finished analysis later.
+     */
     private function saveAllResults(
         int $videoId,
         array $framePaths,
@@ -340,8 +339,8 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     }
 
     /**
-     * Save flagged time segments (dangerous flash or motion regions).
-     * These appear as highlighted zones on the video timeline in the UI.
+     * This stores the risky time ranges the detectors found so the report can
+     * highlight them in the timeline and list them in the segments table.
      */
     private function saveSegments(
         int $videoId,
@@ -357,7 +356,10 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         }
     }
 
-    /** Save the high-level summary row (total frames, peak flash frequency, average motion). */
+    /**
+     * This saves the headline summary values the dashboard and report header
+     * care about most, like total flashes, peak frequency, and average motion.
+     */
     private function saveSummary(
         int $videoId,
         int $totalFrames,
@@ -383,13 +385,20 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     //  Utility helpers
     // ──────────────────────────────────────────────
 
-    /** Build the temporary directory path where extracted frames will be stored. */
+    /**
+     * This builds the temp folder path where FFmpeg should write extracted
+     * frames for one video so each analysis job has its own isolated workspace.
+     */
     private function buildFrameOutputDirectory(int $videoId): string
     {
         return AnalysisConfig::appRoot() . '/storage/frames/video_' . $videoId;
     }
 
-    /** Send a progress update to the callback, if one was provided. */
+    /**
+     * This safely forwards progress updates only when the caller actually
+     * asked for them, which lets the analysis stay reusable in places that do
+     * and do not care about progress reporting.
+     */
     private function reportProgress(?callable $onProgress, int $percent, string $message): void
     {
         if ($onProgress) {

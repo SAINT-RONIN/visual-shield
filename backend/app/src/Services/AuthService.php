@@ -17,16 +17,10 @@ use App\Repositories\UserRepository;
 use App\Repositories\TokenRepository;
 
 /**
- * Handles user authentication and profile management.
+ * Handles sign-up, login, logout, and profile updates.
  *
- * This service is responsible for:
- *   - Registration: create a new account with a securely hashed password
- *   - Login: verify credentials and issue a bearer token
- *   - Logout: revoke a bearer token
- *   - Profile: retrieve and update user profile info
- *
- * Passwords are hashed with Argon2id (the strongest PHP algorithm).
- * Tokens are random 64-character hex strings that expire after 24 hours.
+ * This service keeps the auth rules in one place so controllers only have to
+ * pass data in and send responses back out.
  */
 class AuthService extends BaseService implements AuthServiceInterface
 {
@@ -40,7 +34,9 @@ class AuthService extends BaseService implements AuthServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Register a new user account.
+     * This creates a new account after checking the username is free and
+     * hashing the password so we never store sensitive credentials in plain
+     * text anywhere in the database.
      *
      * @throws \InvalidArgumentException If the username is already taken.
      */
@@ -63,7 +59,9 @@ class AuthService extends BaseService implements AuthServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Log a user in by verifying their credentials and issuing a token.
+     * This verifies the submitted credentials and, if they are correct,
+     * creates the bearer token the frontend will attach to later requests
+     * instead of sending the password every time.
      *
      * @throws \RuntimeException If the username or password is wrong.
      */
@@ -75,7 +73,11 @@ class AuthService extends BaseService implements AuthServiceInterface
         return new LoginResult($token, $user);
     }
 
-    /** Log a user out by deleting their bearer token from the database. */
+    /**
+     * This logs the user out by removing the token they were using, which
+     * makes that token useless immediately instead of only disappearing from
+     * the browser that happened to store it.
+     */
     public function logout(string $token): void
     {
         $this->tokenRepo->deleteByToken($token);
@@ -106,13 +108,20 @@ class AuthService extends BaseService implements AuthServiceInterface
     //  Profile
     // ──────────────────────────────────────────────
 
-    /** Get a user's profile by their ID. */
+    /**
+     * This fetches the user's current profile data in one predictable place so
+     * the controller does not need to know anything about repository lookups.
+     */
     public function getProfile(int $userId): User
     {
         return $this->findUserOrFail($userId);
     }
 
-    /** Update a user's display name and return their updated profile. */
+    /**
+     * This saves the editable profile fields and then returns the refreshed
+     * user model, which is handy because the frontend can immediately work
+     * with the new saved version.
+     */
     public function updateProfile(int $userId, UpdateProfileDTO $dto): User
     {
         $this->userRepo->updateProfile($userId, $dto->displayName);
@@ -124,7 +133,10 @@ class AuthService extends BaseService implements AuthServiceInterface
     //  Lookup helpers
     // ──────────────────────────────────────────────
 
-    /** Find a user by ID, or throw if they don't exist. */
+    /**
+     * This is the shared internal helper for "find the user or stop here"
+     * so the public auth methods do not all repeat the same null check.
+     */
     private function findUserOrFail(int $userId): User
     {
         return $this->findOrFail($this->userRepo->findById($userId), 'User not found');
@@ -134,7 +146,10 @@ class AuthService extends BaseService implements AuthServiceInterface
     //  Validation helpers
     // ──────────────────────────────────────────────
 
-    /** Throw an error if the username is already taken by another account. */
+    /**
+     * This protects registration from duplicate usernames, because the login
+     * flow only works cleanly when one username points to one account.
+     */
     private function ensureUsernameIsAvailable(string $username): void
     {
         if ($this->userRepo->findByUsername($username)) {
@@ -143,9 +158,9 @@ class AuthService extends BaseService implements AuthServiceInterface
     }
 
     /**
-     * Check that the username exists and the password matches.
-     *
-     * Returns the User on success, throws on failure.
+     * This is the real credential check behind login and it only succeeds
+     * when both the username exists and the submitted password matches the
+     * stored hash for that user.
      */
     private function verifyCredentials(string $username, string $password): User
     {
@@ -165,10 +180,9 @@ class AuthService extends BaseService implements AuthServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Generate a new bearer token and save it to the database.
-     *
-     * The token is a cryptographically secure 64-character hex string
-     * that expires 24 hours from now.
+     * This creates the random bearer token a logged-in user will carry on
+     * future requests, and it also stores the expiry so the token is not valid
+     * forever if it ever gets copied or leaked.
      */
     private function createBearerToken(int $userId): string
     {

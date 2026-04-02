@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 
 /**
- * Business logic for admin-only user management operations.
+ * Handles admin-only user management actions.
  *
  * Keeps the AdminController as a thin HTTP layer by encapsulating
  * the domain rules here — e.g. the null-check after a role update
@@ -22,7 +22,8 @@ class AdminService extends BaseService implements AdminServiceInterface
     ) {}
 
     /**
-     * Return all registered users ordered by creation date.
+     * This returns the user list for the admin area so the controller does not
+     * need to know anything about how the records are fetched or ordered.
      *
      * @return User[]
      */
@@ -32,7 +33,8 @@ class AdminService extends BaseService implements AdminServiceInterface
     }
 
     /**
-     * Change a user's role and return the updated User model.
+     * This changes a user's role and immediately returns the updated model so
+     * the admin UI can reflect the new state without doing another lookup.
      *
      * @throws NotFoundException If no user with the given ID exists.
      */

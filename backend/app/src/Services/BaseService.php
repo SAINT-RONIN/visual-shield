@@ -8,10 +8,18 @@ use App\Contracts\VideoRepositoryInterface;
 use App\Exceptions\NotFoundException;
 use App\Models\Video;
 
+/**
+ * Shared helper methods for services.
+ *
+ * This base class keeps the small but repeated lookup rules in one place so
+ * each service can stay focused on its own business logic.
+ */
 abstract class BaseService
 {
     /**
-     * Return the entity if it is not null, otherwise throw NotFoundException.
+     * This is the common "load it or fail" helper the other services use after
+     * repository lookups, because null usually means the requested resource
+     * should stop the current action instead of being passed around.
      */
     protected function findOrFail(mixed $entity, string $message = 'Resource not found'): mixed
     {
@@ -23,7 +31,9 @@ abstract class BaseService
     }
 
     /**
-     * Find a video owned by the given user, or throw NotFoundException.
+     * This checks both existence and ownership in one step, which is something
+     * the video and report flows need constantly to avoid exposing another
+     * user's uploads by accident.
      */
     protected function findUserVideoOrFail(VideoRepositoryInterface $repo, int $userId, int $videoId): Video
     {

@@ -20,7 +20,8 @@ namespace App\Utils;
 class FrameExtractor
 {
     /**
-     * Extract frames from a video at the given sampling rate.
+     * This is the main step that turns a video into a stack of image frames we can actually inspect one by one.
+     * We need it because the flash and motion checks work by comparing still frames, not by reading the raw video file directly.
      *
      * @param  string $videoPath         Absolute path to the source video file.
      * @param  int    $samplingRate      How many frames per second to extract.
@@ -37,7 +38,10 @@ class FrameExtractor
         return $this->collectExtractedFramePaths($outputDirectory);
     }
 
-    /** Delete all extracted frame files and remove the output directory. */
+    /**
+     * This clears out the temporary frame images after analysis is done so the server does not slowly fill up with leftovers.
+     * We need it because frame extraction can create a lot of files very quickly, especially on longer videos.
+     */
     public function cleanup(string $outputDirectory): void
     {
         $this->deleteAllFrameFiles($outputDirectory);
@@ -48,6 +52,10 @@ class FrameExtractor
     //  Directory management
     // ──────────────────────────────────────────────
 
+    /**
+     * This removes the now-empty frame folder once all of the JPEGs are gone.
+     * We need it to keep the storage area tidy instead of leaving behind hundreds of empty temp directories over time.
+     */
     private function removeDirectoryIfEmpty(string $directoryPath): void
     {
         if (is_dir($directoryPath)) {
@@ -60,11 +68,8 @@ class FrameExtractor
     // ──────────────────────────────────────────────
 
     /**
-     * Run FFmpeg to extract frames using the "fps" video filter.
-     *
-     * All arguments are escaped to prevent shell injection.
-     * Output filenames use zero-padded 5-digit numbering (frame_00001.jpg)
-     * so they sort correctly in alphabetical order.
+     * This is the place where we actually call FFmpeg and ask it to grab frames at a fixed rate from the video.
+     * We need it because FFmpeg is the tool doing the heavy lifting here, while the PHP side just prepares a safe command and handles the result.
      */
     private function runFFmpegFrameExtraction(string $videoPath, int $samplingRate, string $outputDirectory): void
     {
@@ -88,7 +93,10 @@ class FrameExtractor
     //  File collection
     // ──────────────────────────────────────────────
 
-    /** Find all extracted frame files in the output directory, sorted by name. */
+    /**
+     * This gathers the frame files FFmpeg created and puts them in the exact order they should be analyzed.
+     * We need that ordering because comparing the wrong frame sequence would give us meaningless flash and motion results.
+     */
     private function collectExtractedFramePaths(string $outputDirectory): array
     {
         $framePaths = glob($outputDirectory . '/frame_*.jpg');
@@ -106,7 +114,10 @@ class FrameExtractor
         return $framePaths;
     }
 
-    /** Delete every frame_*.jpg file in the output directory. */
+    /**
+     * This deletes every extracted frame image from the temp folder once we no longer need them.
+     * We need it because those files are only useful during analysis and would just waste disk space afterward.
+     */
     private function deleteAllFrameFiles(string $outputDirectory): void
     {
         $frameFiles = glob($outputDirectory . '/frame_*.jpg');

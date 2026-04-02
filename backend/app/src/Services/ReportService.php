@@ -16,15 +16,11 @@ use App\Repositories\FlaggedSegmentRepository;
 use App\Repositories\AnalysisDatapointRepository;
 
 /**
- * Assembles and exports analysis reports for a given video.
+ * Builds the finished report data for a video.
  *
- * After a video has been analyzed, this service gathers all the results
- * (summary metrics, flagged segments, per-second datapoints) and packages
- * them into a report the frontend can display or the user can download.
- *
- * Supports two export formats:
- *   - JSON: the full report as a structured object
- *   - CSV: just the flagged segments as a spreadsheet-friendly format
+ * Once analysis is done, this service is the place that pulls the different
+ * result pieces back together so the frontend can treat them as one report
+ * instead of making separate requests and merging them by itself.
  */
 class ReportService extends BaseService implements ReportServiceInterface
 {
@@ -40,10 +36,10 @@ class ReportService extends BaseService implements ReportServiceInterface
     // ──────────────────────────────────────────────
 
     /**
-     * Build the full analysis report for a video.
-     *
-     * Gathers the video record, analysis summary, flagged segments, and
-     * per-second datapoints, then assembles them into a single report.
+     * This is the main report builder and it gathers the video, summary,
+     * segments, and datapoints into one DTO the frontend can render directly.
+     * The ownership check lives here so every report view and export follows
+     * the same access rule.
      *
      * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
      */
@@ -77,19 +73,23 @@ class ReportService extends BaseService implements ReportServiceInterface
         return $this->segmentRepo->findByVideoId($videoId);
     }
 
-    /** Export the full report as a ReportDTO for JSON serialization. */
+    /**
+     * This reuses the normal report-building path for JSON export so the data
+     * a user downloads matches the data they see on the report page.
+     */
     public function exportAsJson(int $userId, int $videoId): ReportDTO
     {
         return $this->getReport($userId, $videoId);
     }
 
     /**
-     * Return just the flagged segments for a video.
+     * This is the lighter-weight way to fetch only the flagged segments when a
+     * caller does not need the full report wrapper.
      *
-     * @param  int                  $userId         Authenticated user (ownership check).
-     * @param  int                  $videoId        The video to query.
-     * @param  SegmentFilterDTO|null $segmentFilters Optional type/severity/sort filters.
-     * @return FlaggedSegment[]     Typed segment objects.
+     * @param  int                   $userId         Authenticated user (ownership check).
+     * @param  int                   $videoId        The video to query.
+     * @param  SegmentFilterDTO|null $segmentFilters Optional type, severity, and sort filters.
+     * @return FlaggedSegment[]      Typed segment objects.
      *
      * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
      */
@@ -101,11 +101,12 @@ class ReportService extends BaseService implements ReportServiceInterface
     }
 
     /**
-     * Return just the per-second analysis datapoints for a video.
+     * This returns the chart-ready time-series data on its own when the caller
+     * only needs datapoints and not the rest of the report.
      *
-     * @param  int                    $userId  Authenticated user (ownership check).
-     * @param  int                    $videoId The video to query.
-     * @return AnalysisDatapoint[]    Typed datapoint objects ordered by time.
+     * @param  int                 $userId  Authenticated user (ownership check).
+     * @param  int                 $videoId The video to query.
+     * @return AnalysisDatapoint[] Typed datapoint objects ordered by time.
      *
      * @throws \RuntimeException If the video doesn't exist or doesn't belong to the user.
      */

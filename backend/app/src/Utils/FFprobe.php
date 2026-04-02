@@ -17,9 +17,8 @@ use App\DTOs\VideoResolution;
 class FFprobe
 {
     /**
-     * Get the total duration of a video file in seconds.
-     *
-     * Example: a 2-minute video returns 120.0
+     * This asks FFprobe for the video's total duration so the app knows how long the upload really is.
+     * We need that number to validate uploads, cap unsafe sampling rates, and make the report timeline line up with the actual video length.
      */
     public function getDuration(string $filePath): float
     {
@@ -30,9 +29,8 @@ class FFprobe
     }
 
     /**
-     * Get the width and height of the video in pixels.
-     *
-     * Example: a 1080p video returns VideoResolution(width: 1920, height: 1080)
+     * This asks FFprobe for the video's width and height so we know the real size of the source footage.
+     * We need it whenever the app has to make decisions that depend on the video's dimensions instead of guessing from the filename or extension.
      */
     public function getResolution(string $filePath): VideoResolution
     {
@@ -47,9 +45,8 @@ class FFprobe
     // ──────────────────────────────────────────────
 
     /**
-     * Run an FFprobe command and return its output.
-     *
-     * The file path is escaped to prevent shell injection attacks.
+     * This is the shared helper that runs FFprobe safely and gives the calling method back the raw result.
+     * We need one place for this so every FFprobe call uses the same escaping, error handling, and shell behavior instead of duplicating that logic everywhere.
      */
     private function runCommand(string $baseCommand, string $filePath, string $metadataDescription): string
     {
@@ -65,7 +62,8 @@ class FFprobe
     }
 
     /**
-     * Parse FFprobe's resolution output (e.g. "1920x1080") into a VideoResolution DTO.
+     * This turns FFprobe's raw resolution text into a proper DTO the rest of the app can trust and use.
+     * We need it because passing around loose strings like "1920x1080" makes the code harder to validate and easier to misuse later.
      */
     private function parseResolutionOutput(string $rawOutput): VideoResolution
     {
