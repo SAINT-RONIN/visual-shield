@@ -8,13 +8,13 @@ Automated visual accessibility risk analysis for video content. Upload videos an
 
 ## Features
 
-- **Flash Detection** — Identifies rapid luminance changes between frames, calculates flash frequency per second, and flags segments exceeding safety thresholds
-- **Motion Detection** — Measures pixel-level motion intensity between consecutive frames and flags sustained high-motion segments
-- **Interactive Reports** — Timeline visualization, per-second charts (flash frequency, luminance, motion intensity), filterable segment tables
-- **Export** — Download reports as JSON or CSV
-- **Video Streaming** — In-browser video playback with synchronized analysis overlay
-- **Admin Panel** — User management and role assignment
-- **Dark/Light Theme** — Full theme support via CSS semantic tokens
+- **Flash Detection:** Identifies rapid luminance changes between frames, calculates flash frequency per second, and flags segments exceeding safety thresholds
+- **Motion Detection:** Measures pixel-level motion intensity between consecutive frames and flags sustained high-motion segments
+- **Interactive Reports:** Timeline visualization, per-second charts (flash frequency, luminance, motion intensity), filterable segment tables
+- **Export:** Download reports as JSON or CSV
+- **Video Streaming:** In-browser video playback with synchronized analysis overlay
+- **Admin Panel:** User management and role assignment
+- **Dark/Light Theme:** Full theme support via CSS semantic tokens
 
 ---
 
@@ -42,12 +42,12 @@ Controllers  →  Services  →  Repositories  →  MySQL
     DTOs          Models         Models
 ```
 
-- **Controllers** — HTTP layer only (parse input, call service, send response)
-- **Services** — Business logic only (no HTTP globals, no presentation)
-- **Repositories** — Database access only (return typed Models via `fromRow()`)
-- **Models** — Readonly value objects (User, Video, Token, AnalysisResult, FlaggedSegment, AnalysisDatapoint)
-- **DTOs** — Typed objects for cross-boundary data (input validation, service output, detector results)
-- **ServiceRegistry** — Single wiring point for all dependencies
+- **Controllers:** HTTP layer only (parse input, call service, send response)
+- **Services:** Business logic only (no HTTP globals, no presentation)
+- **Repositories:** Database access only (return typed Models via `fromRow()`)
+- **Models:** Readonly value objects (User, Video, Token, AnalysisResult, FlaggedSegment, AnalysisDatapoint)
+- **DTOs:** Typed objects for cross-boundary data (input validation, service output, detector results)
+- **ServiceRegistry:** Single wiring point for all dependencies
 
 Frontend follows **Atomic Design**: atoms → molecules → organisms → templates → pages.
 
@@ -110,7 +110,7 @@ cd visual-shield
 
 ```bash
 cd backend
-cp .env.example .env        # Edit if needed — defaults work for local dev
+cp .env.example .env        # Edit if needed, defaults work for local dev
 docker-compose up -d --build
 ```
 
@@ -156,7 +156,7 @@ docker-compose up worker
 | php | PHP-FPM application server | internal |
 | mysql | Database | 3306 |
 | phpmyadmin | Database management UI | 8080 |
-| worker | Background video analysis | — |
+| worker | Background video analysis | n/a |
 
 ---
 
@@ -212,11 +212,11 @@ docker-compose up worker
 
 ## How It Works
 
-1. **Upload** — User uploads a video file and selects a sampling rate (10/15/30/60 fps)
-2. **Queue** — Video is stored with a UUID filename and status set to `queued`
-3. **Process** — The worker extracts frames via FFmpeg, then runs flash and motion detectors on consecutive frame pairs
-4. **Analyze** — Results are stored: per-second datapoints, flagged segments with severity levels, and aggregate statistics
-5. **Report** — The frontend renders an interactive report with timeline visualization, charts, segment table, and export options
+1. **Upload:** User uploads a video file and selects a sampling rate (10/15/30/60 fps)
+2. **Queue:** Video is stored with a UUID filename and status set to `queued`
+3. **Process:** The worker extracts frames via FFmpeg, then runs flash and motion detectors on consecutive frame pairs
+4. **Analyze:** Results are stored: per-second datapoints, flagged segments with severity levels, and aggregate statistics
+5. **Report:** The frontend renders an interactive report with timeline visualization, charts, segment table, and export options
 
 ---
 
@@ -258,13 +258,13 @@ VITE_API_BASE_URL=http://localhost:8081/api
 
 ## Security
 
-- **Passwords** — Argon2id hashing
-- **SQL Injection** — PDO prepared statements throughout
-- **Command Injection** — `escapeshellarg()` on all dynamic shell values
-- **File Uploads** — MIME validation, size limits, UUID filenames, storage outside web root
-- **Authorization** — Every endpoint verifies resource ownership
-- **CORS** — Restricted to configured frontend origin
-- **Authentication** — Bearer tokens with 24-hour expiry
+- **Passwords:** Argon2id hashing
+- **SQL Injection:** PDO prepared statements throughout
+- **Command Injection:** `escapeshellarg()` on all dynamic shell values
+- **File Uploads:** MIME validation, size limits, UUID filenames, storage outside web root
+- **Authorization:** Every endpoint verifies resource ownership
+- **CORS:** Restricted to configured frontend origin
+- **Authentication:** Bearer tokens with 24-hour expiry
 
 ---
 
