@@ -52,52 +52,30 @@ backend/
 
 ## Local Setup
 
-### 1. Create the environment file
+### 1. Optional: customize the environment
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-### 2. Start the containers
+You only need a `.env` file if you want to override the default local ports or database credentials. The `docker-compose.yml` file now includes sensible local defaults.
+
+### 2. Start the backend
 
 ```powershell
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
-This starts:
+For a first-time setup, this one command now:
 
 - `nginx` on `http://localhost:8081`
 - `phpmyadmin` on `http://localhost:8080`
 - `mysql` on `localhost:3306`
 - `worker` for background analysis
+- installs PHP dependencies automatically inside the mounted `app/` folder
+- initializes the MySQL schema automatically from `database/migrations/` on the first database boot
 
-### 3. Install PHP dependencies
-
-```powershell
-docker-compose exec php composer install
-```
-
-### 4. Run the database migrations
-
-Recommended local option:
-
-1. Open `http://localhost:8080`
-2. Sign in with the MySQL root credentials from `.env`
-3. Select the `visual_shield` database
-4. Import the SQL files in `database/migrations/` in numeric order
-
-Current migration files:
-
-- `001_create_users_table.sql`
-- `002_create_auth_tokens_table.sql`
-- `003_create_videos_table.sql`
-- `004_create_analysis_results_table.sql`
-- `005_create_flagged_segments_table.sql`
-- `006_create_analysis_datapoints_table.sql`
-- `007_add_video_progress_and_error.sql`
-- `008_add_user_role.sql`
-
-### 5. Verify the API
+### 3. Verify the API
 
 ```text
 GET http://localhost:8081/api/health
@@ -144,7 +122,7 @@ Routes are registered in `app/public/index.php`.
 The `worker` service polls for queued videos and processes them continuously. If you want to watch it separately:
 
 ```powershell
-docker-compose logs -f worker
+docker compose logs -f worker
 ```
 
 ## Architecture
@@ -163,3 +141,4 @@ The backend follows a controller -> service -> repository flow.
 - The API returns JSON responses, including structured error responses
 - Authenticated requests use the `Authorization: Bearer <token>` header
 - Streaming is handled through the backend, not by exposing uploaded files directly
+- MySQL init scripts only run when the `mysql_data` volume is created for the first time. If you need a fresh local database, run `docker compose down -v` and then `docker compose up -d --build`
