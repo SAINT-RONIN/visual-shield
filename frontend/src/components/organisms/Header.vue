@@ -1,6 +1,7 @@
 <script setup>
 // Organism: Header renders the top-level site navigation, branding, and authenticated user actions.
 import { ref } from 'vue'
+import ShieldMark from '@/components/atoms/ShieldMark.vue'
 import NavLink from '@/components/molecules/NavLink.vue'
 import UserMenuDropdown from '@/components/molecules/UserMenuDropdown.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
@@ -27,8 +28,9 @@ function handleLogout() {
   <header class="fixed top-0 left-0 right-0 z-50 bg-surface border-b border-line">
     <div class="px-4 md:px-6 lg:px-8 xl:px-10 h-14 flex items-center justify-between">
       <!-- Logo -->
-      <router-link to="/dashboard" class="text-lg font-bold text-heading">
-        Visual Shield
+      <router-link to="/dashboard" class="inline-flex items-center gap-2 text-lg font-bold text-heading">
+        <ShieldMark size="sm" />
+        <span>Visual Shield</span>
       </router-link>
 
       <!-- Desktop Nav -->
