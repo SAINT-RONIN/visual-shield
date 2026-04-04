@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: DropZone combines file selection and drag-and-drop feedback into one upload helper.
 import { ref } from 'vue'
 
 defineProps({

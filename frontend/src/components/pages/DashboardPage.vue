@@ -1,4 +1,5 @@
 <script setup>
+// Page: DashboardPage is the route-level view for browsing the user's uploaded videos.
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { fetchVideos as apiFetchVideos, deleteVideo, reanalyzeVideo } from '@/api/videos.js'
 import { useToast } from '@/composables/useToast.js'
@@ -8,7 +9,7 @@ import AppSelect from '@/components/atoms/AppSelect.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import EmptyState from '@/components/atoms/EmptyState.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
-import VideoCard from '@/components/molecules/VideoCard.vue'
+import VideoCard from '@/components/organisms/VideoCard.vue'
 
 const { showToast } = useToast()
 

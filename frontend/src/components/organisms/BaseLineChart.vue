@@ -1,4 +1,5 @@
 <script setup>
+// Organism: BaseLineChart provides the shared chart shell used by the report visualizations.
 import { Line } from 'vue-chartjs'
 import '@/utils/chartSetup.js'
 import ChartCard from '@/components/atoms/ChartCard.vue'

@@ -1,4 +1,5 @@
 <script setup>
+// Page: ProfilePage loads the current user profile and handles profile update requests.
 import { ref, onMounted } from 'vue'
 import { getProfile, updateProfile } from '@/api/users.js'
 import { useAuth } from '@/composables/useAuth.js'

@@ -1,4 +1,5 @@
 <script setup>
+// Atom: AppSelect is the reusable labeled select control for choosing one value from a list.
 defineProps({
   label: { type: String, default: '' },
   options: { type: Array, required: true },

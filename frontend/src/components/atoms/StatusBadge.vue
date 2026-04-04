@@ -1,4 +1,5 @@
 <script setup>
+// Atom: StatusBadge shows the current video processing state such as queued, processing, completed, or failed.
 defineProps({
   status: { type: String, required: true },
 })

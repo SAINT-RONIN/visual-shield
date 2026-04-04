@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: ExportButtons groups the report download actions so JSON and CSV exports stay together.
 import AppButton from '@/components/atoms/AppButton.vue'
 
 defineProps({

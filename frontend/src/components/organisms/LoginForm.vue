@@ -1,4 +1,5 @@
 <script setup>
+// Organism: LoginForm handles the login fields, local validation, and submit event for the login page.
 import { ref, reactive } from 'vue'
 import AppInput from '@/components/atoms/AppInput.vue'
 import AppButton from '@/components/atoms/AppButton.vue'

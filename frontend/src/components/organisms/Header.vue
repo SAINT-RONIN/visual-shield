@@ -1,4 +1,5 @@
 <script setup>
+// Organism: Header renders the top-level site navigation, branding, and authenticated user actions.
 import { ref } from 'vue'
 import NavLink from '@/components/molecules/NavLink.vue'
 import UserMenuDropdown from '@/components/molecules/UserMenuDropdown.vue'

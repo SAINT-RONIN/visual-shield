@@ -1,4 +1,5 @@
 <script setup>
+// Atom: Spinner is the lightweight loading indicator used while async page data is being fetched.
 import { computed } from 'vue'
 
 const props = defineProps({

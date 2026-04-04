@@ -1,4 +1,5 @@
 <script setup>
+// Organism: MotionIntensityChart visualizes motion intensity over time for the analyzed video.
 import { computed } from 'vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
 import { chartColors } from '@/utils/colors.js'

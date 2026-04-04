@@ -13,6 +13,7 @@
 </template>
 
 <script setup>
+// Atom: Toast renders one dismissible notification item inside the global toast stack.
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -36,8 +37,8 @@ const iconClass = computed(() => ({
 }))
 
 const icon = computed(() => {
-  if (props.type === 'success') return '✓'
-  if (props.type === 'error') return '✕'
-  return 'ℹ'
+  if (props.type === 'success') return 'Ã¢Å“â€œ'
+  if (props.type === 'error') return 'Ã¢Å“â€¢'
+  return 'Ã¢â€žÂ¹'
 })
 </script>

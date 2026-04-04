@@ -1,4 +1,5 @@
 <script setup>
+// Atom: AppButton is the shared clickable button used for primary, secondary, ghost, and danger actions.
 defineProps({
   variant: { type: String, default: 'primary' },
   size: { type: String, default: 'md' },

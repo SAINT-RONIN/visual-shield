@@ -1,4 +1,5 @@
 <script setup>
+// Atom: ChartCard is the simple visual frame that gives each chart a consistent title and surface style.
 defineProps({
   title: { type: String, required: true },
 })

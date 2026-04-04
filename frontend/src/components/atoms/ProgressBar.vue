@@ -1,4 +1,5 @@
 <script setup>
+// Atom: ProgressBar shows a single progress value with a short label for uploads and video processing.
 defineProps({
   value: { type: Number, default: 0 },
   label: { type: String, default: '' },

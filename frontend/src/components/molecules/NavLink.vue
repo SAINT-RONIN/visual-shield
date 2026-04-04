@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: NavLink wraps a router link with shared active-state styling for the main navigation.
 defineProps({
   to: { type: String, required: true },
   active: { type: Boolean, default: false },

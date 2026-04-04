@@ -1,4 +1,5 @@
 <script setup>
+// Organism: UploadForm combines file selection, sampling-rate choice, and upload submit controls.
 import { ref, reactive } from 'vue'
 import AppButton from '@/components/atoms/AppButton.vue'
 import AppSelect from '@/components/atoms/AppSelect.vue'

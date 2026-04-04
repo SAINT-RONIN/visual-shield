@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: ToastContainer arranges toast notifications and handles their entrance and exit transitions.
 import { useToast } from '@/composables/useToast.js'
 import Toast from '@/components/atoms/Toast.vue'
 

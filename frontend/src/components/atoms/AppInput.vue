@@ -1,4 +1,5 @@
 <script setup>
+// Atom: AppInput is the reusable labeled text input used by forms across the interface.
 defineProps({
   label: { type: String, default: '' },
   type: { type: String, default: 'text' },

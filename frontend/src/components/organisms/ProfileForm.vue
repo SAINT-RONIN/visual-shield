@@ -1,4 +1,5 @@
 <script setup>
+// Organism: ProfileForm lets the user review and update their editable profile details.
 import { ref, reactive, watch } from 'vue'
 import AppInput from '@/components/atoms/AppInput.vue'
 import AppButton from '@/components/atoms/AppButton.vue'

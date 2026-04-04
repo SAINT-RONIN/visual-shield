@@ -1,4 +1,5 @@
 <script setup>
+// Atom: RoleBadge displays the current user role as a small labeled badge.
 defineProps({
   role: { type: String, required: true }
 })

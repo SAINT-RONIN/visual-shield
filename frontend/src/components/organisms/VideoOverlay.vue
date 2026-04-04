@@ -1,4 +1,5 @@
 <script setup>
+// Organism: VideoOverlay synchronizes video playback with analysis overlays and chart markers.
 import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
 import { eqZoneColors, eqZoneDimColors, overlayGraphColors, overlayColors } from '@/utils/colors.js'
@@ -12,7 +13,7 @@ const props = defineProps({
   luminanceMax: { type: Number, default: 255 },
 })
 
-// ── Refs ──────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Refs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const wrapperRef = ref(null)
 const canvasRef = ref(null)
@@ -24,7 +25,7 @@ const gridSliderRef = ref(null)
 const canvasHeight = ref(0)
 const canvasWidth = ref(0)
 
-// ── Video state ───────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Video state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const playing = ref(false)
 const currentTime = ref(0)
@@ -40,7 +41,7 @@ const fullscreen = ref(false)
 let hideTimeout = null
 let rafId = null
 
-// ── Overlay layer state ───────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Overlay layer state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const graphOpacity = ref(0.8)
 const gridOpacity = ref(0.3)
@@ -58,7 +59,7 @@ const graphs = reactive([
     threshold: null, get fixedScale() { return props.luminanceMax } },
 ])
 
-// ── Equalizer state ──────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Equalizer state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const EQ_SEGMENT_COUNT = 72
 const eqLevels = reactive([0, 0, 0])
@@ -81,7 +82,7 @@ const eqBars = computed(() => {
   })
 })
 
-// ── Graph data helpers ────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Graph data helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function getValues(key) {
   if (key === 'flashFrequency')
@@ -99,7 +100,7 @@ function getValues(key) {
  *
  * - Flash/Motion: scale = max(dataMax, threshold * 2) so the threshold
  *   sits at or below the 50% mark and values below it stay visually low.
- * - Luminance: fixed 0–255 scale (informational, no danger threshold).
+ * - Luminance: fixed 0Ã¢â‚¬â€œ255 scale (informational, no danger threshold).
  */
 function getScaleMax(graphIndex) {
   const graph = graphs[graphIndex]
@@ -130,7 +131,7 @@ function toggleGraphsOnOff() {
   draw()
 }
 
-// ── Full-height pixel coordinate conversion ───────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Full-height pixel coordinate conversion Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // Graphs use full canvas: 4% top padding, baseline at 96% height
 
 const PAD_TOP = 0.04
@@ -145,7 +146,7 @@ function toPixelPoints(points, w, h, maxVal, dur) {
   }))
 }
 
-// ── Smooth Bézier control points ──────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Smooth BÃƒÂ©zier control points Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function computeControlPoints(pts, tension = 0.2) {
   const segments = []
@@ -177,7 +178,7 @@ function buildCurvePath(pixelPoints) {
   return path
 }
 
-// ── Interpolate Y on the Bézier curve at a given X ─
+// Ã¢â€â‚¬Ã¢â€â‚¬ Interpolate Y on the BÃƒÂ©zier curve at a given X Ã¢â€â‚¬
 
 function interpolateYAtX(pixelPoints, targetX) {
   if (pixelPoints.length === 0) return 0
@@ -215,7 +216,7 @@ function cubicBezier(t, p0, p1, p2, p3) {
   return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
 }
 
-// ── Draw a single graph with played/unplayed split ─
+// Ã¢â€â‚¬Ã¢â€â‚¬ Draw a single graph with played/unplayed split Ã¢â€â‚¬
 
 function drawGraph(ctx, pixelPoints, color, w, h, playheadX) {
   if (pixelPoints.length < 2) return
@@ -241,7 +242,7 @@ function drawGraph(ctx, pixelPoints, color, w, h, playheadX) {
   dimGrad.addColorStop(0.8, color + '08')
   dimGrad.addColorStop(1, color + '00')
 
-  // ── Played portion (left of playhead) — bright ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Played portion (left of playhead) Ã¢â‚¬â€ bright Ã¢â€â‚¬Ã¢â€â‚¬
   ctx.save()
   ctx.beginPath()
   ctx.rect(0, 0, playheadX, h)
@@ -263,7 +264,7 @@ function drawGraph(ctx, pixelPoints, color, w, h, playheadX) {
   ctx.stroke(curvePath)
   ctx.restore()
 
-  // ── Unplayed portion (right of playhead) — dim ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Unplayed portion (right of playhead) Ã¢â‚¬â€ dim Ã¢â€â‚¬Ã¢â€â‚¬
   ctx.save()
   ctx.beginPath()
   ctx.rect(playheadX, 0, w - playheadX, h)
@@ -278,7 +279,7 @@ function drawGraph(ctx, pixelPoints, color, w, h, playheadX) {
   ctx.restore()
 }
 
-// ── Draw playhead indicators on each curve ────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Draw playhead indicators on each curve Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function drawPlayheadIndicators(ctx, graphDataList, w, h, playheadX) {
   ctx.save()
@@ -314,7 +315,7 @@ function drawPlayheadIndicators(ctx, graphDataList, w, h, playheadX) {
   }
 }
 
-// ── Grid drawing (full width & height) ────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Grid drawing (full width & height) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function pickTimeInterval(dur) {
   const steps = [5, 10, 15, 30, 60, 120, 300, 600, 900, 1800]
@@ -337,7 +338,7 @@ function drawGrid(ctx, w, h, dur) {
   ctx.lineWidth = 0.75
   ctx.font = labelFont
 
-  // ── Horizontal lines (25%, 50%, 75%, 100%) — full width ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Horizontal lines (25%, 50%, 75%, 100%) Ã¢â‚¬â€ full width Ã¢â€â‚¬Ã¢â€â‚¬
   const usableH = h * (1 - PAD_TOP - PAD_BOT)
   const bottom = h * (1 - PAD_BOT)
 
@@ -358,7 +359,7 @@ function drawGrid(ctx, w, h, dur) {
     ctx.fillText(`${Math.round(pct * 100)}%`, 4, y - 1)
   }
 
-  // ── Vertical lines (time intervals) — full height ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Vertical lines (time intervals) Ã¢â‚¬â€ full height Ã¢â€â‚¬Ã¢â€â‚¬
   const interval = pickTimeInterval(dur)
   ctx.textBaseline = 'top'
   ctx.textAlign = 'center'
@@ -384,7 +385,7 @@ function drawGrid(ctx, w, h, dur) {
   ctx.restore()
 }
 
-// ── Equalizer helpers ────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Equalizer helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function getCurrentNormalizedValue(graphIndex) {
   const graph = graphs[graphIndex]
@@ -442,7 +443,7 @@ function eqSegmentDimColor(segIndex, graphIndex) {
   return eqZoneDimColors.danger
 }
 
-// ── Main draw function ────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Main draw function Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function draw() {
   const canvas = canvasRef.value
@@ -497,7 +498,7 @@ function draw() {
   updateEqLevels()
 }
 
-// ── Video control handlers ────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Video control handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function togglePlay() {
   const v = videoRef.value
@@ -549,7 +550,7 @@ function stopAnimLoop() {
   }
 }
 
-// ── Progress bar scrubbing ────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Progress bar scrubbing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function onProgressMouseDown(e) {
   seekingProgress.value = true
@@ -577,7 +578,7 @@ function onProgressMouseUp() {
   }
 }
 
-// ── Volume control ────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Volume control Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function toggleMute() {
   const v = videoRef.value
@@ -612,7 +613,7 @@ function onVolumeMouseUp() {
   window.removeEventListener('mouseup', onVolumeMouseUp)
 }
 
-// ── Opacity slider scrubbing ──────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Opacity slider scrubbing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function onGraphSliderDown(e) {
   seekingGraphSlider = true
@@ -660,7 +661,7 @@ function onGridSliderUp() {
   window.removeEventListener('mouseup', onGridSliderUp)
 }
 
-// ── Fullscreen ────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Fullscreen Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function toggleFullscreen() {
   const wrapper = wrapperRef.value
@@ -677,7 +678,7 @@ function onFullscreenChange() {
   updateSize()
 }
 
-// ── Auto-hide controls ────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Auto-hide controls Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function showControls() {
   controlsVisible.value = true
@@ -701,7 +702,7 @@ function onControlsLeave() {
   showControls()
 }
 
-// ── Canvas sizing ─────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Canvas sizing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 let resizeObserver = null
 
@@ -736,7 +737,7 @@ function onVideoLoaded() {
   updateSize()
 }
 
-// ── Lifecycle ─────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Lifecycle Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 onMounted(() => {
   resizeObserver = new ResizeObserver(() => updateSize())
@@ -781,7 +782,7 @@ watch(() => props.charts, () => draw(), { deep: true })
     <h3 class="overlay-title">Video Analysis Overlay</h3>
 
     <div class="video-with-eq">
-      <!-- ── Equalizer bars (HTML/CSS) ───────────── -->
+      <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Equalizer bars (HTML/CSS) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
       <div class="eq-container hidden sm:flex">
         <div
           v-for="bar in eqBars"
@@ -822,7 +823,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
       <canvas ref="canvasRef" class="overlay-canvas" />
 
-      <!-- ── Custom Controls ─────────────────────── -->
+      <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Custom Controls Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
       <div
         class="controls-bar"
         :class="{ visible: controlsVisible || !playing }"
@@ -874,7 +875,7 @@ watch(() => props.charts, () => draw(), { deep: true })
     </div>
     </div>
 
-    <!-- ── Toggle & slider bar ─────────────────── -->
+    <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Toggle & slider bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
     <div class="toggle-bar">
       <!-- Graph toggles -->
       <button
@@ -958,7 +959,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   letter-spacing: -0.01em;
 }
 
-/* ── Video + EQ layout ──────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Video + EQ layout Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .video-with-eq {
   display: flex;
@@ -987,7 +988,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   transition: background-color 80ms ease;
 }
 
-/* ── Video wrapper ───────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Video wrapper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .video-wrapper {
   position: relative;
@@ -1016,7 +1017,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   pointer-events: none;
 }
 
-/* ── Custom controls bar ─────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Custom controls bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .controls-bar {
   position: absolute;
@@ -1033,7 +1034,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
 .controls-bar.visible { opacity: 1; }
 
-/* ── Progress bar ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Progress bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .progress-track {
   position: relative;
@@ -1076,7 +1077,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* ── Controls row ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Controls row Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .controls-row {
   display: flex;
@@ -1111,7 +1112,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   height: 1.25rem;
 }
 
-/* ── Volume slider ───────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Volume slider Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .volume-track {
   position: relative;
@@ -1149,7 +1150,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* ── Time display ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Time display Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .time-display {
   font-size: 0.75rem;
@@ -1162,7 +1163,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 
 .ctrl-spacer { flex: 1; }
 
-/* ── Toggle & slider bar ─────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Toggle & slider bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .toggle-bar {
   display: flex;
@@ -1220,7 +1221,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   flex-shrink: 0;
 }
 
-/* ── Separator ───────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Separator Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .toggle-sep {
   width: 1px;
@@ -1230,7 +1231,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   flex-shrink: 0;
 }
 
-/* ── Opacity slider groups ───────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Opacity slider groups Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 
 .slider-group {
   display: inline-flex;

@@ -1,4 +1,5 @@
 <script setup>
+// Template: PageTemplate provides the standard page shell with spacing, max width, and a page title area.
 defineProps({
   title: { type: String, required: true },
   maxWidth: { type: String, default: '' },

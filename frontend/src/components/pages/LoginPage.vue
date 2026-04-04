@@ -1,4 +1,5 @@
 <script setup>
+// Page: LoginPage coordinates the login route state and hands credentials to the auth flow.
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '@/api/auth.js'

@@ -1,4 +1,5 @@
 <script setup>
+// Page: AdminPage is the route-level view for listing users and changing their roles.
 import { ref, onMounted } from 'vue'
 import { fetchUsers, updateUserRole } from '@/api/admin.js'
 import { formatDateShort } from '@/utils/formatters.js'

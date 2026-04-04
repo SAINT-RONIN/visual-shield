@@ -1,4 +1,5 @@
 <script setup>
+// Organism: FlashFrequencyChart visualizes flash frequency over time for the current report.
 import { computed } from 'vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
 import { chartColors } from '@/utils/colors.js'

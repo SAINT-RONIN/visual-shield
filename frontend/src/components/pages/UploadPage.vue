@@ -1,4 +1,5 @@
 <script setup>
+// Page: UploadPage coordinates video upload state, progress tracking, and success or error feedback.
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { uploadVideo } from '@/api/videos.js'

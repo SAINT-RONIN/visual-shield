@@ -1,4 +1,5 @@
 <script setup>
+// Page: RegisterPage coordinates account creation and redirects the user after a successful registration.
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/api/auth.js'

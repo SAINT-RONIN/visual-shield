@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: ReportHeader combines the main report title, video metadata, and overall risk badge.
 import { computed } from 'vue'
 import SeverityBadge from '@/components/atoms/SeverityBadge.vue'
 import { formatTime, formatDate } from '@/utils/formatters.js'

@@ -1,4 +1,5 @@
 <script setup>
+// Atom: SeverityBadge displays the risk severity level with consistent styling across reports and cards.
 defineProps({
   severity: { type: String, required: true },
 })

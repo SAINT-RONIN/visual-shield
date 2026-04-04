@@ -1,4 +1,5 @@
 <script setup>
+// Organism: StatsPanel groups the main report summary metrics into a quick-scan dashboard row.
 import { computed } from 'vue'
 import StatCard from '@/components/atoms/StatCard.vue'
 import { metricColors } from '@/utils/colors.js'

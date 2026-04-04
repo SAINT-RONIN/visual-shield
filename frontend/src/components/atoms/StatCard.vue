@@ -1,4 +1,5 @@
 <script setup>
+// Atom: StatCard presents one summary metric with a label so report stats stay visually consistent.
 defineProps({
   label: { type: String, required: true },
   value: { type: [Number, String], required: true },

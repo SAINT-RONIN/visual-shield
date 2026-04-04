@@ -1,4 +1,5 @@
 <script setup>
+// Atom: EmptyState shows a friendly no-data message and an optional next action when a screen has nothing to display.
 import { RouterLink } from 'vue-router'
 
 defineProps({

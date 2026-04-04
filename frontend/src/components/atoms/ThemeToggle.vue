@@ -1,4 +1,5 @@
 <script setup>
+// Atom: ThemeToggle lets the user switch between the available interface themes.
 import { useTheme } from '@/composables/useTheme.js'
 
 const { isDark, toggleTheme } = useTheme()
@@ -10,7 +11,7 @@ const { isDark, toggleTheme } = useTheme()
     class="relative w-9 h-9 flex items-center justify-center rounded-lg text-body hover:text-heading hover:bg-surface-hover transition-colors cursor-pointer"
     :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
   >
-    <!-- Sun icon (shown in dark mode — click to go light) -->
+    <!-- Sun icon (shown in dark mode Ã¢â‚¬â€ click to go light) -->
     <svg
       class="absolute w-5 h-5 transition-all duration-300"
       :class="isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-0'"
@@ -23,7 +24,7 @@ const { isDark, toggleTheme } = useTheme()
       <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
     </svg>
 
-    <!-- Moon icon (shown in light mode — click to go dark) -->
+    <!-- Moon icon (shown in light mode Ã¢â‚¬â€ click to go dark) -->
     <svg
       class="absolute w-5 h-5 transition-all duration-300"
       :class="isDark ? 'opacity-0 -rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'"

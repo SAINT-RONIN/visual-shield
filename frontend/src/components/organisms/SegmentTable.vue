@@ -1,4 +1,5 @@
 <script setup>
+// Organism: SegmentTable shows the flagged report segments in a sortable tabular view.
 import { computed } from 'vue'
 import SeverityBadge from '@/components/atoms/SeverityBadge.vue'
 import { formatTime } from '@/utils/formatters.js'

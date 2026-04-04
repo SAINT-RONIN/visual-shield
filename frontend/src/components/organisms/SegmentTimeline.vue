@@ -1,4 +1,5 @@
 <script setup>
+// Organism: SegmentTimeline visualizes risky video segments across the full playback duration.
 import { ref, computed } from 'vue'
 import { formatTime } from '@/utils/formatters.js'
 

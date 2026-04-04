@@ -1,4 +1,5 @@
 <script setup>
+// Molecule: UserMenuDropdown groups profile and logout actions into the header user menu.
 import { ref, onMounted, onUnmounted } from 'vue'
 
 defineProps({

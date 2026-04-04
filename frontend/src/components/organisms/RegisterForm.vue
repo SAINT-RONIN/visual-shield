@@ -1,4 +1,5 @@
 <script setup>
+// Organism: RegisterForm handles account creation fields, validation, and submit events.
 import { ref, reactive } from 'vue'
 import AppInput from '@/components/atoms/AppInput.vue'
 import AppButton from '@/components/atoms/AppButton.vue'

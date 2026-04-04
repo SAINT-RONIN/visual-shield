@@ -1,4 +1,5 @@
 <script setup>
+// Organism: LuminanceChart visualizes average luminance over time and highlights detected flash moments.
 import { computed } from 'vue'
 import { buildChartOptions } from '@/utils/chartOptions.js'
 import { chartColors } from '@/utils/colors.js'

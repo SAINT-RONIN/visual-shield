@@ -1,4 +1,5 @@
 <script setup>
+// Organism: VideoCard presents one uploaded video with its status, summary metadata, and dashboard actions.
 import { ref } from 'vue'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
