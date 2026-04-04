@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Config\AnalysisConfig;
 use App\Contracts\AuthServiceInterface;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
@@ -15,6 +14,7 @@ use App\Exceptions\ValidationException;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Repositories\TokenRepository;
+use App\Utils\JwtService;
 
 /**
  * Handles sign-up, login, logout, and profile updates.
@@ -27,6 +27,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     public function __construct(
         private UserRepository $userRepo,
         private TokenRepository $tokenRepo,
+        private JwtService $jwtService,
     ) {}
 
     // ──────────────────────────────────────────────
@@ -68,7 +69,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     public function login(LoginDTO $dto): LoginResult
     {
         $user = $this->verifyCredentials($dto->username, $dto->password);
-        $token = $this->createBearerToken($user->id);
+        $token = $this->createJwtAccessToken($user->id);
 
         return new LoginResult($token, $user);
     }
@@ -80,7 +81,8 @@ class AuthService extends BaseService implements AuthServiceInterface
      */
     public function logout(string $token): void
     {
-        $this->tokenRepo->deleteByToken($token);
+        $payload = $this->jwtService->decodeAccessToken($token);
+        $this->tokenRepo->deleteByToken($payload['jti']);
     }
 
     // ──────────────────────────────────────────────
@@ -95,13 +97,20 @@ class AuthService extends BaseService implements AuthServiceInterface
      */
     public function getUserFromToken(string $token): ?User
     {
-        $tokenRecord = $this->tokenRepo->findValidToken($token);
-
-        if (!$tokenRecord) {
+        try {
+            $payload = $this->jwtService->decodeAccessToken($token);
+        } catch (\RuntimeException) {
             return null;
         }
 
-        return $this->userRepo->findById($tokenRecord->userId);
+        $userId = (int) $payload['sub'];
+        $tokenRecord = $this->tokenRepo->findValidToken($payload['jti']);
+
+        if (!$tokenRecord || $tokenRecord->userId !== $userId) {
+            return null;
+        }
+
+        return $this->userRepo->findById($userId);
     }
 
     // ──────────────────────────────────────────────
@@ -184,15 +193,12 @@ class AuthService extends BaseService implements AuthServiceInterface
      * future requests, and it also stores the expiry so the token is not valid
      * forever if it ever gets copied or leaked.
      */
-    private function createBearerToken(int $userId): string
+    private function createJwtAccessToken(int $userId): string
     {
-        $token = bin2hex(random_bytes(AnalysisConfig::TOKEN_RANDOM_BYTES));
-        $expiryHours = AnalysisConfig::TOKEN_EXPIRY_HOURS;
-        $expiryTimestamp = strtotime("+{$expiryHours} hours");
-        $expiresAt = date('Y-m-d H:i:s', $expiryTimestamp);
+        $accessToken = $this->jwtService->issueAccessToken($userId);
+        $this->tokenRepo->deleteExpiredTokens();
+        $this->tokenRepo->store($userId, $accessToken['jti'], $accessToken['expiresAt']);
 
-        $this->tokenRepo->store($userId, $token, $expiresAt);
-
-        return $token;
+        return $accessToken['token'];
     }
 }

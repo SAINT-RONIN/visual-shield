@@ -58,8 +58,16 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
-  const { isLoggedIn, isAdmin } = useAuth()
+router.beforeEach(async (to) => {
+  const { isLoggedIn, isAdmin, hydrateAuthUser } = useAuth()
+
+  if (isLoggedIn.value) {
+    try {
+      await hydrateAuthUser()
+    } catch {
+      return { name: 'login' }
+    }
+  }
 
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return { name: 'login' }

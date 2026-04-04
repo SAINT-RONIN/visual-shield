@@ -117,8 +117,8 @@ Data access is split into feature-based modules in `src/api/`, while shared stat
 
 ## Auth and API Behavior
 
-- Auth tokens are stored in `localStorage`
-- The Axios interceptor attaches `Authorization: Bearer <token>` automatically
+- JWT access tokens and the current user payload are stored in `localStorage`
+- The Axios interceptor attaches `Authorization: Bearer <jwt>` automatically
 - API requests use the configured backend base URL
 - Report exports are downloaded through the frontend using Blob responses
 

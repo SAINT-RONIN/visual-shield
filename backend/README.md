@@ -14,7 +14,7 @@ The backend powers authentication, video uploads, background analysis, report ge
 
 ## Main Responsibilities
 
-- Register, log in, and log out users with Bearer token authentication
+- Register, log in, and log out users with JWT bearer authentication
 - Store uploaded videos outside the public web root
 - Queue and process video analysis jobs in a worker container
 - Detect flash frequency, luminance changes, and motion intensity
@@ -96,6 +96,8 @@ MYSQL_PORT=3306
 NGINX_PORT=8081
 PHPMYADMIN_PORT=8080
 CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=visual-shield-local-dev-secret
+JWT_ISSUER=visual-shield
 ```
 
 ## API Overview
@@ -108,8 +110,9 @@ http://localhost:8081/api
 
 Main route groups:
 
+- Session: `/session`
 - Auth: `/auth/register`, `/auth/login`, `/auth/logout`
-- User profile: `/users/me`
+- Users: `/users`, `/users/me`
 - Videos: `/videos`, `/videos/{id}`, `/videos/{id}/reanalyze`, `/videos/{id}/stream`
 - Reports: `/videos/{id}/report`, `/videos/{id}/report/json`, `/videos/{id}/report/csv`
 - Admin: `/admin/users`, `/admin/users/{id}/role`
@@ -139,6 +142,6 @@ The backend follows a controller -> service -> repository flow.
 
 - Uploaded videos are stored in `storage/videos/`
 - The API returns JSON responses, including structured error responses
-- Authenticated requests use the `Authorization: Bearer <token>` header
+- Authenticated requests use the `Authorization: Bearer <jwt>` header
 - Streaming is handled through the backend, not by exposing uploaded files directly
 - MySQL init scripts only run when the `mysql_data` volume is created for the first time. If you need a fresh local database, run `docker compose down -v` and then `docker compose up -d --build`

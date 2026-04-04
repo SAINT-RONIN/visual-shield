@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\UserRepositoryInterface;
+use App\DTOs\UserFilterDTO;
 use App\Models\User;
+use PDO;
 
 /**
  * Data-access layer for the `users` table.
@@ -91,19 +93,67 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return (int) $stmt->fetchColumn();
     }
 
-    /**
-     * Fetch all users (admin use only).
-     *
-     * @return User[]
-     */
-    public function findAll(): array
+    /** @return User[] */
+    public function findAll(UserFilterDTO $filters): array
     {
-        $stmt = $this->db->query(
-            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
-             FROM users ORDER BY created_at ASC'
-        );
+        $sql = 'SELECT id, username, password_hash, display_name, role, created_at, updated_at
+                FROM users
+                WHERE 1 = 1';
+        $params = [];
+
+        if ($filters->role !== null) {
+            $sql .= ' AND role = :role';
+            $params['role'] = $filters->role;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND (username LIKE :searchUsername OR display_name LIKE :searchDisplayName)';
+            $params['searchUsername'] = '%' . $filters->search . '%';
+            $params['searchDisplayName'] = '%' . $filters->search . '%';
+        }
+
+        $allowedSorts = ['created_at', 'username', 'role'];
+        $allowedOrders = ['asc', 'desc'];
+        $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
+        $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
+
+        $sql .= " ORDER BY {$sortCol} {$orderDir}";
+        $sql .= ' LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->bindValue('limit', $filters->limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $filters->offset, PDO::PARAM_INT);
+        $stmt->execute();
 
         return $this->fetchAllHydrated($stmt, User::fromRow(...));
+    }
+
+    /** Count users matching the current admin filters. */
+    public function countAllFiltered(UserFilterDTO $filters): int
+    {
+        $sql = 'SELECT COUNT(*) FROM users WHERE 1 = 1';
+        $params = [];
+
+        if ($filters->role !== null) {
+            $sql .= ' AND role = :role';
+            $params['role'] = $filters->role;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND (username LIKE :searchUsername OR display_name LIKE :searchDisplayName)';
+            $params['searchUsername'] = '%' . $filters->search . '%';
+            $params['searchDisplayName'] = '%' . $filters->search . '%';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
     }
 
     /** Update a user's role and return the updated user, or null if the ID does not exist. */

@@ -30,3 +30,4 @@ RUN echo "upload_max_filesize = 500M" > /usr/local/etc/php/conf.d/uploads.ini \
 WORKDIR /app
 
 ENTRYPOINT ["/usr/local/bin/backend-entrypoint"]
+CMD ["php-fpm", "-F"]

@@ -1,7 +1,7 @@
 import api from '@/utils/api'
 
 export async function login(username, password) {
-  const { data } = await api.post('/auth/login', { username, password })
+  const { data } = await api.post('/session', { username, password })
   return data
 }
 
@@ -11,5 +11,5 @@ export async function register(username, password, displayName) {
 }
 
 export async function logout() {
-  await api.post('/auth/logout')
+  await api.delete('/session')
 }

@@ -7,9 +7,10 @@ namespace App\DTOs;
 use App\Models\User;
 
 /**
- * Typed result from a successful login — the bearer token and the
- * authenticated user.  Replaces the raw ['token' => …, 'user' => …]
- * array that previously leaked across the service→controller boundary.
+ * Typed result from a successful login.
+ *
+ * Carries the signed JWT access token plus the authenticated user payload the
+ * frontend needs immediately after login.
  */
 class LoginResult
 {

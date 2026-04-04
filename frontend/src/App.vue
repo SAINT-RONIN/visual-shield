@@ -10,19 +10,20 @@ import ToastContainer from '@/components/molecules/ToastContainer.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { user, isLoggedIn, isAdmin, clearAuth } = useAuth()
+const { user, isLoggedIn, isAdmin, clearAuth, hydrateAuthUser } = useAuth()
 const { setConfig } = useConfig()
 
 const displayName = computed(() => user.value?.displayName || user.value?.username || 'User')
 const currentRoute = computed(() => route.name || '')
 
 onMounted(async () => {
-  try {
-    const data = await fetchConfig()
-    setConfig(data.data)
-  } catch {
-    // Config load failed silently
+  const startupTasks = [fetchConfig().then((data) => setConfig(data.data))]
+
+  if (isLoggedIn.value) {
+    startupTasks.push(hydrateAuthUser())
   }
+
+  await Promise.allSettled(startupTasks)
 })
 
 async function handleLogout() {

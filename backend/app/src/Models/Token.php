@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 /**
- * Immutable value object representing an auth_tokens row.
- *
- * Replaces raw associative arrays returned by TokenRepository,
- * giving consumers typed access to token fields.
+ * Immutable value object representing a stored JWT session row.
  */
 class Token
 {

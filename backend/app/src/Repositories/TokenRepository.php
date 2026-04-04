@@ -10,77 +10,41 @@ use App\Models\Token;
 /**
  * Data-access layer for the `auth_tokens` table.
  *
- * Purpose: Manages bearer-token lifecycle — creation, validation, and
- * deletion — so that AuthService can authenticate requests without
- * embedding any SQL.
- *
- * Why do I need it: The application uses stateless bearer-token auth
- * (random_bytes, 24-hour expiry, stored in the DB). This repository
- * encapsulates every token-related query, making it straightforward to
- * enforce expiry rules, revoke tokens on logout, and periodically purge
- * stale rows.
+ * Stores active JWT session IDs (`jti` claims) with expiry timestamps so
+ * access tokens can still be revoked on logout.
  */
 class TokenRepository extends BaseRepository implements TokenRepositoryInterface
 {
-
-    /**
-     * Persist a new bearer token for a given user.
-     *
-     * Called by AuthService after successful login to store the
-     * randomly generated token alongside its expiry timestamp.
-     *
-     * @param  int    $userId    The owning user's primary key.
-     * @param  string $token     The hex-encoded bearer token.
-     * @param  string $expiresAt MySQL-compatible datetime string (24 h from now).
-     * @return void
-     */
+    /** Persist a new active JWT session ID for a given user. */
     public function store(int $userId, string $token, string $expiresAt): void
     {
-        $stmt = $this->db->prepare('INSERT INTO auth_tokens (user_id, token, expires_at) VALUES (:userId, :token, :expiresAt)');
+        $stmt = $this->db->prepare(
+            'INSERT INTO auth_tokens (user_id, token, expires_at) VALUES (:userId, :token, :expiresAt)'
+        );
         $stmt->execute(['userId' => $userId, 'token' => $token, 'expiresAt' => $expiresAt]);
     }
 
-    /**
-     * Retrieve a token row only if it has not yet expired.
-     *
-     * Used by the auth middleware on every protected request to resolve
-     * the Bearer header to a user ID. The WHERE clause filters out
-     * expired tokens so no extra PHP-side check is needed.
-     *
-     * @param  string     $token The bearer token from the Authorization header.
-     * @return Token|null The token record or null if invalid/expired.
-     */
+    /** Retrieve a stored JWT session only if it has not yet expired. */
     public function findValidToken(string $token): ?Token
     {
-        $stmt = $this->db->prepare('SELECT id, user_id, token, expires_at, created_at FROM auth_tokens WHERE token = :token AND expires_at > NOW()');
+        $stmt = $this->db->prepare(
+            'SELECT id, user_id, token, expires_at, created_at
+             FROM auth_tokens
+             WHERE token = :token AND expires_at > NOW()'
+        );
         $stmt->execute(['token' => $token]);
 
         return $this->fetchOneOrNull($stmt, Token::fromRow(...));
     }
 
-    /**
-     * Delete a specific token, effectively logging the user out.
-     *
-     * Called by AuthService on the /auth/logout endpoint to immediately
-     * revoke the current session token.
-     *
-     * @param  string $token The bearer token to revoke.
-     * @return void
-     */
+    /** Delete a specific active JWT session. */
     public function deleteByToken(string $token): void
     {
         $stmt = $this->db->prepare('DELETE FROM auth_tokens WHERE token = :token');
         $stmt->execute(['token' => $token]);
     }
 
-    /**
-     * Purge all tokens whose expiry has passed.
-     *
-     * Intended for periodic housekeeping (e.g. cron or startup) to
-     * prevent the auth_tokens table from growing unboundedly.
-     *
-     * @return void
-     */
+    /** Purge expired JWT sessions as light housekeeping. */
     public function deleteExpiredTokens(): void
     {
         $this->db->exec('DELETE FROM auth_tokens WHERE expires_at <= NOW()');

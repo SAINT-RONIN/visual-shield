@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
+use App\DTOs\PaginatedResultDTO;
+use App\DTOs\UserFilterDTO;
 use App\Models\User;
 
 interface AdminServiceInterface
 {
     /**
-     * Return all registered users ordered by creation date.
-     *
-     * @return User[]
+     * Return a paginated admin user list with optional filters.
      */
-    public function listUsers(): array;
+    public function listUsers(UserFilterDTO $filters): PaginatedResultDTO;
 
     /**
      * Change a user's role and return the updated User model.

@@ -30,16 +30,21 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/api/config', ['configController', 'getConfig']);
 
     // Auth
+    $r->addRoute('POST', '/api/session', ['authController', 'login']);
+    $r->addRoute('DELETE', '/api/session', ['authController', 'logout']);
     $r->addRoute('POST', '/api/auth/register', ['authController', 'register']);
     $r->addRoute('POST', '/api/auth/login', ['authController', 'login']);
     $r->addRoute('POST', '/api/auth/logout', ['authController', 'logout']);
     $r->addRoute('GET', '/api/users/me', ['authController', 'getProfile']);
     $r->addRoute('PUT', '/api/users/me', ['authController', 'updateProfile']);
+    $r->addRoute('GET', '/api/users', ['adminController', 'listUsers']);
+    $r->addRoute('PATCH', '/api/users/{id:\d+}', ['adminController', 'updateUserRole']);
 
     // Videos
     $r->addRoute('POST', '/api/videos', ['videoController', 'upload']);
     $r->addRoute('GET', '/api/videos', ['videoController', 'getAll']);
     $r->addRoute('GET', '/api/videos/{id:\d+}', ['videoController', 'getOne']);
+    $r->addRoute('PUT', '/api/videos/{id:\d+}', ['videoController', 'update']);
     $r->addRoute('PATCH', '/api/videos/{id:\d+}', ['videoController', 'update']);
     $r->addRoute('DELETE', '/api/videos/{id:\d+}', ['videoController', 'delete']);
     $r->addRoute('PUT', '/api/videos/{id:\d+}/reanalyze', ['videoController', 'reanalyze']);

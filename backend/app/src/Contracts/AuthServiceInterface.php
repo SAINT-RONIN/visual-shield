@@ -18,15 +18,15 @@ interface AuthServiceInterface
     public function register(RegisterDTO $dto): User;
 
     /**
-     * Log a user in by verifying their credentials and issuing a token.
+     * Log a user in by verifying their credentials and issuing a JWT.
      */
     public function login(LoginDTO $dto): LoginResult;
 
-    /** Log a user out by deleting their bearer token from the database. */
+    /** Log a user out by revoking the current JWT session. */
     public function logout(string $token): void;
 
     /**
-     * Look up which user owns a given bearer token.
+     * Look up which user owns a given JWT access token.
      */
     public function getUserFromToken(string $token): ?User;
 

@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Contracts\AdminServiceInterface;
 use App\DTOs\UpdateUserRoleDTO;
+use App\DTOs\UserFilterDTO;
 use App\Framework\BaseController;
 use App\Framework\ServiceRegistry;
 use App\Models\User;
@@ -29,11 +30,17 @@ class AdminController extends BaseController
     {
         $this->handleRequest(function () {
             $this->requireAdmin();
+            $filters = UserFilterDTO::fromQuery($_GET);
 
-            $users = $this->adminService->listUsers();
+            $result = $this->adminService->listUsers($filters);
 
             $this->jsonResponse([
-                'data' => array_map(fn(User $user) => $user->toApiArray(), $users),
+                'data' => array_map(fn(User $user) => $user->toApiArray(), $result->items),
+                'pagination' => [
+                    'total' => $result->total,
+                    'limit' => $result->limit,
+                    'offset' => $result->offset,
+                ],
             ]);
         });
     }

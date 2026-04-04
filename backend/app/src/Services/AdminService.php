@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\AdminServiceInterface;
+use App\DTOs\PaginatedResultDTO;
+use App\DTOs\UserFilterDTO;
 use App\Models\User;
 use App\Repositories\UserRepository;
 
@@ -25,11 +27,18 @@ class AdminService extends BaseService implements AdminServiceInterface
      * This returns the user list for the admin area so the controller does not
      * need to know anything about how the records are fetched or ordered.
      *
-     * @return User[]
      */
-    public function listUsers(): array
+    public function listUsers(UserFilterDTO $filters): PaginatedResultDTO
     {
-        return $this->userRepository->findAll();
+        $users = $this->userRepository->findAll($filters);
+        $total = $this->userRepository->countAllFiltered($filters);
+
+        return new PaginatedResultDTO(
+            items: $users,
+            total: $total,
+            limit: $filters->limit,
+            offset: $filters->offset,
+        );
     }
 
     /**

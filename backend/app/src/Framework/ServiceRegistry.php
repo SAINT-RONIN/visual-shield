@@ -23,6 +23,7 @@ use App\Services\VideoService;
 use App\Utils\FFprobe;
 use App\Utils\FlashDetector;
 use App\Utils\FrameExtractor;
+use App\Utils\JwtService;
 use App\Utils\MotionDetector;
 
 /**
@@ -54,6 +55,7 @@ class ServiceRegistry
     private static ?VideoService $videoService = null;
     private static ?ReportService $reportService = null;
     private static ?FFprobe $ffprobeService = null;
+    private static ?JwtService $jwtService = null;
 
     // ──────────────────────────────────────────────
     //  Repositories (lazy singletons)
@@ -145,6 +147,16 @@ class ServiceRegistry
         return self::$ffprobeService;
     }
 
+    /** Get the shared JwtService instance. */
+    public static function jwtService(): JwtService
+    {
+        if (!self::$jwtService) {
+            self::$jwtService = new JwtService();
+        }
+
+        return self::$jwtService;
+    }
+
     /** Get the shared AnalysisService instance. */
     public static function analysisService(): AnalysisService
     {
@@ -171,6 +183,7 @@ class ServiceRegistry
             self::$authService = new AuthService(
                 self::userRepository(),
                 self::tokenRepository(),
+                self::jwtService(),
             );
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
+use App\DTOs\UserFilterDTO;
 use App\Models\User;
 
 interface UserRepositoryInterface
@@ -19,7 +20,9 @@ interface UserRepositoryInterface
     public function countAll(): int;
 
     /** @return User[] */
-    public function findAll(): array;
+    public function findAll(UserFilterDTO $filters): array;
+
+    public function countAllFiltered(UserFilterDTO $filters): int;
 
     public function updateRole(int $id, string $role): ?User;
 }

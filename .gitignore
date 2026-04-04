@@ -1,19 +1,4 @@
 # ========================
-# AI Tools (never commit)
-# ========================
-.claude/
-CLAUDE.md
-
-# ========================
-# Project Documentation (private)
-# ========================
-AGENTS.md
-CONTEXT.md
-PHASES.md
-ROADMAP.md
-UI-GUIDE.md
-
-# ========================
 # Dependencies
 # ========================
 node_modules/
@@ -126,6 +111,7 @@ storage/exports/
 *.bmp
 *.webp
 !frontend/src/assets/**
+!Figma-Design/**
 !UI-EXAMPLE/**
 
 # ========================
@@ -167,20 +153,6 @@ phpunit.xml
 .stylelintcache
 .cache/
 .parcel-cache/
-
-# ========================
-# Testing & Coverage
-# ========================
-coverage/
-.nyc_output/
-*.lcov
-test-results/
-playwright-report/
-
-# ========================
-# Figma Exports (design reference only)
-# ========================
-UI-EXAMPLE/
 
 # ========================
 # Misc
