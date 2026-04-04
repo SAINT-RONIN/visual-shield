@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Contracts\AdminServiceInterface;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
+use App\Exceptions\ValidationException;
 use App\Models\User;
 use App\Repositories\UserRepository;
 
@@ -50,6 +51,16 @@ class AdminService extends BaseService implements AdminServiceInterface
     }
 
     /**
+     * Count how many admin accounts currently exist.
+     *
+     * @return int Current admin account count.
+     */
+    public function countAdmins(): int
+    {
+        return $this->userRepository->countByRole('admin');
+    }
+
+    /**
      * This changes a user's role and immediately returns the updated model so
      * the admin UI can reflect the new state without doing another lookup.
      *
@@ -57,9 +68,20 @@ class AdminService extends BaseService implements AdminServiceInterface
      * @param string $role New role value to persist.
      * @return User Updated user model after the role change.
      * @throws \App\Exceptions\NotFoundException If no user with the given ID exists.
+     * @throws ValidationException If this would remove the final admin account.
      */
     public function updateUserRole(int $id, string $role): User
     {
+        $user = $this->findOrFail($this->userRepository->findById($id), 'User not found');
+
+        if ($user->role === $role) {
+            return $user;
+        }
+
+        if ($user->role === 'admin' && $role !== 'admin' && $this->countAdmins() <= 1) {
+            throw new ValidationException('At least one admin account must remain');
+        }
+
         return $this->findOrFail($this->userRepository->updateRole($id, $role), 'User not found');
     }
 }

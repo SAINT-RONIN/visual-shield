@@ -53,6 +53,14 @@ interface UserRepositoryInterface
     public function countAll(): int;
 
     /**
+     * Count users for a specific role value.
+     *
+     * @param string $role Role name to count.
+     * @return int Number of users with that role.
+     */
+    public function countByRole(string $role): int;
+
+    /**
      * Retrieve users with optional admin filters.
      *
      * @param UserFilterDTO $filters Validated filter, sort, and pagination options.

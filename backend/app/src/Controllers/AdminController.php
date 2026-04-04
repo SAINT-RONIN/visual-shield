@@ -50,6 +50,9 @@ class AdminController extends BaseController
                     'limit' => $result->limit,
                     'offset' => $result->offset,
                 ],
+                'summary' => [
+                    'adminCount' => $this->adminService->countAdmins(),
+                ],
             ]);
         });
     }

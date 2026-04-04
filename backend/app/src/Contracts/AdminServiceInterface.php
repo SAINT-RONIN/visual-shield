@@ -19,6 +19,13 @@ interface AdminServiceInterface
     public function listUsers(UserFilterDTO $filters): PaginatedResultDTO;
 
     /**
+     * Count how many admin accounts currently exist.
+     *
+     * @return int Current admin account count.
+     */
+    public function countAdmins(): int;
+
+    /**
      * Change a user's role and return the updated User model.
      *
      * @param int $id The user ID to update.

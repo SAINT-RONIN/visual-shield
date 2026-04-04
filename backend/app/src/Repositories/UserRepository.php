@@ -116,6 +116,20 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Count how many users currently have the given role.
+     *
+     * @param string $role Role name to count.
+     * @return int Number of matching users.
+     */
+    public function countByRole(string $role): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
+        $stmt->execute(['role' => $role]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     /** @return User[] */
     /**
      * @param UserFilterDTO $filters
