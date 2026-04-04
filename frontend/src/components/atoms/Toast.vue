@@ -1,6 +1,6 @@
 <template>
   <div :class="['flex items-center gap-3 rounded-lg border-l-4 bg-surface p-4 shadow-lg', borderClass]">
-    <span :class="['text-lg leading-none select-none', iconClass]" aria-hidden="true">{{ icon }}</span>
+    <span :class="['text-sm leading-none select-none font-medium', iconClass]" aria-hidden="true">{{ icon }}</span>
     <p class="flex-1 text-sm text-body">{{ message }}</p>
     <button
       class="text-muted hover:text-heading transition-colors text-xl leading-none"
@@ -37,8 +37,8 @@ const iconClass = computed(() => ({
 }))
 
 const icon = computed(() => {
-  if (props.type === 'success') return 'Ã¢Å“â€œ'
-  if (props.type === 'error') return 'Ã¢Å“â€¢'
-  return 'Ã¢â€žÂ¹'
+  if (props.type === 'success') return '[OK]'
+  if (props.type === 'error') return '[!]'
+  return '[i]'
 })
 </script>

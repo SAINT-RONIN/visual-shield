@@ -33,6 +33,7 @@ class FrameExtractor
     public function extract(string $videoPath, int $samplingRate, string $outputDirectory): array
     {
         FileSystem::ensureDirectoryExists($outputDirectory);
+        $this->deleteAllFrameFiles($outputDirectory);
         $this->runFFmpegFrameExtraction($videoPath, $samplingRate, $outputDirectory);
 
         return $this->collectExtractedFramePaths($outputDirectory);
@@ -80,7 +81,7 @@ class FrameExtractor
         $safeSamplingRate = (int) $samplingRate;
 
         // "2>&1" redirects FFmpeg's error messages so we can capture them if it fails
-        $command = "ffmpeg -i {$safeInputPath} -vf fps={$safeSamplingRate} {$safeOutputPattern} 2>&1";
+        $command = "ffmpeg -y -i {$safeInputPath} -vf fps={$safeSamplingRate} {$safeOutputPattern} 2>&1";
         exec($command, $commandOutput, $exitCode);
 
         if ($exitCode !== 0) {
@@ -127,7 +128,9 @@ class FrameExtractor
         }
 
         foreach ($frameFiles as $filePath) {
-            unlink($filePath);
+            if (is_file($filePath)) {
+                unlink($filePath);
+            }
         }
     }
 }

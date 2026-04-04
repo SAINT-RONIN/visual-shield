@@ -119,7 +119,8 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
 
         try {
             $framePaths = $this->frameExtractor->extract($videoPath, $samplingRate, $frameOutputDirectory);
-            $this->reportProgress($onProgress, 40, 'Analyzing flash events...');
+            $this->ensureVideoStillExists($videoId);
+            $this->reportProgress($onProgress, 35, 'Computing frame metrics...');
             $this->runFullAnalysis($videoId, $framePaths, $samplingRate, $onProgress);
         } finally {
             // Always clean up temporary frame files, even if analysis fails
@@ -149,15 +150,30 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         int $samplingRate,
         ?callable $onProgress = null,
     ): void {
-        $perFrameData = $this->computePerFrameData($framePaths);
+        $perFrameData = $this->computePerFrameData(
+            $videoId,
+            $framePaths,
+            function (int $processedPairs, int $totalPairs) use ($onProgress): void {
+                if ($totalPairs <= 0) {
+                    return;
+                }
 
+                $progress = 35 + (int) floor(($processedPairs / $totalPairs) * 25);
+                $this->reportProgress($onProgress, min($progress, 60), 'Computing frame metrics...');
+            }
+        );
+
+        $this->ensureVideoStillExists($videoId);
+        $this->reportProgress($onProgress, 60, 'Analyzing flash events...');
         $flashResult = $this->flashDetector->detectFromData($perFrameData, $samplingRate);
-        $this->reportProgress($onProgress, 65, 'Analyzing motion...');
+        $this->ensureVideoStillExists($videoId);
+        $this->reportProgress($onProgress, 75, 'Analyzing motion...');
 
         $motionResult = $this->motionDetector->detectFromData($perFrameData, $samplingRate);
+        $this->ensureVideoStillExists($videoId);
         $luminancePerSecond = $this->calculateAverageLuminancePerSecond($perFrameData, $samplingRate);
 
-        $this->reportProgress($onProgress, 85, 'Saving results...');
+        $this->reportProgress($onProgress, 90, 'Saving results...');
 
         $this->saveAllResults($videoId, $framePaths, $flashResult, $motionResult, $luminancePerSecond, $samplingRate);
     }
@@ -177,14 +193,14 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * @param array $framePaths
      * @return array
      */
-    private function computePerFrameData(array $framePaths): array
+    private function computePerFrameData(int $videoId, array $framePaths, ?callable $onProgress = null): array
     {
         if (empty($framePaths)) {
             return [];
         }
 
         $firstFrameData = $this->buildFirstFrameData($framePaths[0]);
-        $remainingFramesData = $this->buildRemainingFramesData($framePaths);
+        $remainingFramesData = $this->buildRemainingFramesData($videoId, $framePaths, $onProgress);
 
         return [$firstFrameData, ...$remainingFramesData];
     }
@@ -216,12 +232,21 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * @param array $framePaths
      * @return array
      */
-    private function buildRemainingFramesData(array $framePaths): array
+    private function buildRemainingFramesData(int $videoId, array $framePaths, ?callable $onProgress = null): array
     {
         $frameCount = count($framePaths);
+        $totalPairs = max($frameCount - 1, 0);
         $results = [];
 
         for ($i = 1; $i < $frameCount; $i++) {
+            if ($i === 1 || $i % 100 === 0 || $i === $frameCount - 1) {
+                $this->ensureVideoStillExists($videoId);
+
+                if ($onProgress) {
+                    $onProgress($i, $totalPairs);
+                }
+            }
+
             $previousFramePath = $framePaths[$i - 1];
             $currentFramePath = $framePaths[$i];
             $comparison = ImageAnalyzer::analyzeFramePair($previousFramePath, $currentFramePath);
@@ -474,6 +499,16 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
     {
         if ($onProgress) {
             $onProgress($percent, $message);
+        }
+    }
+
+    /**
+     * Abort long-running analysis work if the video was deleted mid-process.
+     */
+    private function ensureVideoStillExists(int $videoId): void
+    {
+        if ($this->videoRepo->findById($videoId) === null) {
+            throw new \RuntimeException('Analysis cancelled because the video was deleted.');
         }
     }
 }

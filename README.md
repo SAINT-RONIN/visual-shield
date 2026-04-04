@@ -280,6 +280,13 @@ By default, the normal backend startup flow gives you a clean local database, so
 - If you want to test the admin area, you can promote a user to `admin`
 - The `videos-to-use/` folder contains some default videos for quick and easy access during testing
 
+Test users:
+
+| Role | Username | Password |
+|------|----------|----------|
+| Viewer | `TestUser1` | `Password123!` |
+| Admin | `Admin` | `Admin123!` |
+
 There is also an exported database file in:
 
 ```text

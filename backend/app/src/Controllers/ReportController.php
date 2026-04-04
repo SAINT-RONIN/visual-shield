@@ -82,9 +82,9 @@ class ReportController extends BaseController
             $segments = $this->reportService->exportAsCsv($userId, $videoId);
 
             $stream = fopen('php://temp', 'r+');
-            fputcsv($stream, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value']);
+            fputcsv($stream, ['Start Time', 'End Time', 'Type', 'Severity', 'Metric Value'], ',', '"', '\\');
             foreach ($segments as $segment) {
-                fputcsv($stream, $segment->toCsvRow());
+                fputcsv($stream, $segment->toCsvRow(), ',', '"', '\\');
             }
             rewind($stream);
             $csv = stream_get_contents($stream);
