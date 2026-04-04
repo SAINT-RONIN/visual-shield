@@ -19,6 +19,10 @@ class ReanalyzeVideoDTO
     /** Default sampling rate when the user doesn't specify one. */
     private const DEFAULT_SAMPLING_RATE = 15;
 
+    /**
+     * @param int $samplingRate
+     * @return void
+     */
     public function __construct(
         public readonly int $samplingRate,
     ) {}

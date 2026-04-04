@@ -16,6 +16,10 @@ final readonly class UpdateUserRoleDTO
 {
     private const ASSIGNABLE_ROLES = ['admin', 'viewer'];
 
+    /**
+     * @param string $role
+     * @return void
+     */
     public function __construct(
         public string $role,
     ) {}
@@ -25,6 +29,10 @@ final readonly class UpdateUserRoleDTO
      *
      * @param array $data Decoded request body (from BaseController::getJsonBody()).
      * @throws ValidationException If the role is missing or not in the allowed list.
+     */
+    /**
+     * @param array $data
+     * @return self
      */
     public static function fromArray(array $data): self
     {

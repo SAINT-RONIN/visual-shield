@@ -7,12 +7,20 @@ namespace App\DTOs;
 /**
  * Immutable value object representing one merged per-second analysis datapoint.
  *
- * This is an output DTO — it carries the combined flash, motion, and luminance
+ * This is an output DTO â€” it carries the combined flash, motion, and luminance
  * data for a single second from AnalysisService to AnalysisDatapointRepository.
  * It is NOT a database model.
  */
 class DatapointData
 {
+    /**
+     * @param float $timePoint
+     * @param float $flashFrequency
+     * @param float $motionIntensity
+     * @param float $luminance
+     * @param bool $flashDetected
+     * @return void
+     */
     public function __construct(
         public readonly float $timePoint,
         public readonly float $flashFrequency,

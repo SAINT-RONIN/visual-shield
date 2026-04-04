@@ -11,7 +11,7 @@ use App\Models\AnalysisResult;
  * Data-access layer for the `analysis_results` table.
  *
  * Purpose: Stores and retrieves the single high-level summary row that
- * each completed video analysis produces — total frames analysed, peak
+ * each completed video analysis produces â€” total frames analysed, peak
  * flash frequency, average motion intensity, and effective sampling rate.
  *
  * Why do I need it: AnalysisService writes to this repository at the end

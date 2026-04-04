@@ -7,12 +7,20 @@ namespace App\Models;
 /**
  * Immutable value object representing an analysis_datapoints row.
  *
- * Each row holds one second's worth of analysis metrics — flash frequency,
+ * Each row holds one second's worth of analysis metrics â€” flash frequency,
  * motion intensity, luminance, and whether a flash was detected. Used
  * by the Chart.js visualisations on the report page.
  */
 class AnalysisDatapoint
 {
+    /**
+     * @param float $timePoint
+     * @param float $flashFrequency
+     * @param float $motionIntensity
+     * @param float $luminance
+     * @param bool $flashDetected
+     * @return void
+     */
     public function __construct(
         public readonly float $timePoint,
         public readonly float $flashFrequency,
@@ -22,6 +30,10 @@ class AnalysisDatapoint
     ) {}
 
     /** Build an AnalysisDatapoint from a raw database row. */
+    /**
+     * @param array $row
+     * @return self
+     */
     public static function fromRow(array $row): self
     {
         return new self(
@@ -34,6 +46,9 @@ class AnalysisDatapoint
     }
 
     /** Convert to a camelCase array for the API response. */
+    /**
+     * @return array
+     */
     public function toApiArray(): array
     {
         return [

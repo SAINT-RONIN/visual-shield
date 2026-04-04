@@ -47,7 +47,7 @@ final class SegmentGrouper
         $segments = [];
 
         // State for the current open segment
-        $startSecond      = null;  // int|null — second where the current run began
+        $startSecond      = null;  // int|null â€” second where the current run began
         $peakMetric       = 0.0;   // highest metric value seen in the current run
         $consecutiveCount = 0;     // number of consecutive above-threshold seconds
 
@@ -66,7 +66,7 @@ final class SegmentGrouper
 
                 $consecutiveCount++;
             } else {
-                // Metric dropped below threshold — close the segment if it qualifies
+                // Metric dropped below threshold â€” close the segment if it qualifies
                 if ($startSecond !== null && $consecutiveCount >= $minSustainedSeconds) {
                     $segments[] = new SegmentData(
                         startTime:   (float) $startSecond,

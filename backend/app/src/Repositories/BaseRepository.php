@@ -10,6 +10,9 @@ abstract class BaseRepository
 {
     protected \PDO $db;
 
+    /**
+     * @return void
+     */
     public function __construct()
     {
         $this->db = Database::getInstance();
@@ -17,6 +20,11 @@ abstract class BaseRepository
 
     /**
      * Fetch a single row and hydrate via the given callable, or return null.
+     */
+    /**
+     * @param \PDOStatement $stmt
+     * @param callable $hydrator
+     * @return mixed
      */
     protected function fetchOneOrNull(\PDOStatement $stmt, callable $hydrator): mixed
     {
@@ -29,6 +37,11 @@ abstract class BaseRepository
      * Fetch all rows and hydrate each via the given callable.
      *
      * @return array<mixed>
+     */
+    /**
+     * @param \PDOStatement $stmt
+     * @param callable $hydrator
+     * @return array
      */
     protected function fetchAllHydrated(\PDOStatement $stmt, callable $hydrator): array
     {

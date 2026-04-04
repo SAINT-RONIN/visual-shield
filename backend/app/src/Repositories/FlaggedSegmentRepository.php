@@ -13,7 +13,7 @@ use App\Models\FlaggedSegment;
  * Data-access layer for the `flagged_segments` table.
  *
  * Purpose: Persists and retrieves contiguous time segments that the
- * detectors flagged as potentially harmful — each record stores the
+ * detectors flagged as potentially harmful â€” each record stores the
  * start/end time, type (flash or motion), severity level, and the peak
  * metric value within that segment.
  *
@@ -93,7 +93,7 @@ class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentR
             }
 
             // sort and order are validated against a strict whitelist in SegmentFilterDTO,
-            // so interpolation here is safe — PDO cannot bind identifiers (column names).
+            // so interpolation here is safe â€” PDO cannot bind identifiers (column names).
             $allowedSorts = ['start_time', 'end_time', 'segment_type', 'severity', 'metric_value'];
             $allowedOrders = ['asc', 'desc'];
             $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'start_time';

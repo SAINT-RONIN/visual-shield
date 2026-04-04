@@ -9,10 +9,16 @@ namespace App\DTOs;
  *
  * This is an output DTO produced by ImageAnalyzer::analyzeFramePair(). It
  * replaces the raw associative array that was previously returned, ensuring
- * no raw arrays cross the Utils → Service boundary.
+ * no raw arrays cross the Utils â†’ Service boundary.
  */
 class FramePairAnalysis
 {
+    /**
+     * @param float $luminance1
+     * @param float $luminance2
+     * @param float $motionIntensity
+     * @return void
+     */
     public function __construct(
         public readonly float $luminance1,
         public readonly float $luminance2,

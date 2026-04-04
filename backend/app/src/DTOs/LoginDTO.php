@@ -22,8 +22,9 @@ use App\Exceptions\ValidationException;
 class LoginDTO
 {
     /**
-     * @param string $username Trimmed, non-empty username.
-     * @param string $password Raw password (never trimmed).
+     * @param string $username
+     * @param string $password
+     * @return void
      */
     public function __construct(
         public readonly string $username,

@@ -13,6 +13,11 @@ namespace App\DTOs;
  */
 class PerSecondLuminance
 {
+    /**
+     * @param int $second
+     * @param float $luminance
+     * @return void
+     */
     public function __construct(
         public readonly int $second,
         public readonly float $luminance,

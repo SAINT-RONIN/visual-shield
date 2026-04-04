@@ -43,9 +43,9 @@ class FlashDetector
         return new FlashAnalysisResult($totalFlashEvents, $highestFrequency, $flaggedSegments, $perSecondFrequencies);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Step 1: Tag each frame
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Mark each frame as a flash (1) or not a flash (0).
@@ -72,15 +72,15 @@ class FlashDetector
         return new FrameFlashTags(tags: $tags);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Step 2: Count flashes per second
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Count how many flash events occurred in each 1-second window.
      *
-     * For example, at 10fps: frames 1–10 belong to second 0,
-     * frames 11–20 belong to second 1, etc.
+     * For example, at 10fps: frames 1â€“10 belong to second 0,
+     * frames 11â€“20 belong to second 1, etc.
      *
      * @return PerSecondFlash[]
      */
@@ -102,6 +102,13 @@ class FlashDetector
     }
 
     /** Count flash events within a specific 1-second window of frames. */
+    /**
+     * @param FrameFlashTags $flashTags
+     * @param int $second
+     * @param int $samplingRate
+     * @param int $totalFrames
+     * @return int
+     */
     private function countFlashesInSecond(FrameFlashTags $flashTags, int $second, int $samplingRate, int $totalFrames): int
     {
         $firstFrameInSecond = $second * $samplingRate + 1;
@@ -115,9 +122,9 @@ class FlashDetector
         return $count;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Step 3: Group dangerous seconds into segments
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Merge consecutive dangerous seconds into flagged time segments.
@@ -140,9 +147,9 @@ class FlashDetector
         );
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Aggregation helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Add up all the flash events across every frame. */
     private function countTotalFlashEvents(FrameFlashTags $flashTags): int
@@ -172,7 +179,7 @@ class FlashDetector
      * Classify how severe a flash frequency is.
      *   - Over 10 flashes/sec = high (very dangerous)
      *   - Over 5 flashes/sec  = medium (concerning)
-     *   - 3–5 flashes/sec     = low (slightly risky)
+     *   - 3â€“5 flashes/sec     = low (slightly risky)
      */
     private function classifySeverity(float $frequency): string
     {

@@ -25,6 +25,14 @@ class RiskLevel
      * @param int   $mediumSegments    Number of medium-severity segments.
      * @param int   $totalSegments     Total number of flagged segments.
      */
+    /**
+     * @param float $flashFrequency
+     * @param float $motionIntensity
+     * @param int $highSegments
+     * @param int $mediumSegments
+     * @param int $totalSegments
+     * @return string
+     */
     public static function determine(
         float $flashFrequency,
         float $motionIntensity,
@@ -59,11 +67,15 @@ class RiskLevel
         return 'safe';
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Per-metric risk colors
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Risk color for the total number of flash events detected. */
+    /**
+     * @param int $count
+     * @return string
+     */
     public static function colorForFlashCount(int $count): string
     {
         if ($count > AnalysisConfig::FLASH_COUNT_DANGER) {
@@ -78,6 +90,10 @@ class RiskLevel
     }
 
     /** Risk color for the peak flash frequency in Hz. */
+    /**
+     * @param float $hz
+     * @return string
+     */
     public static function colorForFlashFrequency(float $hz): string
     {
         if ($hz > AnalysisConfig::FLASH_SEVERITY_HIGH) {
@@ -92,6 +108,10 @@ class RiskLevel
     }
 
     /** Risk color for average motion intensity (0-255 scale). */
+    /**
+     * @param float $intensity
+     * @return string
+     */
     public static function colorForMotionIntensity(float $intensity): string
     {
         if ($intensity > AnalysisConfig::MOTION_SEVERITY_HIGH) {

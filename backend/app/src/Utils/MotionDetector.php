@@ -42,9 +42,9 @@ class MotionDetector
         return new MotionAnalysisResult($overallAverageIntensity, $flaggedSegments, $perSecondIntensities);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Step 1: Average motion per second
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Calculate the average motion intensity for each 1-second window.
@@ -91,7 +91,7 @@ class MotionDetector
         $count = 0;
 
         for ($frame = $startFrame; $frame < $endFrame; $frame++) {
-            // Skip frame 0 — it has no predecessor to compare against
+            // Skip frame 0 â€” it has no predecessor to compare against
             if ($frame === 0) {
                 continue;
             }
@@ -107,9 +107,9 @@ class MotionDetector
         return $sum / $count;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Step 2: Group high-motion seconds into segments
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Merge consecutive high-motion seconds into flagged time segments.
@@ -138,7 +138,7 @@ class MotionDetector
      * Classify how severe a motion intensity is.
      *   - Over 120 = high (very jarring camera movement)
      *   - Over 60  = medium (noticeable fast motion)
-     *   - 30–60    = low (slightly elevated motion)
+     *   - 30â€“60    = low (slightly elevated motion)
      */
     private function classifySeverity(float $intensity): string
     {
@@ -153,9 +153,9 @@ class MotionDetector
         return 'low';
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Aggregation helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Calculate the average motion intensity across all seconds of the video.

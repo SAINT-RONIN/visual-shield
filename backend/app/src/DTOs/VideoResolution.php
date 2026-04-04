@@ -12,6 +12,11 @@ namespace App\DTOs;
  */
 final readonly class VideoResolution
 {
+    /**
+     * @param int $width
+     * @param int $height
+     * @return void
+     */
     public function __construct(
         public int $width,
         public int $height,

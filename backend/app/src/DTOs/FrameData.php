@@ -14,6 +14,12 @@ namespace App\DTOs;
  */
 final readonly class FrameData
 {
+    /**
+     * @param float $luminance
+     * @param float $luminanceDiff
+     * @param float $motionIntensity
+     * @return void
+     */
     public function __construct(
         public float $luminance,
         public float $luminanceDiff,

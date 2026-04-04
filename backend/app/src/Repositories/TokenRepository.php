@@ -16,6 +16,12 @@ use App\Models\Token;
 class TokenRepository extends BaseRepository implements TokenRepositoryInterface
 {
     /** Persist a new active JWT session ID for a given user. */
+    /**
+     * @param int $userId
+     * @param string $token
+     * @param string $expiresAt
+     * @return void
+     */
     public function store(int $userId, string $token, string $expiresAt): void
     {
         $stmt = $this->db->prepare(
@@ -25,6 +31,10 @@ class TokenRepository extends BaseRepository implements TokenRepositoryInterface
     }
 
     /** Retrieve a stored JWT session only if it has not yet expired. */
+    /**
+     * @param string $token
+     * @return ?Token
+     */
     public function findValidToken(string $token): ?Token
     {
         $stmt = $this->db->prepare(
@@ -38,6 +48,10 @@ class TokenRepository extends BaseRepository implements TokenRepositoryInterface
     }
 
     /** Delete a specific active JWT session. */
+    /**
+     * @param string $token
+     * @return void
+     */
     public function deleteByToken(string $token): void
     {
         $stmt = $this->db->prepare('DELETE FROM auth_tokens WHERE token = :token');
@@ -45,6 +59,9 @@ class TokenRepository extends BaseRepository implements TokenRepositoryInterface
     }
 
     /** Purge expired JWT sessions as light housekeeping. */
+    /**
+     * @return void
+     */
     public function deleteExpiredTokens(): void
     {
         $this->db->exec('DELETE FROM auth_tokens WHERE expires_at <= NOW()');

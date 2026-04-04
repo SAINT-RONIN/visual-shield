@@ -14,6 +14,11 @@ use App\Models\User;
  */
 class LoginResult
 {
+    /**
+     * @param string $token
+     * @param User $user
+     * @return void
+     */
     public function __construct(
         public readonly string $token,
         public readonly User $user,

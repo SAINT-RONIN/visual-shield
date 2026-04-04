@@ -13,6 +13,12 @@ namespace App\DTOs;
  */
 class StreamInfo
 {
+    /**
+     * @param string $filePath
+     * @param int $fileSize
+     * @param string $contentType
+     * @return void
+     */
     public function __construct(
         public readonly string $filePath,
         public readonly int $fileSize,

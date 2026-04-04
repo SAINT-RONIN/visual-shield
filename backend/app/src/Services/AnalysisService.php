@@ -32,6 +32,17 @@ use App\Utils\PathResolver;
  */
 class AnalysisService extends BaseService implements AnalysisServiceInterface
 {
+    /**
+     * @param VideoRepository $videoRepo
+     * @param AnalysisResultRepository $analysisResultRepo
+     * @param FlaggedSegmentRepository $segmentRepo
+     * @param AnalysisDatapointRepository $datapointRepo
+     * @param FrameExtractor $frameExtractor
+     * @param FFprobe $ffprobe
+     * @param FlashDetector $flashDetector
+     * @param MotionDetector $motionDetector
+     * @return void
+     */
     public function __construct(
         private VideoRepository $videoRepo,
         private AnalysisResultRepository $analysisResultRepo,
@@ -48,7 +59,11 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      *
      * Sets status/progress bookends, delegates to analyze(), and handles
      * success and failure transitions. This is the entry point the worker
-     * calls — it owns all status transitions so worker.php stays thin.
+     * calls â€” it owns all status transitions so worker.php stays thin.
+     */
+    /**
+     * @param int $videoId
+     * @return void
      */
     public function processVideo(int $videoId): void
     {
@@ -73,6 +88,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * Keeping this logic here means the worker does not need to know anything
      * about repositories or queue rules.
      */
+    /**
+     * @return ?Video
+     */
     public function dequeueNextVideo(): ?Video
     {
         return $this->videoRepo->findNextQueued();
@@ -84,6 +102,11 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * The optional $onProgress callback receives updates like:
      *   $onProgress(40, 'Analyzing flash events...')
      * so the frontend can show a progress bar.
+     */
+    /**
+     * @param int $videoId
+     * @param ?callable $onProgress
+     * @return void
      */
     public function analyze(int $videoId, ?callable $onProgress = null): void
     {
@@ -104,14 +127,21 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         }
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Pipeline steps (called in order by analyze)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This is the middle of the pipeline where raw extracted frames become
      * useful measurements, then useful measurements become detector results,
      * and finally those results get prepared for storage.
+     */
+    /**
+     * @param int $videoId
+     * @param array $framePaths
+     * @param int $samplingRate
+     * @param ?callable $onProgress
+     * @return void
      */
     private function runFullAnalysis(
         int $videoId,
@@ -132,9 +162,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         $this->saveAllResults($videoId, $framePaths, $flashResult, $motionResult, $luminancePerSecond, $samplingRate);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Frame-level data computation
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This converts the ordered frame images into a simpler data structure the
@@ -142,6 +172,10 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * JPEG files on their own.
      *
      * @return FrameData[]
+     */
+    /**
+     * @param array $framePaths
+     * @return array
      */
     private function computePerFrameData(array $framePaths): array
     {
@@ -155,7 +189,11 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         return [$firstFrameData, ...$remainingFramesData];
     }
 
-    /** The first frame only has luminance — no diff or motion since there's nothing before it. */
+    /** The first frame only has luminance â€” no diff or motion since there's nothing before it. */
+    /**
+     * @param string $framePath
+     * @return FrameData
+     */
     private function buildFirstFrameData(string $framePath): FrameData
     {
         $luminance = ImageAnalyzer::calculateAverageLuminance($framePath);
@@ -173,6 +211,10 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * input both flash detection and motion detection rely on.
      *
      * @return FrameData[]
+     */
+    /**
+     * @param array $framePaths
+     * @return array
      */
     private function buildRemainingFramesData(array $framePaths): array
     {
@@ -194,17 +236,22 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         return $results;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Luminance averaging
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Group frame luminance values into 1-second windows and average each window.
      *
-     * For example, at 10fps: frames 0–9 become second 0, frames 10–19 become second 1, etc.
+     * For example, at 10fps: frames 0â€“9 become second 0, frames 10â€“19 become second 1, etc.
      *
      * @param  FrameData[] $perFrameData
      * @return PerSecondLuminance[]
+     */
+    /**
+     * @param array $perFrameData
+     * @param int $samplingRate
+     * @return array
      */
     private function calculateAverageLuminancePerSecond(array $perFrameData, int $samplingRate): array
     {
@@ -231,6 +278,13 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      *
      * @param  FrameData[] $perFrameData
      * @return FrameData[]
+     */
+    /**
+     * @param array $perFrameData
+     * @param int $second
+     * @param int $samplingRate
+     * @param int $totalFrames
+     * @return array
      */
     private function getFramesInSecond(array $perFrameData, int $second, int $samplingRate, int $totalFrames): array
     {
@@ -260,14 +314,23 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         return $sum / count($frames);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Saving results to the database
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This is the last step of the pipeline and writes everything useful to
      * the database so the report page does not have to recalculate anything
      * when a user opens the finished analysis later.
+     */
+    /**
+     * @param int $videoId
+     * @param array $framePaths
+     * @param FlashAnalysisResult $flashResult
+     * @param MotionAnalysisResult $motionResult
+     * @param array $luminancePerSecond
+     * @param int $samplingRate
+     * @return void
      */
     private function saveAllResults(
         int $videoId,
@@ -360,6 +423,14 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * This saves the headline summary values the dashboard and report header
      * care about most, like total flashes, peak frequency, and average motion.
      */
+    /**
+     * @param int $videoId
+     * @param int $totalFrames
+     * @param FlashAnalysisResult $flashResult
+     * @param MotionAnalysisResult $motionResult
+     * @param int $effectiveRate
+     * @return void
+     */
     private function saveSummary(
         int $videoId,
         int $totalFrames,
@@ -381,9 +452,9 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
         $this->videoRepo->updateEffectiveRate($videoId, $effectiveRate);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Utility helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This builds the temp folder path where FFmpeg should write extracted

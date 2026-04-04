@@ -13,7 +13,7 @@ namespace App\DTOs;
  *
  * Why do I need it: Profile updates may carry optional, nullable fields
  * (currently only displayName). Wrapping them in a DTO makes the
- * contract explicit — callers know exactly which fields are updatable,
+ * contract explicit â€” callers know exactly which fields are updatable,
  * values are trimmed consistently, and adding new profile fields later
  * requires only a new promoted property rather than scattering array
  * key checks across multiple files.
@@ -21,7 +21,8 @@ namespace App\DTOs;
 class UpdateProfileDTO
 {
     /**
-     * @param string|null $displayName Trimmed display name, or null to clear it.
+     * @param ?string $displayName
+     * @return void
      */
     public function __construct(
         public readonly ?string $displayName

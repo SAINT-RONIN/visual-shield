@@ -13,16 +13,17 @@ use App\Utils\RiskLevel;
 /**
  * Immutable value object that holds the typed models needed for a report.
  *
- * This is a pure typed property bag — serialisation is the controller's
+ * This is a pure typed property bag â€” serialisation is the controller's
  * responsibility. No toArray() or toApiArray() calls live here.
  */
 class ReportDTO
 {
     /**
-     * @param Video               $video          The video record.
-     * @param AnalysisResult|null $analysisResult The summary metrics (null if not yet analysed).
-     * @param FlaggedSegment[]    $segments       Flagged time segments.
-     * @param AnalysisDatapoint[] $datapoints     Per-second chart data.
+     * @param Video $video
+     * @param ?AnalysisResult $analysisResult
+     * @param array $segments
+     * @param array $datapoints
+     * @return void
      */
     public function __construct(
         public readonly Video $video,
@@ -34,8 +35,11 @@ class ReportDTO
     /**
      * Count segment severities and delegate to the shared RiskLevel utility.
      *
-     * This is not serialisation — it is pure domain computation over the
+     * This is not serialisation â€” it is pure domain computation over the
      * typed segment models. The controller calls this to assemble the summary.
+     */
+    /**
+     * @return string
      */
     public function calculateRiskLevel(): string
     {

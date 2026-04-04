@@ -22,9 +22,10 @@ use App\Exceptions\ValidationException;
 class RegisterDTO
 {
     /**
-     * @param string      $username    Trimmed, non-empty username.
-     * @param string      $password    Raw password (never trimmed — whitespace may be intentional).
-     * @param string|null $displayName Optional display name, trimmed if provided.
+     * @param string $username
+     * @param string $password
+     * @param ?string $displayName
+     * @return void
      */
     public function __construct(
         public readonly string $username,

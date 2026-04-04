@@ -24,21 +24,31 @@ use App\Utils\JwtService;
  */
 class AuthService extends BaseService implements AuthServiceInterface
 {
+    /**
+     * Create the service with its repository and JWT dependencies.
+     *
+     * @param UserRepository $userRepo User repository for auth lookups and profile updates.
+     * @param TokenRepository $tokenRepo Repository used for JWT session revocation.
+     * @param JwtService $jwtService JWT issuer and decoder utility.
+     * @return void
+     */
     public function __construct(
         private UserRepository $userRepo,
         private TokenRepository $tokenRepo,
         private JwtService $jwtService,
     ) {}
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Registration
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This creates a new account after checking the username is free and
      * hashing the password so we never store sensitive credentials in plain
      * text anywhere in the database.
      *
+     * @param RegisterDTO $dto Validated registration payload.
+     * @return User Newly created user model.
      * @throws \InvalidArgumentException If the username is already taken.
      */
     public function register(RegisterDTO $dto): User
@@ -55,15 +65,17 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $this->findUserOrFail($newUserId);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Login / Logout
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This verifies the submitted credentials and, if they are correct,
      * creates the bearer token the frontend will attach to later requests
      * instead of sending the password every time.
      *
+     * @param LoginDTO $dto Validated login credentials.
+     * @return LoginResult Authenticated user plus issued JWT.
      * @throws \RuntimeException If the username or password is wrong.
      */
     public function login(LoginDTO $dto): LoginResult
@@ -78,6 +90,9 @@ class AuthService extends BaseService implements AuthServiceInterface
      * This logs the user out by removing the token they were using, which
      * makes that token useless immediately instead of only disappearing from
      * the browser that happened to store it.
+     *
+     * @param string $token Raw JWT access token to revoke.
+     * @return void
      */
     public function logout(string $token): void
     {
@@ -85,15 +100,18 @@ class AuthService extends BaseService implements AuthServiceInterface
         $this->tokenRepo->deleteByToken($payload['jti']);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Token resolution
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Look up which user owns a given bearer token.
      *
-     * Returns null if the token is invalid or expired — the caller
+     * Returns null if the token is invalid or expired â€” the caller
      * (middleware) uses this to reject unauthenticated requests.
+     *
+     * @param string $token Raw JWT access token.
+     * @return User|null Authenticated user model, or null if the token is invalid.
      */
     public function getUserFromToken(string $token): ?User
     {
@@ -113,13 +131,16 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $this->userRepo->findById($userId);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Profile
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This fetches the user's current profile data in one predictable place so
      * the controller does not need to know anything about repository lookups.
+     *
+     * @param int $userId User ID to load.
+     * @return User Loaded user profile.
      */
     public function getProfile(int $userId): User
     {
@@ -130,6 +151,10 @@ class AuthService extends BaseService implements AuthServiceInterface
      * This saves the editable profile fields and then returns the refreshed
      * user model, which is handy because the frontend can immediately work
      * with the new saved version.
+     *
+     * @param int $userId User ID to update.
+     * @param UpdateProfileDTO $dto Validated profile update payload.
+     * @return User Refreshed user profile after saving.
      */
     public function updateProfile(int $userId, UpdateProfileDTO $dto): User
     {
@@ -138,26 +163,32 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $this->findUserOrFail($userId);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Lookup helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This is the shared internal helper for "find the user or stop here"
      * so the public auth methods do not all repeat the same null check.
+     *
+     * @param int $userId User ID to load.
+     * @return User Loaded user model.
      */
     private function findUserOrFail(int $userId): User
     {
         return $this->findOrFail($this->userRepo->findById($userId), 'User not found');
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Validation helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This protects registration from duplicate usernames, because the login
      * flow only works cleanly when one username points to one account.
+     *
+     * @param string $username Username to validate for uniqueness.
+     * @return void
      */
     private function ensureUsernameIsAvailable(string $username): void
     {
@@ -170,6 +201,10 @@ class AuthService extends BaseService implements AuthServiceInterface
      * This is the real credential check behind login and it only succeeds
      * when both the username exists and the submitted password matches the
      * stored hash for that user.
+     *
+     * @param string $username Username to authenticate.
+     * @param string $password Plain-text password to verify.
+     * @return User Authenticated user model.
      */
     private function verifyCredentials(string $username, string $password): User
     {
@@ -184,14 +219,17 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $user;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Token generation
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This creates the random bearer token a logged-in user will carry on
      * future requests, and it also stores the expiry so the token is not valid
      * forever if it ever gets copied or leaked.
+     *
+     * @param int $userId User ID the access token belongs to.
+     * @return string Signed JWT access token.
      */
     private function createJwtAccessToken(int $userId): string
     {

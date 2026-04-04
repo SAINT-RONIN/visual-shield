@@ -33,7 +33,7 @@ use App\Utils\MotionDetector;
  * controllers and middleware. This eliminates the scattered "new Service(
  * new Repo(), new Repo())" calls that were duplicated in every consumer.
  *
- * Not a full DI container — just a simple, explicit factory. Every
+ * Not a full DI container â€” just a simple, explicit factory. Every
  * dependency is visible and traceable. No magic, no auto-wiring.
  */
 class ServiceRegistry
@@ -57,11 +57,15 @@ class ServiceRegistry
     private static ?FFprobe $ffprobeService = null;
     private static ?JwtService $jwtService = null;
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Repositories (lazy singletons)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Get the shared UserRepository instance. */
+    /**
+     * Get the shared UserRepository instance.
+     *
+     * @return UserRepository Shared repository instance.
+     */
     public static function userRepository(): UserRepository
     {
         if (!self::$userRepository) {
@@ -71,7 +75,11 @@ class ServiceRegistry
         return self::$userRepository;
     }
 
-    /** Get the shared TokenRepository instance. */
+    /**
+     * Get the shared TokenRepository instance.
+     *
+     * @return TokenRepository Shared repository instance.
+     */
     public static function tokenRepository(): TokenRepository
     {
         if (!self::$tokenRepository) {
@@ -81,7 +89,11 @@ class ServiceRegistry
         return self::$tokenRepository;
     }
 
-    /** Get the shared VideoRepository instance. */
+    /**
+     * Get the shared VideoRepository instance.
+     *
+     * @return VideoRepository Shared repository instance.
+     */
     public static function videoRepository(): VideoRepository
     {
         if (!self::$videoRepository) {
@@ -91,7 +103,11 @@ class ServiceRegistry
         return self::$videoRepository;
     }
 
-    /** Get the shared AnalysisResultRepository instance. */
+    /**
+     * Get the shared AnalysisResultRepository instance.
+     *
+     * @return AnalysisResultRepository Shared repository instance.
+     */
     public static function analysisResultRepository(): AnalysisResultRepository
     {
         if (!self::$analysisResultRepository) {
@@ -101,7 +117,11 @@ class ServiceRegistry
         return self::$analysisResultRepository;
     }
 
-    /** Get the shared FlaggedSegmentRepository instance. */
+    /**
+     * Get the shared FlaggedSegmentRepository instance.
+     *
+     * @return FlaggedSegmentRepository Shared repository instance.
+     */
     public static function flaggedSegmentRepository(): FlaggedSegmentRepository
     {
         if (!self::$flaggedSegmentRepository) {
@@ -111,7 +131,11 @@ class ServiceRegistry
         return self::$flaggedSegmentRepository;
     }
 
-    /** Get the shared AnalysisDatapointRepository instance. */
+    /**
+     * Get the shared AnalysisDatapointRepository instance.
+     *
+     * @return AnalysisDatapointRepository Shared repository instance.
+     */
     public static function analysisDatapointRepository(): AnalysisDatapointRepository
     {
         if (!self::$analysisDatapointRepository) {
@@ -121,11 +145,15 @@ class ServiceRegistry
         return self::$analysisDatapointRepository;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Services (lazy singletons, using cached repos)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Get the shared AdminService instance. */
+    /**
+     * Get the shared AdminService instance.
+     *
+     * @return AdminService Shared service instance.
+     */
     public static function adminService(): AdminService
     {
         if (!self::$adminService) {
@@ -137,7 +165,11 @@ class ServiceRegistry
         return self::$adminService;
     }
 
-    /** Get the shared FFprobe instance. */
+    /**
+     * Get the shared FFprobe instance.
+     *
+     * @return FFprobe Shared utility instance.
+     */
     public static function ffprobeService(): FFprobe
     {
         if (!self::$ffprobeService) {
@@ -147,7 +179,11 @@ class ServiceRegistry
         return self::$ffprobeService;
     }
 
-    /** Get the shared JwtService instance. */
+    /**
+     * Get the shared JwtService instance.
+     *
+     * @return JwtService Shared utility instance.
+     */
     public static function jwtService(): JwtService
     {
         if (!self::$jwtService) {
@@ -157,7 +193,11 @@ class ServiceRegistry
         return self::$jwtService;
     }
 
-    /** Get the shared AnalysisService instance. */
+    /**
+     * Get the shared AnalysisService instance.
+     *
+     * @return AnalysisService Shared service instance.
+     */
     public static function analysisService(): AnalysisService
     {
         if (!self::$analysisService) {
@@ -176,7 +216,11 @@ class ServiceRegistry
         return self::$analysisService;
     }
 
-    /** Get the shared AuthService instance. */
+    /**
+     * Get the shared AuthService instance.
+     *
+     * @return AuthService Shared service instance.
+     */
     public static function authService(): AuthService
     {
         if (!self::$authService) {
@@ -190,7 +234,11 @@ class ServiceRegistry
         return self::$authService;
     }
 
-    /** Get the shared VideoService instance. */
+    /**
+     * Get the shared VideoService instance.
+     *
+     * @return VideoService Shared service instance.
+     */
     public static function videoService(): VideoService
     {
         if (!self::$videoService) {
@@ -203,7 +251,11 @@ class ServiceRegistry
         return self::$videoService;
     }
 
-    /** Get the shared ReportService instance. */
+    /**
+     * Get the shared ReportService instance.
+     *
+     * @return ReportService Shared service instance.
+     */
     public static function reportService(): ReportService
     {
         if (!self::$reportService) {
@@ -218,11 +270,15 @@ class ServiceRegistry
         return self::$reportService;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Controllers (lazy singletons)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Get the shared AdminController instance. */
+    /**
+     * Get the shared AdminController instance.
+     *
+     * @return AdminController Shared controller instance.
+     */
     public static function adminController(): AdminController
     {
         if (!self::$adminController) {
@@ -232,7 +288,11 @@ class ServiceRegistry
         return self::$adminController;
     }
 
-    /** Get the shared AuthController instance. */
+    /**
+     * Get the shared AuthController instance.
+     *
+     * @return AuthController Shared controller instance.
+     */
     public static function authController(): AuthController
     {
         if (!self::$authController) {
@@ -242,7 +302,11 @@ class ServiceRegistry
         return self::$authController;
     }
 
-    /** Get the shared ConfigController instance. */
+    /**
+     * Get the shared ConfigController instance.
+     *
+     * @return ConfigController Shared controller instance.
+     */
     public static function configController(): ConfigController
     {
         if (!self::$configController) {
@@ -252,7 +316,11 @@ class ServiceRegistry
         return self::$configController;
     }
 
-    /** Get the shared ReportController instance. */
+    /**
+     * Get the shared ReportController instance.
+     *
+     * @return ReportController Shared controller instance.
+     */
     public static function reportController(): ReportController
     {
         if (!self::$reportController) {
@@ -262,7 +330,11 @@ class ServiceRegistry
         return self::$reportController;
     }
 
-    /** Get the shared VideoController instance. */
+    /**
+     * Get the shared VideoController instance.
+     *
+     * @return VideoController Shared controller instance.
+     */
     public static function videoController(): VideoController
     {
         if (!self::$videoController) {

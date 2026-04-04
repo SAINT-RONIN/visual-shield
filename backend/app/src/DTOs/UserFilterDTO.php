@@ -11,6 +11,15 @@ use App\Config\AnalysisConfig;
  */
 final class UserFilterDTO
 {
+    /**
+     * @param ?string $role
+     * @param ?string $search
+     * @param string $sort
+     * @param string $order
+     * @param int $limit
+     * @param int $offset
+     * @return void
+     */
     public function __construct(
         public readonly ?string $role = null,
         public readonly ?string $search = null,
@@ -21,6 +30,10 @@ final class UserFilterDTO
     ) {}
 
     /** Build a validated filter DTO from raw query parameters. */
+    /**
+     * @param array $query
+     * @return self
+     */
     public static function fromQuery(array $query): self
     {
         $validRoles = ['admin', 'viewer'];

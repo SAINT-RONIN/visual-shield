@@ -23,6 +23,10 @@ class JwtService
      *
      * @return array{token: string, jti: string, expiresAt: string}
      */
+    /**
+     * @param int $userId
+     * @return array
+     */
     public function issueAccessToken(int $userId): array
     {
         $issuedAt = time();
@@ -60,6 +64,10 @@ class JwtService
      *
      * @return array<string, mixed>
      */
+    /**
+     * @param string $token
+     * @return array
+     */
     public function decodeAccessToken(string $token): array
     {
         $segments = explode('.', $token);
@@ -90,6 +98,10 @@ class JwtService
     }
 
     /** Decode a base64url JSON segment into an associative array. */
+    /**
+     * @param string $segment
+     * @return array
+     */
     private function decodeJsonSegment(string $segment): array
     {
         $decoded = $this->base64UrlDecode($segment);
@@ -103,6 +115,10 @@ class JwtService
     }
 
     /** Validate the standard claims we rely on for access tokens. */
+    /**
+     * @param array $payload
+     * @return void
+     */
     private function validateClaims(array $payload): void
     {
         $issuedAt = $payload['iat'] ?? null;
@@ -133,12 +149,20 @@ class JwtService
     }
 
     /** Base64url-encode binary or string input without padding. */
+    /**
+     * @param string $value
+     * @return string
+     */
     private function base64UrlEncode(string $value): string
     {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
     /** Base64url-decode a JWT segment. */
+    /**
+     * @param string $value
+     * @return string
+     */
     private function base64UrlDecode(string $value): string
     {
         $padding = strlen($value) % 4;

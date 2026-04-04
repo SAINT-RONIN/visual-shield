@@ -9,13 +9,23 @@ namespace App\Models;
  *
  * Wraps the raw database row into a typed object so the rest of the app
  * gets IDE autocompletion, type safety, and a clear contract for what
- * fields a user has — instead of guessing at array keys.
+ * fields a user has â€” instead of guessing at array keys.
  *
  * The passwordHash is intentionally included so AuthService can verify
  * credentials, but toApiArray() strips it out before sending to the frontend.
  */
 class User
 {
+    /**
+     * @param int $id
+     * @param string $username
+     * @param string $passwordHash
+     * @param ?string $displayName
+     * @param string $role
+     * @param string $createdAt
+     * @param string $updatedAt
+     * @return void
+     */
     public function __construct(
         public readonly int $id,
         public readonly string $username,
@@ -31,6 +41,10 @@ class User
      *
      * This is the only place that knows about the database column names.
      * If column names ever change, only this method needs updating.
+     */
+    /**
+     * @param array $row
+     * @return self
      */
     public static function fromRow(array $row): self
     {
@@ -50,6 +64,9 @@ class User
      *
      * Strips sensitive fields (passwordHash) so they never accidentally
      * leak to the frontend.
+     */
+    /**
+     * @return array
      */
     public function toApiArray(): array
     {

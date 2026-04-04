@@ -16,7 +16,11 @@ class Database
 {
     private static ?PDO $instance = null;
 
-    /** Return the shared PDO instance, creating it on first call. */
+    /**
+     * Return the shared PDO instance, creating it on first call.
+     *
+     * @return PDO Shared PDO database connection.
+     */
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
@@ -44,5 +48,10 @@ class Database
         return self::$instance;
     }
 
+    /**
+     * Prevent direct construction of the singleton wrapper.
+     *
+     * @return void
+     */
     private function __construct() {}
 }

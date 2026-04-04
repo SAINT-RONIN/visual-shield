@@ -27,12 +27,21 @@ class VideoController extends BaseController
 {
     private VideoServiceInterface $videoService;
 
+    /**
+     * Create the controller with its video service dependency.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->videoService = ServiceRegistry::videoService();
     }
 
-    /** Accept a video file upload and queue it for analysis. */
+    /**
+     * Accept a video file upload and queue it for analysis.
+     *
+     * @return void
+     */
     public function upload(): void
     {
         $this->handleRequest(function () {
@@ -43,7 +52,11 @@ class VideoController extends BaseController
         });
     }
 
-    /** List all videos for the authenticated user with pagination and filters. */
+    /**
+     * List all videos for the authenticated user with pagination and filters.
+     *
+     * @return void
+     */
     public function getAll(): void
     {
         $this->handleRequest(function () {
@@ -62,7 +75,12 @@ class VideoController extends BaseController
         });
     }
 
-    /** Get a single video's details by ID. */
+    /**
+     * Get a single video's details by ID.
+     *
+     * @param int $id Video ID to load.
+     * @return void
+     */
     public function getOne(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -72,7 +90,12 @@ class VideoController extends BaseController
         });
     }
 
-    /** Update a video's metadata (e.g. title). */
+    /**
+     * Update a video's metadata (e.g. title).
+     *
+     * @param int $id Video ID to update.
+     * @return void
+     */
     public function update(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -83,7 +106,12 @@ class VideoController extends BaseController
         });
     }
 
-    /** Queue a video for re-analysis with a new sampling rate. */
+    /**
+     * Queue a video for re-analysis with a new sampling rate.
+     *
+     * @param int $id Video ID to requeue.
+     * @return void
+     */
     public function reanalyze(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -94,7 +122,12 @@ class VideoController extends BaseController
         });
     }
 
-    /** Delete a video (admins can delete any video, users only their own). */
+    /**
+     * Delete a video (admins can delete any video, users only their own).
+     *
+     * @param int $id Video ID to delete.
+     * @return void
+     */
     public function delete(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -116,6 +149,9 @@ class VideoController extends BaseController
      *
      * Uses header-or-query-param auth because HTML <video> elements
      * cannot set custom Authorization headers on their media requests.
+     *
+     * @param int $id Video ID to stream.
+     * @return void
      */
     public function stream(int $id): void
     {
@@ -136,10 +172,16 @@ class VideoController extends BaseController
         });
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Streaming helpers (HTTP concerns belong here)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /**
+     * Send baseline headers shared by full and partial video responses.
+     *
+     * @param string $contentType MIME type of the video being streamed.
+     * @return void
+     */
     private function sendVideoHeaders(string $contentType): void
     {
         header('Content-Type: ' . $contentType);
@@ -149,9 +191,14 @@ class VideoController extends BaseController
     /**
      * Send a partial (206) response for an HTTP Range request.
      *
-     * This is what allows the video player to seek — it requests
+     * This is what allows the video player to seek â€” it requests
      * just the bytes it needs (e.g. "bytes=1000-1999") and we send
      * only that chunk.
+     *
+     * @param string $filePath Absolute path to the video file.
+     * @param int $fileSize Full file size in bytes.
+     * @param string $rangeHeader Raw HTTP Range header value.
+     * @return void
      */
     private function sendPartialContent(string $filePath, int $fileSize, string $rangeHeader): void
     {
@@ -168,14 +215,26 @@ class VideoController extends BaseController
         fclose($fileHandle);
     }
 
-    /** Send the entire file as a standard 200 response. */
+    /**
+     * Send the entire file as a standard 200 response.
+     *
+     * @param string $filePath Absolute path to the video file.
+     * @param int $fileSize Full file size in bytes.
+     * @return void
+     */
     private function sendFullContent(string $filePath, int $fileSize): void
     {
         header("Content-Length: {$fileSize}");
         readfile($filePath);
     }
 
-    /** Parse an HTTP Range header like "bytes=1000-1999" into start and end positions. */
+    /**
+     * Parse an HTTP Range header like "bytes=1000-1999" into start and end positions.
+     *
+     * @param string $rangeHeader Raw HTTP Range header value.
+     * @param int $fileSize Full file size in bytes.
+     * @return ByteRange Parsed byte range boundaries.
+     */
     private function parseRangeHeader(string $rangeHeader, int $fileSize): ByteRange
     {
         preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $matches);

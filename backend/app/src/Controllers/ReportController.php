@@ -20,19 +20,29 @@ use App\Utils\RiskLevel;
  * Content-Type and Content-Disposition headers for downloads, and lets
  * BaseController::handleRequest() map exceptions to HTTP status codes.
  *
- * Serialisation (toApiArray()) happens exclusively here — never in the
+ * Serialisation (toApiArray()) happens exclusively here â€” never in the
  * service layer or in DTOs.
  */
 class ReportController extends BaseController
 {
     private ReportServiceInterface $reportService;
 
+    /**
+     * Create the controller with its report service dependency.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->reportService = ServiceRegistry::reportService();
     }
 
-    /** Return the full analysis report for a video as JSON. */
+    /**
+     * Return the full analysis report for a video as JSON.
+     *
+     * @param int $videoId Video ID to report on.
+     * @return void
+     */
     public function getReport(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -43,7 +53,12 @@ class ReportController extends BaseController
         });
     }
 
-    /** Download the full report as a JSON file attachment. */
+    /**
+     * Download the full report as a JSON file attachment.
+     *
+     * @param int $videoId Video ID to export.
+     * @return void
+     */
     public function exportJson(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -54,7 +69,12 @@ class ReportController extends BaseController
         });
     }
 
-    /** Download flagged segments as a CSV file attachment. */
+    /**
+     * Download flagged segments as a CSV file attachment.
+     *
+     * @param int $videoId Video ID to export.
+     * @return void
+     */
     public function exportCsv(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -78,7 +98,12 @@ class ReportController extends BaseController
         });
     }
 
-    /** Return all flagged segments for a video. */
+    /**
+     * Return all flagged segments for a video.
+     *
+     * @param int $videoId Video ID to inspect.
+     * @return void
+     */
     public function getSegments(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -91,7 +116,12 @@ class ReportController extends BaseController
         });
     }
 
-    /** Return all per-second analysis datapoints for a video. */
+    /**
+     * Return all per-second analysis datapoints for a video.
+     *
+     * @param int $videoId Video ID to inspect.
+     * @return void
+     */
     public function getDatapoints(int $videoId): void
     {
         $this->handleRequest(function () use ($videoId) {
@@ -103,15 +133,15 @@ class ReportController extends BaseController
         });
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Response assembly (presentation layer)
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Assemble the full JSON payload for a report response.
      *
      * This is presentation logic and belongs exclusively in the controller.
-     * toApiArray() is called here on every model — never in the service or DTO.
+     * toApiArray() is called here on every model â€” never in the service or DTO.
      */
     private function buildReportPayload(ReportDTO $report): array
     {
@@ -123,7 +153,12 @@ class ReportController extends BaseController
         ];
     }
 
-    /** Build the video metadata section of the report payload. */
+    /**
+     * Build the video metadata section of the report payload.
+     *
+     * @param ReportDTO $report Fully assembled report DTO.
+     * @return array<string, int|float|string> Video metadata for the API response.
+     */
     private function buildVideoSection(ReportDTO $report): array
     {
         return [
@@ -137,7 +172,12 @@ class ReportController extends BaseController
         ];
     }
 
-    /** Build the aggregate summary section including risk levels. */
+    /**
+     * Build the aggregate summary section including risk levels.
+     *
+     * @param ReportDTO $report Fully assembled report DTO.
+     * @return array<string, int|float|string> Summary metrics and derived risk levels.
+     */
     private function buildSummarySection(ReportDTO $report): array
     {
         $totalFlash = $report->analysisResult?->totalFlashEvents ?? 0;
@@ -160,7 +200,7 @@ class ReportController extends BaseController
      * Split AnalysisDatapoint models into three Chart.js-compatible time series.
      *
      * Arrays of scalar data are acceptable within a single method's local scope.
-     * These never cross a service boundary — they are produced and returned in one step.
+     * These never cross a service boundary â€” they are produced and returned in one step.
      */
     private function buildChartsSection(ReportDTO $report): array
     {

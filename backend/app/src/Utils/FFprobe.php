@@ -20,6 +20,10 @@ class FFprobe
      * This asks FFprobe for the video's total duration so the app knows how long the upload really is.
      * We need that number to validate uploads, cap unsafe sampling rates, and make the report timeline line up with the actual video length.
      */
+    /**
+     * @param string $filePath
+     * @return float
+     */
     public function getDuration(string $filePath): float
     {
         $command = "ffprobe -v error -show_entries format=duration -of csv=p=0";
@@ -32,6 +36,10 @@ class FFprobe
      * This asks FFprobe for the video's width and height so we know the real size of the source footage.
      * We need it whenever the app has to make decisions that depend on the video's dimensions instead of guessing from the filename or extension.
      */
+    /**
+     * @param string $filePath
+     * @return VideoResolution
+     */
     public function getResolution(string $filePath): VideoResolution
     {
         $command = "ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x";
@@ -40,13 +48,19 @@ class FFprobe
         return $this->parseResolutionOutput($rawOutput);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This is the shared helper that runs FFprobe safely and gives the calling method back the raw result.
      * We need one place for this so every FFprobe call uses the same escaping, error handling, and shell behavior instead of duplicating that logic everywhere.
+     */
+    /**
+     * @param string $baseCommand
+     * @param string $filePath
+     * @param string $metadataDescription
+     * @return string
      */
     private function runCommand(string $baseCommand, string $filePath, string $metadataDescription): string
     {
@@ -64,6 +78,10 @@ class FFprobe
     /**
      * This turns FFprobe's raw resolution text into a proper DTO the rest of the app can trust and use.
      * We need it because passing around loose strings like "1920x1080" makes the code harder to validate and easier to misuse later.
+     */
+    /**
+     * @param string $rawOutput
+     * @return VideoResolution
      */
     private function parseResolutionOutput(string $rawOutput): VideoResolution
     {

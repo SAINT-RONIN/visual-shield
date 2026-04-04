@@ -7,15 +7,16 @@ namespace App\DTOs;
 /**
  * Immutable value object holding the results of motion detection analysis.
  *
- * This is an output DTO — it carries data produced by MotionDetector
+ * This is an output DTO â€” it carries data produced by MotionDetector
  * to AnalysisService for persistence. It is NOT a database model.
  */
 class MotionAnalysisResult
 {
     /**
-     * @param float              $averageIntensity     Mean motion intensity across all seconds of the video.
-     * @param SegmentData[]      $segments             Flagged time segments where motion exceeded the threshold.
-     * @param PerSecondMotion[]  $perSecondIntensities Average motion intensity per second across the entire video.
+     * @param float $averageIntensity
+     * @param array $segments
+     * @param array $perSecondIntensities
+     * @return void
      */
     public function __construct(
         public readonly float $averageIntensity,

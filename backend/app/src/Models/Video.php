@@ -10,14 +10,36 @@ use App\Utils\RiskLevel;
  * Immutable value object representing a video record.
  *
  * Some queries JOIN analysis data onto the video row (for the dashboard
- * and risk badges). Those enriched fields are nullable — they're only
+ * and risk badges). Those enriched fields are nullable â€” they're only
  * present when the query includes the JOIN. The base fields from the
  * videos table are always present.
  */
 class Video
 {
+    /**
+     * @param // â”€â”€ Base fields (always present) â”€â”€ int $id
+     * @param int $userId
+     * @param string $originalName
+     * @param string $storedPath
+     * @param int $fileSize
+     * @param ?float $durationSeconds
+     * @param int $samplingRate
+     * @param ?int $effectiveRate
+     * @param string $status
+     * @param int $progress
+     * @param ?string $progressMessage
+     * @param ?string $errorMessage
+     * @param string $createdAt
+     * @param string $updatedAt
+     * @param // â”€â”€ Enriched fields (only present when JOINed with analysis data) â”€â”€ ?float $highestFlashFrequency
+     * @param ?float $averageMotionIntensity
+     * @param ?int $highSegments
+     * @param ?int $mediumSegments
+     * @param ?int $totalSegments
+     * @return void
+     */
     public function __construct(
-        // ── Base fields (always present) ──
+        // â”€â”€ Base fields (always present) â”€â”€
         public readonly int $id,
         public readonly int $userId,
         public readonly string $originalName,
@@ -33,7 +55,7 @@ class Video
         public readonly string $createdAt,
         public readonly string $updatedAt,
 
-        // ── Enriched fields (only present when JOINed with analysis data) ──
+        // â”€â”€ Enriched fields (only present when JOINed with analysis data) â”€â”€
         public readonly ?float $highestFlashFrequency = null,
         public readonly ?float $averageMotionIntensity = null,
         public readonly ?int $highSegments = null,
@@ -47,6 +69,10 @@ class Video
      * This is the only place that knows about the database column names.
      * Handles both base rows (from findByIdAndUserId) and enriched rows
      * (from findById/findAllByUserId with JOINed analysis metrics).
+     */
+    /**
+     * @param array $row
+     * @return self
      */
     public static function fromRow(array $row): self
     {
@@ -66,7 +92,7 @@ class Video
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at'],
 
-            // Enriched fields — present only when the query JOINs analysis_results
+            // Enriched fields â€” present only when the query JOINs analysis_results
             highestFlashFrequency: isset($row['highest_flash_frequency']) ? (float) $row['highest_flash_frequency'] : null,
             averageMotionIntensity: isset($row['average_motion_intensity']) ? (float) $row['average_motion_intensity'] : null,
             highSegments: isset($row['high_segments']) ? (int) $row['high_segments'] : null,
@@ -80,6 +106,9 @@ class Video
      *
      * Strips internal fields (userId, storedPath) that the frontend
      * doesn't need. Includes a computed riskLevel for completed videos.
+     */
+    /**
+     * @return array
      */
     public function toApiArray(): array
     {
@@ -109,6 +138,9 @@ class Video
      * total frames under the cap), use that. Otherwise use the user's
      * originally requested rate.
      */
+    /**
+     * @return int
+     */
     public function getEffectiveSamplingRate(): int
     {
         return $this->effectiveRate ?? $this->samplingRate;
@@ -120,7 +152,10 @@ class Video
      * All three fields being null means the Video was loaded without the
      * analysis JOIN (e.g. findByIdAndUserId). In that case we must not
      * call determineRiskLevel(), which would silently return 'safe' by
-     * substituting 0 for every null — a misleading result.
+     * substituting 0 for every null â€” a misleading result.
+     */
+    /**
+     * @return bool
      */
     private function hasEnrichedAnalysisData(): bool
     {
@@ -130,6 +165,9 @@ class Video
     }
 
     /** Delegate risk calculation to the shared RiskLevel utility. */
+    /**
+     * @return string
+     */
     private function determineRiskLevel(): string
     {
         return RiskLevel::determine(

@@ -15,6 +15,15 @@ use App\Config\AnalysisConfig;
  */
 final class VideoFilterDTO
 {
+    /**
+     * @param ?string $status
+     * @param ?string $search
+     * @param string $sort
+     * @param string $order
+     * @param int $limit
+     * @param int $offset
+     * @return void
+     */
     public function __construct(
         public readonly ?string $status = null,
         public readonly ?string $search = null,
@@ -29,6 +38,10 @@ final class VideoFilterDTO
      *
      * Invalid or missing values fall back to safe defaults so callers
      * never need to worry about injection or bad column names.
+     */
+    /**
+     * @param array $query
+     * @return self
      */
     public static function fromQuery(array $query): self
     {

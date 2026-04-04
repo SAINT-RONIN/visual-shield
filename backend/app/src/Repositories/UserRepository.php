@@ -24,6 +24,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      * Used during login (to verify the password) and registration
      * (to check for duplicates).
      */
+    /**
+     * @param string $username
+     * @return ?User
+     */
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->db->prepare(
@@ -40,6 +44,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      *
      * Used after token validation to load the authenticated user's profile.
      */
+    /**
+     * @param int $id
+     * @return ?User
+     */
     public function findById(int $id): ?User
     {
         $stmt = $this->db->prepare(
@@ -55,6 +63,13 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      * Insert a new user record and return the generated ID.
      *
      * Called during registration after password hashing.
+     */
+    /**
+     * @param string $username
+     * @param string $passwordHash
+     * @param ?string $displayName
+     * @param string $role
+     * @return int
      */
     public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'viewer'): int
     {
@@ -77,6 +92,11 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      *
      * Lets users change their visible name without affecting login credentials.
      */
+    /**
+     * @param int $id
+     * @param ?string $displayName
+     * @return void
+     */
     public function updateProfile(int $id, ?string $displayName): void
     {
         $stmt = $this->db->prepare(
@@ -86,6 +106,9 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     /** Count total number of users in the database. */
+    /**
+     * @return int
+     */
     public function countAll(): int
     {
         $stmt = $this->db->query('SELECT COUNT(*) FROM users');
@@ -94,6 +117,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     /** @return User[] */
+    /**
+     * @param UserFilterDTO $filters
+     * @return array
+     */
     public function findAll(UserFilterDTO $filters): array
     {
         $sql = 'SELECT id, username, password_hash, display_name, role, created_at, updated_at
@@ -134,6 +161,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     /** Count users matching the current admin filters. */
+    /**
+     * @param UserFilterDTO $filters
+     * @return int
+     */
     public function countAllFiltered(UserFilterDTO $filters): int
     {
         $sql = 'SELECT COUNT(*) FROM users WHERE 1 = 1';
@@ -157,6 +188,11 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     /** Update a user's role and return the updated user, or null if the ID does not exist. */
+    /**
+     * @param int $id
+     * @param string $role
+     * @return ?User
+     */
     public function updateRole(int $id, string $role): ?User
     {
         $stmt = $this->db->prepare('UPDATE users SET role = :role WHERE id = :id');

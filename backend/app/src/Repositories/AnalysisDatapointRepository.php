@@ -12,7 +12,7 @@ use App\Models\AnalysisDatapoint;
  * Data-access layer for the `analysis_datapoints` table.
  *
  * Purpose: Persists and retrieves per-second time-series data produced
- * during video analysis — flash frequency, motion intensity, luminance,
+ * during video analysis â€” flash frequency, motion intensity, luminance,
  * and a boolean flash-detected flag for every sampled time point.
  *
  * Why do I need it: The Chart.js visualisations on the report page need

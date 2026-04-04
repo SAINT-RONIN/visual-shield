@@ -16,7 +16,11 @@ use App\Framework\BaseController;
  */
 class ConfigController extends BaseController
 {
-    /** Return all frontend-relevant configuration constants. */
+    /**
+     * Return all frontend-relevant configuration constants.
+     *
+     * @return void
+     */
     public function getConfig(): void
     {
         $this->handleRequest(function () {

@@ -23,12 +23,21 @@ class AuthController extends BaseController
 {
     private AuthServiceInterface $authService;
 
+    /**
+     * Create the controller with its auth service dependency.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->authService = ServiceRegistry::authService();
     }
 
-    /** Register a new user account from a JSON request body. */
+    /**
+     * Register a new user account from a JSON request body.
+     *
+     * @return void
+     */
     public function register(): void
     {
         $this->handleRequest(function () {
@@ -38,7 +47,11 @@ class AuthController extends BaseController
         });
     }
 
-    /** Authenticate a user and return a bearer token. */
+    /**
+     * Authenticate a user and return a bearer token.
+     *
+     * @return void
+     */
     public function login(): void
     {
         $this->handleRequest(function () {
@@ -51,7 +64,11 @@ class AuthController extends BaseController
         });
     }
 
-    /** Revoke the current bearer token, logging the user out. */
+    /**
+     * Revoke the current bearer token, logging the user out.
+     *
+     * @return void
+     */
     public function logout(): void
     {
         $this->handleRequest(function () {
@@ -61,7 +78,11 @@ class AuthController extends BaseController
         });
     }
 
-    /** Return the authenticated user's profile. */
+    /**
+     * Return the authenticated user's profile.
+     *
+     * @return void
+     */
     public function getProfile(): void
     {
         $this->handleRequest(function () {
@@ -71,7 +92,11 @@ class AuthController extends BaseController
         });
     }
 
-    /** Update the authenticated user's display name. */
+    /**
+     * Update the authenticated user's display name.
+     *
+     * @return void
+     */
     public function updateProfile(): void
     {
         $this->handleRequest(function () {

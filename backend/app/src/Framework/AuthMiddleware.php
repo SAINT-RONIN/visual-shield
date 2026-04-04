@@ -16,7 +16,7 @@ use App\Exceptions\UnauthorizedException;
  * All authentication methods are called inside controller methods that
  * are wrapped in BaseController::handleRequest(). Throwing
  * UnauthorizedException here lets handleRequest() catch it and map it
- * to a 401 JSON response — the same contract as all other domain errors.
+ * to a 401 JSON response â€” the same contract as all other domain errors.
  */
 class AuthMiddleware
 {
@@ -29,6 +29,8 @@ class AuthMiddleware
      * Extracts the Bearer token from the header, validates it, and
      * returns the authenticated user's ID. Also stores the user's role
      * for later access via getAuthenticatedUserRole().
+     *
+     * @return int Authenticated user ID.
      */
     public static function authenticate(): int
     {
@@ -48,6 +50,8 @@ class AuthMiddleware
      * HTML <video> elements cannot set custom headers on their media requests,
      * so the video streaming endpoint needs to also accept the token as a
      * query parameter. Tries the header first, falls back to the query param.
+     *
+     * @return int Authenticated user ID.
      */
     public static function authenticateFromHeaderOrQueryParam(): int
     {
@@ -60,13 +64,21 @@ class AuthMiddleware
         return self::resolveUserIdFromToken($token);
     }
 
-    /** Get the role of the most recently authenticated user. */
+    /**
+     * Get the role of the most recently authenticated user.
+     *
+     * @return string Most recently resolved authenticated role.
+     */
     public static function getAuthenticatedUserRole(): string
     {
         return self::$authenticatedUserRole ?? 'viewer';
     }
 
-    /** Extract the raw Bearer token string from the Authorization header. */
+    /**
+     * Extract the raw Bearer token string from the Authorization header.
+     *
+     * @return string Raw bearer token value.
+     */
     public static function extractToken(): string
     {
         $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -79,10 +91,16 @@ class AuthMiddleware
         return $token;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Token extraction helpers
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /**
+     * Extract a bearer token from an Authorization header value.
+     *
+     * @param string $header Raw Authorization header value.
+     * @return string|null Extracted token or null when the header is invalid.
+     */
     private static function extractBearerToken(string $header): ?string
     {
         if (preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
@@ -92,7 +110,11 @@ class AuthMiddleware
         return null;
     }
 
-    /** Try the Authorization header first, then fall back to ?token= query param. */
+    /**
+     * Try the Authorization header first, then fall back to ?token= query param.
+     *
+     * @return string|null Extracted token or null when neither source contains one.
+     */
     private static function extractTokenFromHeaderOrQueryParam(): ?string
     {
         $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -107,11 +129,16 @@ class AuthMiddleware
         return $queryToken !== '' ? $queryToken : null;
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Token validation
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Validate a token and return the owning user's ID, or throw 401. */
+    /**
+     * Validate a token and return the owning user's ID, or throw 401.
+     *
+     * @param string $token Raw JWT access token.
+     * @return int Authenticated user ID.
+     */
     private static function resolveUserIdFromToken(string $token): int
     {
         $user = ServiceRegistry::authService()->getUserFromToken($token);

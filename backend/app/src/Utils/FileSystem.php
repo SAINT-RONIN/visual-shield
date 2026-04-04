@@ -7,6 +7,10 @@ namespace App\Utils;
 class FileSystem
 {
     /** Create a directory if it does not already exist. */
+    /**
+     * @param string $path
+     * @return void
+     */
     public static function ensureDirectoryExists(string $path): void
     {
         if (is_dir($path)) {
@@ -21,6 +25,10 @@ class FileSystem
     }
 
     /** Throw if a directory is not writable. */
+    /**
+     * @param string $path
+     * @return void
+     */
     public static function ensureWritable(string $path): void
     {
         if (!is_writable($path)) {

@@ -27,8 +27,9 @@ use App\Exceptions\ValidationException;
 class UploadVideoDTO
 {
     /**
-     * @param UploadedFile $file         Validated file upload value object.
-     * @param int          $samplingRate Frames-per-second rate from AnalysisConfig::ALLOWED_SAMPLING_RATES.
+     * @param UploadedFile $file
+     * @param int $samplingRate
+     * @return void
      */
     public function __construct(
         public readonly UploadedFile $file,

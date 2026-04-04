@@ -13,6 +13,14 @@ namespace App\DTOs;
  */
 final readonly class UploadedFile
 {
+    /**
+     * @param string $tmpName
+     * @param string $name
+     * @param int $size
+     * @param string $type
+     * @param int $error
+     * @return void
+     */
     public function __construct(
         public string $tmpName,
         public string $name,
@@ -25,6 +33,10 @@ final readonly class UploadedFile
      * Build an UploadedFile from a raw $_FILES entry array.
      *
      * @param array $file A single entry from $_FILES (e.g. $_FILES['video']).
+     */
+    /**
+     * @param array $file
+     * @return self
      */
     public static function fromFilesArray(array $file): self
     {

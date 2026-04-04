@@ -14,10 +14,11 @@ namespace App\DTOs;
 final class PaginatedResultDTO
 {
     /**
-     * @param array $items  The items for the current page.
-     * @param int   $total  Total number of matching items across all pages.
-     * @param int   $limit  Maximum items per page.
-     * @param int   $offset Number of items skipped from the start.
+     * @param array $items
+     * @param int $total
+     * @param int $limit
+     * @param int $offset
+     * @return void
      */
     public function __construct(
         public readonly array $items,

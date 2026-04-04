@@ -20,12 +20,21 @@ class AdminController extends BaseController
 {
     private AdminServiceInterface $adminService;
 
+    /**
+     * Create the controller with its admin service dependency.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->adminService = ServiceRegistry::adminService();
     }
 
-    /** List all users (admin only). */
+    /**
+     * List all users (admin only).
+     *
+     * @return void
+     */
     public function listUsers(): void
     {
         $this->handleRequest(function () {
@@ -45,7 +54,12 @@ class AdminController extends BaseController
         });
     }
 
-    /** Update a user's role (admin only). */
+    /**
+     * Update a user's role (admin only).
+     *
+     * @param int $id User ID to update.
+     * @return void
+     */
     public function updateUserRole(int $id): void
     {
         $this->handleRequest(function () use ($id) {
@@ -58,6 +72,11 @@ class AdminController extends BaseController
         });
     }
 
+    /**
+     * Enforce admin access for the current request.
+     *
+     * @return void
+     */
     private function requireAdmin(): void
     {
         $this->getAuthenticatedUserId();

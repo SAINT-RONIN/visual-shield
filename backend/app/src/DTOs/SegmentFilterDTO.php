@@ -13,6 +13,13 @@ namespace App\DTOs;
  */
 final class SegmentFilterDTO
 {
+    /**
+     * @param ?string $type
+     * @param ?string $severity
+     * @param string $sort
+     * @param string $order
+     * @return void
+     */
     public function __construct(
         public readonly ?string $type = null,
         public readonly ?string $severity = null,
@@ -25,6 +32,10 @@ final class SegmentFilterDTO
      *
      * Note: the query param names use "segment_sort" and "segment_order"
      * to avoid conflicts with any future top-level sort parameters.
+     */
+    /**
+     * @param array $query
+     * @return self
      */
     public static function fromQuery(array $query): self
     {

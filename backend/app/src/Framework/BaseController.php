@@ -16,13 +16,16 @@ class BaseController
      * Execute a controller action with standardised error handling.
      *
      * Catches domain exceptions and maps them to HTTP status codes:
-     *   - AppException (and subclasses) → uses the exception's code directly
-     *   - InvalidArgumentException → 400 Bad Request (legacy)
-     *   - RuntimeException → uses the exception's code (allowlist) or 500 (legacy)
-     *   - Any other Throwable → 500 Internal Server Error
+     *   - AppException (and subclasses) â†’ uses the exception's code directly
+     *   - InvalidArgumentException â†’ 400 Bad Request (legacy)
+     *   - RuntimeException â†’ uses the exception's code (allowlist) or 500 (legacy)
+     *   - Any other Throwable â†’ 500 Internal Server Error
      *
      * This eliminates the identical try/catch blocks that were duplicated
      * across every controller method.
+     *
+     * @param callable $action Controller action to execute.
+     * @return void
      */
     protected function handleRequest(callable $action): void
     {
@@ -41,7 +44,13 @@ class BaseController
         }
     }
 
-    /** Send a JSON response with the given status code and terminate. */
+    /**
+     * Send a JSON response with the given status code and terminate.
+     *
+     * @param mixed $data Data to JSON-encode.
+     * @param int $status HTTP status code to send.
+     * @return void
+     */
     protected function jsonResponse(mixed $data, int $status = 200): void
     {
         http_response_code($status);
@@ -50,7 +59,11 @@ class BaseController
         exit;
     }
 
-    /** Decode the request body as JSON, throwing on invalid or empty input. */
+    /**
+     * Decode the request body as JSON, throwing on invalid or empty input.
+     *
+     * @return array<string, mixed>|list<mixed> Decoded JSON payload.
+     */
     protected function getJsonBody(): array
     {
         $body = file_get_contents('php://input');
@@ -72,19 +85,32 @@ class BaseController
         return $data;
     }
 
-    /** Authenticate the request and return the user's ID. */
+    /**
+     * Authenticate the request and return the user's ID.
+     *
+     * @return int Authenticated user ID.
+     */
     protected function getAuthenticatedUserId(): int
     {
         return AuthMiddleware::authenticate();
     }
 
-    /** Get the role of the currently authenticated user. */
+    /**
+     * Get the role of the currently authenticated user.
+     *
+     * @return string Authenticated user's role.
+     */
     protected function getAuthenticatedUserRole(): string
     {
         return AuthMiddleware::getAuthenticatedUserRole();
     }
 
-    /** Require a specific role, throwing 403 if the user doesn't have it. */
+    /**
+     * Require a specific role, throwing 403 if the user doesn't have it.
+     *
+     * @param string $role Required role name.
+     * @return void
+     */
     protected function requireRole(string $role): void
     {
         if ($this->getAuthenticatedUserRole() !== $role) {
@@ -92,7 +118,13 @@ class BaseController
         }
     }
 
-    /** Send a JSON error response with a consistent structure. */
+    /**
+     * Send a JSON error response with a consistent structure.
+     *
+     * @param int $code HTTP status code to send.
+     * @param string $message Human-readable error message.
+     * @return void
+     */
     protected function errorResponse(int $code, string $message): void
     {
         $this->jsonResponse(['error' => ['code' => $code, 'message' => $message]], $code);
@@ -103,6 +135,9 @@ class BaseController
      *
      * RuntimeExceptions with code 401 or 404 keep their code.
      * Everything else becomes 500.
+     *
+     * @param \RuntimeException $e Runtime exception to translate.
+     * @return int HTTP status code to send.
      */
     private function mapRuntimeExceptionCode(\RuntimeException $e): int
     {

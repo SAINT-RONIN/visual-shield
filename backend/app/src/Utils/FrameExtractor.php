@@ -7,7 +7,7 @@ namespace App\Utils;
 /**
  * Extracts individual JPEG frames from a video using FFmpeg.
  *
- * When we analyze a video, we can't look at the video file directly —
+ * When we analyze a video, we can't look at the video file directly â€”
  * we need individual image files (frames) that we can compare to each other.
  * This utility uses FFmpeg to take "screenshots" of the video at regular
  * intervals and saves them as numbered JPEG files.
@@ -48,9 +48,9 @@ class FrameExtractor
         $this->removeDirectoryIfEmpty($outputDirectory);
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  Directory management
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This removes the now-empty frame folder once all of the JPEGs are gone.
@@ -63,9 +63,9 @@ class FrameExtractor
         }
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  FFmpeg execution
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This is the place where we actually call FFmpeg and ask it to grab frames at a fixed rate from the video.
@@ -75,7 +75,7 @@ class FrameExtractor
     {
         $safeInputPath = escapeshellarg($videoPath);
         $safeOutputPattern = escapeshellarg($outputDirectory . '/frame_%05d.jpg');
-        // $samplingRate is typed int — cast directly; escapeshellarg would add quotes
+        // $samplingRate is typed int â€” cast directly; escapeshellarg would add quotes
         // that break the fps= filter syntax (fps='10' is invalid).
         $safeSamplingRate = (int) $samplingRate;
 
@@ -89,9 +89,9 @@ class FrameExtractor
         }
     }
 
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     //  File collection
-    // ──────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * This gathers the frame files FFmpeg created and puts them in the exact order they should be analyzed.
