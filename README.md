@@ -278,6 +278,7 @@ By default, the normal backend startup flow gives you a clean local database, so
 - Register a new account from the frontend
 - New users are created with the `viewer` role by default
 - If you want to test the admin area, you can promote a user to `admin`
+- The `videos-to-use/` folder contains some default videos for quick and easy access during testing
 
 There is also an exported database file in:
 
