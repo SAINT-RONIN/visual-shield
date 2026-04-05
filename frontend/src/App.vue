@@ -5,6 +5,7 @@ import { fetchConfig } from '@/api/config.js'
 import { logout } from '@/api/auth.js'
 import { useAuth } from '@/composables/useAuth.js'
 import { useConfig } from '@/composables/useConfig.js'
+import { setUnauthorizedHandler } from '@/utils/api.js'
 import Header from '@/components/organisms/Header.vue'
 import ToastContainer from '@/components/molecules/ToastContainer.vue'
 
@@ -12,6 +13,13 @@ const router = useRouter()
 const route = useRoute()
 const { user, isLoggedIn, isAdmin, clearAuth, hydrateAuthUser } = useAuth()
 const { setConfig } = useConfig()
+
+setUnauthorizedHandler(() => {
+  if (route.name !== 'login') {
+    clearAuth()
+    router.push({ name: 'login' })
+  }
+})
 
 const displayName = computed(() => user.value?.displayName || user.value?.username || 'User')
 const currentRoute = computed(() => route.name || '')

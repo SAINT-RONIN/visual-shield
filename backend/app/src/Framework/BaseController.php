@@ -35,6 +35,8 @@ class BaseController
             $this->errorResponse($e->getCode(), $e->getMessage());
         } catch (\InvalidArgumentException $e) {
             $this->errorResponse(400, $e->getMessage());
+        } catch (\PDOException $e) {
+            $this->errorResponse(503, 'Service temporarily unavailable');
         } catch (\RuntimeException $e) {
             $code = $this->mapRuntimeExceptionCode($e);
             $message = $code === 500 ? 'Internal server error' : $e->getMessage();
