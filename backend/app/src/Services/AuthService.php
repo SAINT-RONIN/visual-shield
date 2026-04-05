@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Contracts\AuthServiceInterface;
+use App\Repositories\Interfaces\TokenRepositoryInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\Interfaces\AuthServiceInterface;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
@@ -12,8 +14,6 @@ use App\DTOs\UpdateProfileDTO;
 use App\Exceptions\UnauthorizedException;
 use App\Exceptions\ValidationException;
 use App\Models\User;
-use App\Repositories\UserRepository;
-use App\Repositories\TokenRepository;
 use App\Utils\JwtService;
 
 /**
@@ -27,14 +27,14 @@ class AuthService extends BaseService implements AuthServiceInterface
     /**
      * Create the service with its repository and JWT dependencies.
      *
-     * @param UserRepository $userRepo User repository for auth lookups and profile updates.
-     * @param TokenRepository $tokenRepo Repository used for JWT session revocation.
+     * @param UserRepositoryInterface $userRepo User repository for auth lookups and profile updates.
+     * @param TokenRepositoryInterface $tokenRepo Repository used for JWT session revocation.
      * @param JwtService $jwtService JWT issuer and decoder utility.
      * @return void
      */
     public function __construct(
-        private UserRepository $userRepo,
-        private TokenRepository $tokenRepo,
+        private UserRepositoryInterface $userRepo,
+        private TokenRepositoryInterface $tokenRepo,
         private JwtService $jwtService,
     ) {}
 

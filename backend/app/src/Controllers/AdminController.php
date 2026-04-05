@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Contracts\AdminServiceInterface;
+use App\Services\Interfaces\AdminServiceInterface;
 use App\DTOs\UpdateUserRoleDTO;
 use App\DTOs\UserFilterDTO;
 use App\Framework\BaseController;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\AnalysisDatapointRepositoryInterface;
+use App\Repositories\Interfaces\AnalysisDatapointRepositoryInterface;
 use App\DTOs\DatapointData;
 use App\Models\AnalysisDatapoint;
 

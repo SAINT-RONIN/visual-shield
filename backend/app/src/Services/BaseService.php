@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Contracts\VideoRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
 use App\Exceptions\NotFoundException;
 use App\Models\Video;
 

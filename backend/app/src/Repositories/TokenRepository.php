@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\TokenRepositoryInterface;
+use App\Repositories\Interfaces\TokenRepositoryInterface;
 use App\Models\Token;
 
 /**

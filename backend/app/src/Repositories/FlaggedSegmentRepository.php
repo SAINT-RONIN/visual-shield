@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\FlaggedSegmentRepositoryInterface;
+use App\Repositories\Interfaces\FlaggedSegmentRepositoryInterface;
 use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;
 use App\Models\FlaggedSegment;

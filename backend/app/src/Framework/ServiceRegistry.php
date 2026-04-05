@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Framework;
 
+use App\Repositories\Interfaces\AnalysisDatapointRepositoryInterface;
+use App\Repositories\Interfaces\AnalysisResultRepositoryInterface;
+use App\Repositories\Interfaces\FlaggedSegmentRepositoryInterface;
+use App\Repositories\Interfaces\TokenRepositoryInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
+use App\Services\Interfaces\AdminServiceInterface;
+use App\Services\Interfaces\AnalysisServiceInterface;
+use App\Services\Interfaces\AuthServiceInterface;
+use App\Services\Interfaces\ReportServiceInterface;
+use App\Services\Interfaces\VideoServiceInterface;
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\ConfigController;
@@ -43,17 +54,17 @@ class ServiceRegistry
     private static ?ConfigController $configController = null;
     private static ?ReportController $reportController = null;
     private static ?VideoController $videoController = null;
-    private static ?UserRepository $userRepository = null;
-    private static ?TokenRepository $tokenRepository = null;
-    private static ?VideoRepository $videoRepository = null;
-    private static ?AnalysisResultRepository $analysisResultRepository = null;
-    private static ?FlaggedSegmentRepository $flaggedSegmentRepository = null;
-    private static ?AnalysisDatapointRepository $analysisDatapointRepository = null;
-    private static ?AdminService $adminService = null;
-    private static ?AnalysisService $analysisService = null;
-    private static ?AuthService $authService = null;
-    private static ?VideoService $videoService = null;
-    private static ?ReportService $reportService = null;
+    private static ?UserRepositoryInterface $userRepository = null;
+    private static ?TokenRepositoryInterface $tokenRepository = null;
+    private static ?VideoRepositoryInterface $videoRepository = null;
+    private static ?AnalysisResultRepositoryInterface $analysisResultRepository = null;
+    private static ?FlaggedSegmentRepositoryInterface $flaggedSegmentRepository = null;
+    private static ?AnalysisDatapointRepositoryInterface $analysisDatapointRepository = null;
+    private static ?AdminServiceInterface $adminService = null;
+    private static ?AnalysisServiceInterface $analysisService = null;
+    private static ?AuthServiceInterface $authService = null;
+    private static ?VideoServiceInterface $videoService = null;
+    private static ?ReportServiceInterface $reportService = null;
     private static ?FFprobe $ffprobeService = null;
     private static ?JwtService $jwtService = null;
 
@@ -64,9 +75,9 @@ class ServiceRegistry
     /**
      * Get the shared UserRepository instance.
      *
-     * @return UserRepository Shared repository instance.
+     * @return UserRepositoryInterface Shared repository instance.
      */
-    public static function userRepository(): UserRepository
+    public static function userRepository(): UserRepositoryInterface
     {
         if (!self::$userRepository) {
             self::$userRepository = new UserRepository();
@@ -78,9 +89,9 @@ class ServiceRegistry
     /**
      * Get the shared TokenRepository instance.
      *
-     * @return TokenRepository Shared repository instance.
+     * @return TokenRepositoryInterface Shared repository instance.
      */
-    public static function tokenRepository(): TokenRepository
+    public static function tokenRepository(): TokenRepositoryInterface
     {
         if (!self::$tokenRepository) {
             self::$tokenRepository = new TokenRepository();
@@ -92,9 +103,9 @@ class ServiceRegistry
     /**
      * Get the shared VideoRepository instance.
      *
-     * @return VideoRepository Shared repository instance.
+     * @return VideoRepositoryInterface Shared repository instance.
      */
-    public static function videoRepository(): VideoRepository
+    public static function videoRepository(): VideoRepositoryInterface
     {
         if (!self::$videoRepository) {
             self::$videoRepository = new VideoRepository();
@@ -106,9 +117,9 @@ class ServiceRegistry
     /**
      * Get the shared AnalysisResultRepository instance.
      *
-     * @return AnalysisResultRepository Shared repository instance.
+     * @return AnalysisResultRepositoryInterface Shared repository instance.
      */
-    public static function analysisResultRepository(): AnalysisResultRepository
+    public static function analysisResultRepository(): AnalysisResultRepositoryInterface
     {
         if (!self::$analysisResultRepository) {
             self::$analysisResultRepository = new AnalysisResultRepository();
@@ -120,9 +131,9 @@ class ServiceRegistry
     /**
      * Get the shared FlaggedSegmentRepository instance.
      *
-     * @return FlaggedSegmentRepository Shared repository instance.
+     * @return FlaggedSegmentRepositoryInterface Shared repository instance.
      */
-    public static function flaggedSegmentRepository(): FlaggedSegmentRepository
+    public static function flaggedSegmentRepository(): FlaggedSegmentRepositoryInterface
     {
         if (!self::$flaggedSegmentRepository) {
             self::$flaggedSegmentRepository = new FlaggedSegmentRepository();
@@ -134,9 +145,9 @@ class ServiceRegistry
     /**
      * Get the shared AnalysisDatapointRepository instance.
      *
-     * @return AnalysisDatapointRepository Shared repository instance.
+     * @return AnalysisDatapointRepositoryInterface Shared repository instance.
      */
-    public static function analysisDatapointRepository(): AnalysisDatapointRepository
+    public static function analysisDatapointRepository(): AnalysisDatapointRepositoryInterface
     {
         if (!self::$analysisDatapointRepository) {
             self::$analysisDatapointRepository = new AnalysisDatapointRepository();
@@ -152,9 +163,9 @@ class ServiceRegistry
     /**
      * Get the shared AdminService instance.
      *
-     * @return AdminService Shared service instance.
+     * @return AdminServiceInterface Shared service instance.
      */
-    public static function adminService(): AdminService
+    public static function adminService(): AdminServiceInterface
     {
         if (!self::$adminService) {
             self::$adminService = new AdminService(
@@ -196,9 +207,9 @@ class ServiceRegistry
     /**
      * Get the shared AnalysisService instance.
      *
-     * @return AnalysisService Shared service instance.
+     * @return AnalysisServiceInterface Shared service instance.
      */
-    public static function analysisService(): AnalysisService
+    public static function analysisService(): AnalysisServiceInterface
     {
         if (!self::$analysisService) {
             self::$analysisService = new AnalysisService(
@@ -219,9 +230,9 @@ class ServiceRegistry
     /**
      * Get the shared AuthService instance.
      *
-     * @return AuthService Shared service instance.
+     * @return AuthServiceInterface Shared service instance.
      */
-    public static function authService(): AuthService
+    public static function authService(): AuthServiceInterface
     {
         if (!self::$authService) {
             self::$authService = new AuthService(
@@ -237,9 +248,9 @@ class ServiceRegistry
     /**
      * Get the shared VideoService instance.
      *
-     * @return VideoService Shared service instance.
+     * @return VideoServiceInterface Shared service instance.
      */
-    public static function videoService(): VideoService
+    public static function videoService(): VideoServiceInterface
     {
         if (!self::$videoService) {
             self::$videoService = new VideoService(
@@ -254,9 +265,9 @@ class ServiceRegistry
     /**
      * Get the shared ReportService instance.
      *
-     * @return ReportService Shared service instance.
+     * @return ReportServiceInterface Shared service instance.
      */
-    public static function reportService(): ReportService
+    public static function reportService(): ReportServiceInterface
     {
         if (!self::$reportService) {
             self::$reportService = new ReportService(

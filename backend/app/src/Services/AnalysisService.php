@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
-use App\Contracts\AnalysisServiceInterface;
+use App\Repositories\Interfaces\AnalysisDatapointRepositoryInterface;
+use App\Repositories\Interfaces\AnalysisResultRepositoryInterface;
+use App\Repositories\Interfaces\FlaggedSegmentRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
+use App\Services\Interfaces\AnalysisServiceInterface;
 use App\DTOs\DatapointData;
 use App\DTOs\FlashAnalysisResult;
 use App\DTOs\FrameData;
 use App\DTOs\MotionAnalysisResult;
 use App\DTOs\PerSecondLuminance;
 use App\Models\Video;
-use App\Repositories\VideoRepository;
-use App\Repositories\AnalysisResultRepository;
-use App\Repositories\FlaggedSegmentRepository;
-use App\Repositories\AnalysisDatapointRepository;
 use App\Utils\FFprobe;
 use App\Utils\FlashDetector;
 use App\Utils\FrameExtractor;
@@ -33,10 +33,10 @@ use App\Utils\PathResolver;
 class AnalysisService extends BaseService implements AnalysisServiceInterface
 {
     /**
-     * @param VideoRepository $videoRepo
-     * @param AnalysisResultRepository $analysisResultRepo
-     * @param FlaggedSegmentRepository $segmentRepo
-     * @param AnalysisDatapointRepository $datapointRepo
+     * @param VideoRepositoryInterface $videoRepo
+     * @param AnalysisResultRepositoryInterface $analysisResultRepo
+     * @param FlaggedSegmentRepositoryInterface $segmentRepo
+     * @param AnalysisDatapointRepositoryInterface $datapointRepo
      * @param FrameExtractor $frameExtractor
      * @param FFprobe $ffprobe
      * @param FlashDetector $flashDetector
@@ -44,10 +44,10 @@ class AnalysisService extends BaseService implements AnalysisServiceInterface
      * @return void
      */
     public function __construct(
-        private VideoRepository $videoRepo,
-        private AnalysisResultRepository $analysisResultRepo,
-        private FlaggedSegmentRepository $segmentRepo,
-        private AnalysisDatapointRepository $datapointRepo,
+        private VideoRepositoryInterface $videoRepo,
+        private AnalysisResultRepositoryInterface $analysisResultRepo,
+        private FlaggedSegmentRepositoryInterface $segmentRepo,
+        private AnalysisDatapointRepositoryInterface $datapointRepo,
         private FrameExtractor $frameExtractor,
         private FFprobe $ffprobe,
         private FlashDetector $flashDetector,

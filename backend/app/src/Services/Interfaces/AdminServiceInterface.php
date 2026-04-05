@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts;
+namespace App\Services\Interfaces;
 
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;

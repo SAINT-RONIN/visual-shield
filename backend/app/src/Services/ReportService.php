@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Contracts\ReportServiceInterface;
+use App\Repositories\Interfaces\AnalysisDatapointRepositoryInterface;
+use App\Repositories\Interfaces\AnalysisResultRepositoryInterface;
+use App\Repositories\Interfaces\FlaggedSegmentRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
+use App\Services\Interfaces\ReportServiceInterface;
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
 use App\Models\AnalysisDatapoint;
 use App\Models\FlaggedSegment;
 use App\Models\Video;
-use App\Repositories\VideoRepository;
-use App\Repositories\AnalysisResultRepository;
-use App\Repositories\FlaggedSegmentRepository;
-use App\Repositories\AnalysisDatapointRepository;
 
 /**
  * Builds the finished report data for a video.
@@ -27,17 +27,17 @@ class ReportService extends BaseService implements ReportServiceInterface
     /**
      * Create the service with its report-related repositories.
      *
-     * @param VideoRepository $videoRepo Repository used for ownership checks and video lookups.
-     * @param AnalysisResultRepository $analysisResultRepo Repository for analysis summary rows.
-     * @param FlaggedSegmentRepository $segmentRepo Repository for flagged report segments.
-     * @param AnalysisDatapointRepository $datapointRepo Repository for per-second chart datapoints.
+     * @param VideoRepositoryInterface $videoRepo Repository used for ownership checks and video lookups.
+     * @param AnalysisResultRepositoryInterface $analysisResultRepo Repository for analysis summary rows.
+     * @param FlaggedSegmentRepositoryInterface $segmentRepo Repository for flagged report segments.
+     * @param AnalysisDatapointRepositoryInterface $datapointRepo Repository for per-second chart datapoints.
      * @return void
      */
     public function __construct(
-        private VideoRepository $videoRepo,
-        private AnalysisResultRepository $analysisResultRepo,
-        private FlaggedSegmentRepository $segmentRepo,
-        private AnalysisDatapointRepository $datapointRepo,
+        private VideoRepositoryInterface $videoRepo,
+        private AnalysisResultRepositoryInterface $analysisResultRepo,
+        private FlaggedSegmentRepositoryInterface $segmentRepo,
+        private AnalysisDatapointRepositoryInterface $datapointRepo,
     ) {}
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

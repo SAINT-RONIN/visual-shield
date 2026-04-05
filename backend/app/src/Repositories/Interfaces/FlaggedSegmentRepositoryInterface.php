@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts;
+namespace App\Repositories\Interfaces;
 
 use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Contracts\ReportServiceInterface;
+use App\Services\Interfaces\ReportServiceInterface;
 use App\DTOs\ReportDTO;
 use App\DTOs\SegmentFilterDTO;
 use App\Framework\BaseController;

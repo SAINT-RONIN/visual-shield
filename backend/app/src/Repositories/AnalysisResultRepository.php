@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\AnalysisResultRepositoryInterface;
+use App\Repositories\Interfaces\AnalysisResultRepositoryInterface;
 use App\Models\AnalysisResult;
 
 /**

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\AnalysisConfig;
-use App\Contracts\VideoServiceInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
+use App\Services\Interfaces\VideoServiceInterface;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\StreamInfo;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\VideoFilterDTO;
 use App\Exceptions\ValidationException;
 use App\Models\Video;
-use App\Repositories\VideoRepository;
 use App\Utils\FFprobe;
 use App\Utils\FileSystem;
 use App\Utils\PathResolver;
@@ -49,12 +49,12 @@ class VideoService extends BaseService implements VideoServiceInterface
     /**
      * Create the service with its video repository and metadata utility.
      *
-     * @param VideoRepository $videoRepo Repository used for video CRUD and queue state.
+     * @param VideoRepositoryInterface $videoRepo Repository used for video CRUD and queue state.
      * @param FFprobe $ffprobe Utility used to inspect uploaded video metadata.
      * @return void
      */
     public function __construct(
-        private VideoRepository $videoRepo,
+        private VideoRepositoryInterface $videoRepo,
         private FFprobe $ffprobe,
     ) {}
 

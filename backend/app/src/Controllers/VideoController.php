@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Contracts\VideoServiceInterface;
+use App\Services\Interfaces\VideoServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;

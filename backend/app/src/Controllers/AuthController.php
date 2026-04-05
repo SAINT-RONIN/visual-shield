@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Contracts\AuthServiceInterface;
+use App\Services\Interfaces\AuthServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;

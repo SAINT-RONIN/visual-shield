@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Contracts\AdminServiceInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\Interfaces\AdminServiceInterface;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
 use App\Exceptions\ValidationException;
 use App\Models\User;
-use App\Repositories\UserRepository;
 
 /**
  * Handles admin-only user management actions.
@@ -23,11 +23,11 @@ class AdminService extends BaseService implements AdminServiceInterface
     /**
      * Create the service with its user repository dependency.
      *
-     * @param UserRepository $userRepository Repository used for admin user management.
+     * @param UserRepositoryInterface $userRepository Repository used for admin user management.
      * @return void
      */
     public function __construct(
-        private UserRepository $userRepository,
+        private UserRepositoryInterface $userRepository,
     ) {}
 
     /**

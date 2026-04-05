@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\VideoRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
 use App\DTOs\VideoFilterDTO;
 use App\Models\Video;
 use PDO;
