@@ -8,7 +8,6 @@ use App\Services\Interfaces\VideoServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
-use App\DTOs\ByteRange;
 use App\DTOs\UpdateVideoDTO;
 use App\DTOs\UploadVideoDTO;
 use App\DTOs\ReanalyzeVideoDTO;
@@ -145,7 +144,12 @@ class VideoController extends BaseController
     }
 
     /**
-     * Stream a video file to the client with HTTP Range request support.
+     * Stream a video file to the client.
+     *
+     * PHP authenticates the request then delegates actual byte delivery to
+     * nginx via X-Accel-Redirect. This avoids PHP buffering the entire file
+     * (which caused ERR_CONTENT_LENGTH_MISMATCH on large videos) and gives
+     * nginx native range-request support for seeking.
      *
      * Uses header-or-query-param auth because HTML <video> elements
      * cannot set custom Authorization headers on their media requests.
@@ -159,87 +163,9 @@ class VideoController extends BaseController
             $userId = AuthMiddleware::authenticateFromHeaderOrQueryParam();
             $streamInfo = $this->videoService->getStreamInfo($userId, $id);
 
-            $this->sendVideoHeaders($streamInfo->contentType);
-            $rangeHeader = $_SERVER['HTTP_RANGE'] ?? null;
-
-            if ($rangeHeader) {
-                $this->sendPartialContent($streamInfo->filePath, $streamInfo->fileSize, $rangeHeader);
-            } else {
-                $this->sendFullContent($streamInfo->filePath, $streamInfo->fileSize);
-            }
-
+            header('Content-Type: ' . $streamInfo->contentType);
+            header('X-Accel-Redirect: /internal-videos/' . basename($streamInfo->filePath));
             exit;
         });
-    }
-
-    //  Streaming helpers (HTTP concerns belong here)
-
-    /**
-     * Send baseline headers shared by full and partial video responses.
-     *
-     * @param string $contentType MIME type of the video being streamed.
-     * @return void
-     */
-    private function sendVideoHeaders(string $contentType): void
-    {
-        header('Content-Type: ' . $contentType);
-        header('Accept-Ranges: bytes');
-    }
-
-    /**
-     * Send a partial (206) response for an HTTP Range request.
-     *
-     * This is what allows the video player to seek â€” it requests
-     * just the bytes it needs (e.g. "bytes=1000-1999") and we send
-     * only that chunk.
-     *
-     * @param string $filePath Absolute path to the video file.
-     * @param int $fileSize Full file size in bytes.
-     * @param string $rangeHeader Raw HTTP Range header value.
-     * @return void
-     */
-    private function sendPartialContent(string $filePath, int $fileSize, string $rangeHeader): void
-    {
-        $range = $this->parseRangeHeader($rangeHeader, $fileSize);
-        $contentLength = $range->end - $range->start + 1;
-
-        http_response_code(206);
-        header("Content-Range: bytes {$range->start}-{$range->end}/{$fileSize}");
-        header("Content-Length: {$contentLength}");
-
-        $fileHandle = fopen($filePath, 'rb');
-        fseek($fileHandle, $range->start);
-        echo fread($fileHandle, $contentLength);
-        fclose($fileHandle);
-    }
-
-    /**
-     * Send the entire file as a standard 200 response.
-     *
-     * @param string $filePath Absolute path to the video file.
-     * @param int $fileSize Full file size in bytes.
-     * @return void
-     */
-    private function sendFullContent(string $filePath, int $fileSize): void
-    {
-        header("Content-Length: {$fileSize}");
-        readfile($filePath);
-    }
-
-    /**
-     * Parse an HTTP Range header like "bytes=1000-1999" into start and end positions.
-     *
-     * @param string $rangeHeader Raw HTTP Range header value.
-     * @param int $fileSize Full file size in bytes.
-     * @return ByteRange Parsed byte range boundaries.
-     */
-    private function parseRangeHeader(string $rangeHeader, int $fileSize): ByteRange
-    {
-        preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $matches);
-
-        $start = (int) $matches[1];
-        $end = $matches[2] !== '' ? (int) $matches[2] : $fileSize - 1;
-
-        return new ByteRange(start: $start, end: $end);
     }
 }

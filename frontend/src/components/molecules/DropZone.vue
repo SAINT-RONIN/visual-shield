@@ -5,7 +5,7 @@ import { ref } from 'vue'
 defineProps({
   fileName: { type: String, default: '' },
   accept: { type: String, default: 'video/mp4,video/webm' },
-  hint: { type: String, default: 'MP4 or WebM, max 100 MB' },
+  hint: { type: String, default: 'MP4 or WebM, max 500 MB' },
 })
 
 const emit = defineEmits(['select'])
