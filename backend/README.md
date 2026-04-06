@@ -115,5 +115,7 @@ Controller -> Service -> Repository.
 ## Notes
 
 - Uploaded videos are stored in `storage/videos/`, outside the public web root
+- Video streaming uses nginx `X-Accel-Redirect`: PHP authenticates the request then hands off file delivery to nginx, which handles range requests (seeking) natively without buffering the file through PHP
 - Authenticated requests use `Authorization: Bearer <jwt>`
+- The stream endpoint (`/videos/{id}/stream`) accepts the token as a query parameter (`?token=`) because `<video>` elements cannot set custom headers
 - To reset the database: `docker compose down -v` then `docker compose up -d --build`, then reimport the SQL dump
