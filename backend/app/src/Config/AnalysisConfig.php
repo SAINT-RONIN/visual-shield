@@ -49,7 +49,6 @@ class AnalysisConfig
     /** Number of bytes used to generate a unique storage filename (produces a 32-char hex string). */
     public const STORAGE_FILENAME_RANDOM_BYTES = 16;
 
-    // â”€â”€ Flash severity thresholds â”€â”€
 
     /** Flashes/sec above this value are classified as "high" severity. */
     public const FLASH_SEVERITY_HIGH = 10;
@@ -57,7 +56,6 @@ class AnalysisConfig
     /** Flashes/sec above this value are classified as "medium" severity. */
     public const FLASH_SEVERITY_MEDIUM = 5;
 
-    // â”€â”€ Motion severity thresholds â”€â”€
 
     /** Motion intensity above this value is classified as "high" severity. */
     public const MOTION_SEVERITY_HIGH = 120;
@@ -65,7 +63,6 @@ class AnalysisConfig
     /** Motion intensity above this value is classified as "medium" severity. */
     public const MOTION_SEVERITY_MEDIUM = 60;
 
-    // â”€â”€ Risk-level thresholds (used by RiskLevel::determine) â”€â”€
 
     /** Flash event count above this is flagged as "danger" risk color. */
     public const FLASH_COUNT_DANGER = 50;
@@ -73,7 +70,6 @@ class AnalysisConfig
     /** Flash event count above this is flagged as "warning" risk color. */
     public const FLASH_COUNT_WARNING = 20;
 
-    // â”€â”€ Pagination limits â”€â”€
 
     /** Minimum number of items per page. */
     public const PAGINATION_MIN_LIMIT = 1;

@@ -39,7 +39,6 @@ class Video
      * @return void
      */
     public function __construct(
-        // â”€â”€ Base fields (always present) â”€â”€
         public readonly int $id,
         public readonly int $userId,
         public readonly string $originalName,
@@ -55,7 +54,6 @@ class Video
         public readonly string $createdAt,
         public readonly string $updatedAt,
 
-        // â”€â”€ Enriched fields (only present when JOINed with analysis data) â”€â”€
         public readonly ?float $highestFlashFrequency = null,
         public readonly ?float $averageMotionIntensity = null,
         public readonly ?int $highSegments = null,
