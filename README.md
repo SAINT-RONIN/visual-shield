@@ -145,7 +145,9 @@ docker compose up -d --build
 
 This single command starts all backend containers: Nginx, PHP-FPM, the background worker, MySQL, and phpMyAdmin. Composer dependencies are installed automatically inside the container and the MySQL schema is initialized automatically from the migration files on first boot.
 
-**Step 2 - Import the database**
+**Step 2 - Import the database (required)**
+
+> **IMPORTANT:** You must import the database before using the app. Skipping this step will cause the application to fail.
 
 Once the containers are running, open phpMyAdmin at:
 
@@ -160,13 +162,13 @@ Log in with:
 | Username | `root` |
 | Password | `Secret123@` |
 
-Select (or create) the `visual_shield` database, go to the **Import** tab, and import the file located at:
+Select the `visual_shield` database, go to the **Import** tab, and import the file located at:
 
 ```text
 database/visual_shield.sql
 ```
 
-This file is in the root `database/` folder of the project, not inside `backend/`. Importing it loads existing records including user rows and analysis data.
+This file is in the root `database/` folder of the project, not inside `backend/`.
 
 **Step 3 - Start the frontend**
 
@@ -282,7 +284,7 @@ After importing the database you will have pre-existing user accounts available 
 | Viewer | `TestUser1` | `Password123!` |
 | Admin | `Admin` | `Admin123!` |
 
-If you prefer a clean database, skip the import step and register a new account from the frontend. New users are created with the `viewer` role by default. To promote a user to admin, run this query in phpMyAdmin on the `visual_shield` database:
+To promote a user to admin, run this query in phpMyAdmin on the `visual_shield` database:
 
 ```sql
 UPDATE users

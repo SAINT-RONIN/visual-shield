@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 /*
+* This idea I learned it from Linux class CRON JOBS.
  * This file is the background worker for video analysis.
  * We need it because checking a video's frames, flash events, and motion can take a while, and we do not want the upload request to sit there waiting for all of that work to finish.
  * Instead, uploads are saved first, marked as queued, and this worker keeps running in the background looking for the next video that is ready to be processed.

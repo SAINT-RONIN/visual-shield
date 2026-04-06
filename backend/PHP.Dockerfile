@@ -18,10 +18,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install the container entrypoint
-COPY docker/php-entrypoint.sh /usr/local/bin/backend-entrypoint
-RUN chmod +x /usr/local/bin/backend-entrypoint
-
 # PHP upload limits
 RUN echo "upload_max_filesize = 500M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 500M" >> /usr/local/etc/php/conf.d/uploads.ini \
@@ -29,5 +25,8 @@ RUN echo "upload_max_filesize = 500M" > /usr/local/etc/php/conf.d/uploads.ini \
 
 WORKDIR /app
 
-ENTRYPOINT ["/usr/local/bin/backend-entrypoint"]
+# Install Composer dependencies at build time
+COPY app/composer.json app/composer.lock ./
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
 CMD ["php-fpm", "-F"]
