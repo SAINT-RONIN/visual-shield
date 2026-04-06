@@ -10,7 +10,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-visual_shield}
       MYSQL_USER: ${MYSQL_USER:-vs_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vs_password}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
       JWT_SECRET: ${JWT_SECRET:-visual-shield-local-dev-secret}
       JWT_ISSUER: ${JWT_ISSUER:-visual-shield}
     depends_on:

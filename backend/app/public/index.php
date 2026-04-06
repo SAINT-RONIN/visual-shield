@@ -9,8 +9,22 @@ use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
 
 // CORS headers
+// CORS_ORIGIN accepts '*', a single origin, or a comma-separated list.
+// When a list is used, the request's Origin is checked against it and
+// reflected back only if it matches — required for credentialed requests.
 $corsOrigin = getenv('CORS_ORIGIN') ?: '*';
-header("Access-Control-Allow-Origin: {$corsOrigin}");
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if ($corsOrigin === '*') {
+    header('Access-Control-Allow-Origin: *');
+} else {
+    $allowedOrigins = array_map('trim', explode(',', $corsOrigin));
+    if (in_array($requestOrigin, $allowedOrigins, true)) {
+        header("Access-Control-Allow-Origin: {$requestOrigin}");
+        header('Vary: Origin');
+    }
+}
+
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
