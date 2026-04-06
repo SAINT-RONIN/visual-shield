@@ -297,6 +297,8 @@ SET role = 'admin'
 WHERE username = 'your_username';
 ```
 
+Or you can simply do it from the ADMIN PANEL.
+
 The `videos-to-use/` folder contains some sample videos for quick testing.
 
 ---
