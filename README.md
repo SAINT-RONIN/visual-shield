@@ -1,5 +1,10 @@
 # Visual Shield
 
+<h1 align="center" style="color: red;">⚠️ WARNING ⚠️</h1>
+<p align="center" style="color: red; font-size: 1.2em;"><strong>This codebase contains a video that can cause epilepsy. Please be careful.</strong></p>
+
+---
+
 An Automated Video Accessibility Risk Analysis Web Application
 
 | Field | Value |
