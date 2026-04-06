@@ -325,7 +325,6 @@ Current backend analysis parameters:
 | Flash danger frequency | `3/sec` | Warning threshold for dangerous flash frequency |
 | Motion threshold | `30` | Minimum pixel difference to count as motion |
 | Motion severity medium | `60` | Medium motion intensity threshold |
-| Motion severity high | `120` | High motion intensity threshold |
 
 ---
 
