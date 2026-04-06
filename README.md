@@ -158,7 +158,7 @@ Log in with:
 | Field | Value |
 |-------|-------|
 | Username | `root` |
-| Password | `root` |
+| Password | `Secret123@` |
 
 Select (or create) the `visual_shield` database, go to the **Import** tab, and import the file located at:
 
