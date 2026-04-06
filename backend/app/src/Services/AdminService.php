@@ -84,4 +84,45 @@ class AdminService extends BaseService implements AdminServiceInterface
 
         return $this->findOrFail($this->userRepository->updateRole($id, $role), 'User not found');
     }
+
+    /**
+     * Deactivate a user account.
+     *
+     * @param int $id User ID to deactivate.
+     * @return User Updated user model after deactivation.
+     * @throws \App\Exceptions\NotFoundException If the user does not exist.
+     * @throws ValidationException If this would deactivate the last active admin.
+     */
+    public function deactivateUser(int $id): User
+    {
+        $user = $this->findOrFail($this->userRepository->findById($id), 'User not found');
+
+        if (!$user->isActive) {
+            return $user;
+        }
+
+        if ($user->role === 'admin' && $this->userRepository->countActiveByRole('admin') <= 1) {
+            throw new ValidationException('At least one active admin account must remain');
+        }
+
+        return $this->findOrFail($this->userRepository->updateStatus($id, false), 'User not found');
+    }
+
+    /**
+     * Activate a previously deactivated user account.
+     *
+     * @param int $id User ID to activate.
+     * @return User Updated user model after activation.
+     * @throws \App\Exceptions\NotFoundException If the user does not exist.
+     */
+    public function activateUser(int $id): User
+    {
+        $user = $this->findOrFail($this->userRepository->findById($id), 'User not found');
+
+        if ($user->isActive) {
+            return $user;
+        }
+
+        return $this->findOrFail($this->userRepository->updateStatus($id, true), 'User not found');
+    }
 }

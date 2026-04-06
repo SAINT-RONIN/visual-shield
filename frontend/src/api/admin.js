@@ -19,3 +19,13 @@ export async function updateUserRole(userId, role) {
   const { data } = await api.patch(`/users/${userId}`, { role })
   return data.data ?? data
 }
+
+export async function deactivateUser(userId) {
+  const { data } = await api.patch(`/admin/users/${userId}/deactivate`)
+  return data.data ?? data
+}
+
+export async function activateUser(userId) {
+  const { data } = await api.patch(`/admin/users/${userId}/activate`)
+  return data.data ?? data
+}

@@ -33,4 +33,20 @@ interface AdminServiceInterface
      * @return User Updated user model after the role change.
      */
     public function updateUserRole(int $id, string $role): User;
+
+    /**
+     * Deactivate a user account.
+     *
+     * @param int $id User ID to deactivate.
+     * @return User Updated user model after deactivation.
+     */
+    public function deactivateUser(int $id): User;
+
+    /**
+     * Activate a previously deactivated user account.
+     *
+     * @param int $id User ID to activate.
+     * @return User Updated user model after activation.
+     */
+    public function activateUser(int $id): User;
 }

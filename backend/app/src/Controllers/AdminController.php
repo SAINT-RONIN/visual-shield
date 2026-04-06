@@ -76,6 +76,36 @@ class AdminController extends BaseController
     }
 
     /**
+     * Deactivate a user account (admin only).
+     *
+     * @param int $id User ID to deactivate.
+     * @return void
+     */
+    public function deactivateUser(int $id): void
+    {
+        $this->handleRequest(function () use ($id) {
+            $this->requireAdmin();
+            $user = $this->adminService->deactivateUser($id);
+            $this->jsonResponse(['data' => $user->toApiArray()]);
+        });
+    }
+
+    /**
+     * Activate a user account (admin only).
+     *
+     * @param int $id User ID to activate.
+     * @return void
+     */
+    public function activateUser(int $id): void
+    {
+        $this->handleRequest(function () use ($id) {
+            $this->requireAdmin();
+            $user = $this->adminService->activateUser($id);
+            $this->jsonResponse(['data' => $user->toApiArray()]);
+        });
+    }
+
+    /**
      * Enforce admin access for the current request.
      *
      * @return void

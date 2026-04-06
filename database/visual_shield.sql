@@ -175,6 +175,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) NOT NULL,
   `display_name` varchar(100) DEFAULT NULL,
   `role` varchar(20) NOT NULL DEFAULT 'viewer',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -183,10 +184,10 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password_hash`, `display_name`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$argon2id$v=19$m=65536,t=4,p=1$c1EzREJ3eWdSc3B6bWNDRw$jniTKxQn8+wzRsyGgPFqoveTKihZ71FZpEeBy9Mo5xA', 'Administrator', 'admin', '2026-04-04 19:13:43', '2026-04-04 19:23:35'),
-(2, 'codextest', '$argon2id$v=19$m=65536,t=4,p=1$a2FQVFdRNWE1UUpYSEVVZg$XQT9WmQmq2CupAxT/IRgbG/k+KoaaRcnGY9aGRhbrhA', 'Codex Test', 'viewer', '2026-04-04 19:59:48', '2026-04-04 19:59:48'),
-(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'viewer', '2026-04-04 20:04:20', '2026-04-04 20:04:20');
+INSERT INTO `users` (`id`, `username`, `password_hash`, `display_name`, `role`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$argon2id$v=19$m=65536,t=4,p=1$c1EzREJ3eWdSc3B6bWNDRw$jniTKxQn8+wzRsyGgPFqoveTKihZ71FZpEeBy9Mo5xA', 'Administrator', 'admin', 1, '2026-04-04 19:13:43', '2026-04-04 19:23:35'),
+(2, 'codextest', '$argon2id$v=19$m=65536,t=4,p=1$a2FQVFdRNWE1UUpYSEVVZg$XQT9WmQmq2CupAxT/IRgbG/k+KoaaRcnGY9aGRhbrhA', 'Codex Test', 'viewer', 1, '2026-04-04 19:59:48', '2026-04-04 19:59:48'),
+(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'viewer', 1, '2026-04-04 20:04:20', '2026-04-04 20:04:20');
 
 -- --------------------------------------------------------
 

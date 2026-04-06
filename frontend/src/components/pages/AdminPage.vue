@@ -2,7 +2,7 @@
 // Page: AdminPage is the route-level view for listing users and changing their roles.
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchUsers, updateUserRole } from '@/api/admin.js'
+import { fetchUsers, updateUserRole, deactivateUser, activateUser } from '@/api/admin.js'
 import { formatDateShort } from '@/utils/formatters.js'
 import { useAuth } from '@/composables/useAuth.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
@@ -10,6 +10,7 @@ import AppButton from '@/components/atoms/AppButton.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
 import RoleBadge from '@/components/atoms/RoleBadge.vue'
+import UserStatusBadge from '@/components/atoms/UserStatusBadge.vue'
 
 const router = useRouter()
 const { user: authUser, setUser } = useAuth()
@@ -18,6 +19,7 @@ const loading = ref(true)
 const error = ref('')
 const accessDenied = ref(false)
 const updatingRole = ref(null)
+const updatingStatus = ref(null)
 const adminCount = ref(0)
 
 const roleOptions = ['admin', 'viewer']
@@ -40,6 +42,32 @@ onMounted(async () => {
 
 function isLastAdmin(user) {
   return user.role === 'admin' && adminCount.value <= 1
+}
+
+function isLastActiveAdmin(user) {
+  return user.role === 'admin' && user.isActive && users.value.filter((u) => u.role === 'admin' && u.isActive).length <= 1
+}
+
+async function changeStatus(userId, activate) {
+  const user = users.value.find((candidate) => candidate.id === userId)
+  if (!user) return
+
+  if (!activate && isLastActiveAdmin(user)) {
+    error.value = 'At least one active admin account must remain'
+    return
+  }
+
+  updatingStatus.value = userId
+  error.value = ''
+
+  try {
+    const updatedUser = activate ? await activateUser(userId) : await deactivateUser(userId)
+    Object.assign(user, updatedUser)
+  } catch (err) {
+    error.value = err.response?.data?.error?.message || 'Failed to update status'
+  } finally {
+    updatingStatus.value = null
+  }
 }
 
 async function changeRole(userId, newRole) {
@@ -112,6 +140,7 @@ async function changeRole(userId, newRole) {
               <th class="px-3 sm:px-5 py-3 font-medium text-xs">Username</th>
               <th class="px-3 sm:px-5 py-3 font-medium text-xs hidden sm:table-cell">Display Name</th>
               <th class="px-3 sm:px-5 py-3 font-medium text-xs">Role</th>
+              <th class="px-3 sm:px-5 py-3 font-medium text-xs hidden sm:table-cell">Status</th>
               <th class="px-3 sm:px-5 py-3 font-medium text-xs hidden md:table-cell">Created</th>
               <th class="px-3 sm:px-5 py-3 font-medium text-xs">Actions</th>
             </tr>
@@ -128,6 +157,9 @@ async function changeRole(userId, newRole) {
               <td class="px-3 sm:px-5 py-3.5">
                 <RoleBadge :role="user.role" />
               </td>
+              <td class="px-3 sm:px-5 py-3.5 hidden sm:table-cell">
+                <UserStatusBadge :isActive="user.isActive" />
+              </td>
               <td class="px-3 sm:px-5 py-3.5 text-muted text-xs hidden md:table-cell">{{ formatDateShort(user.createdAt) }}</td>
               <td class="px-3 sm:px-5 py-3.5">
                 <div class="flex gap-1 flex-wrap">
@@ -136,10 +168,28 @@ async function changeRole(userId, newRole) {
                     :key="role"
                     variant="secondary"
                     size="sm"
-                    :disabled="updatingRole === user.id || (role === 'viewer' && isLastAdmin(user))"
+                    :disabled="updatingRole === user.id || updatingStatus === user.id || (role === 'viewer' && isLastAdmin(user))"
                     @click="changeRole(user.id, role)"
                   >
                     {{ updatingRole === user.id ? '...' : `Make ${role}` }}
+                  </AppButton>
+                  <AppButton
+                    v-if="user.isActive"
+                    variant="danger"
+                    size="sm"
+                    :disabled="updatingStatus === user.id || updatingRole === user.id || isLastActiveAdmin(user)"
+                    @click="changeStatus(user.id, false)"
+                  >
+                    {{ updatingStatus === user.id ? '...' : 'Deactivate' }}
+                  </AppButton>
+                  <AppButton
+                    v-else
+                    variant="secondary"
+                    size="sm"
+                    :disabled="updatingStatus === user.id || updatingRole === user.id"
+                    @click="changeStatus(user.id, true)"
+                  >
+                    {{ updatingStatus === user.id ? '...' : 'Activate' }}
                   </AppButton>
                 </div>
                 <p v-if="isLastAdmin(user)" class="mt-2 text-xs text-muted">

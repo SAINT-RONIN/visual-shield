@@ -6,8 +6,8 @@ An Automated Video Accessibility Risk Analysis Web Application
 |-------|-------|
 | Project | Visual Shield |
 | Type | Full-stack web application |
-| Backend | PHP 8.4, MySQL, Docker Compose |
-| Frontend | Vue 3, Vite, Tailwind CSS 4 |
+| Backend | PHP 8.4, MySQL 8, Docker Compose |
+| Frontend | Vue 3, Vite 7, Tailwind CSS 4 |
 | Focus | Flash, luminance, and motion risk analysis for video |
 
 ---
@@ -24,7 +24,7 @@ IMPORTANT NOTE: THIS APP IS SUBJECT TO EXPANSION AND CHANGES IN THE FUTURE.
 
 Visual Shield does not provide medical advice or medical diagnosis. The analysis is automated and based on technical thresholds for accessibility awareness only.
 
-Additional information can be found in [AI-USAGE.md](./AI-USAGE.md), [backend/README.md](./backend/README.md), and [frontend/README.md](./frontend/README.md).
+Additional information can be found in [AI-DISCLOUSURE.md](./AI-DISCLOUSURE.md), [backend/README.md](./backend/README.md), and [frontend/README.md](./frontend/README.md).
 
 [![Go to Setup](https://img.shields.io/badge/CLICK%20HERE%20TO%20GO%20TO-SETUP%20%26%20RUNNING%20THE%20PROJECT-blue?style=for-the-badge)](#setup-and-running-the-project)
 
@@ -47,7 +47,7 @@ Visual Shield is for people who want to screen video content for possible access
 | Charts | Chart.js + vue-chartjs |
 | Video processing | FFmpeg + FFprobe |
 | Image analysis | PHP GD |
-| Web server | Nginx |
+| Web server | Nginx (Alpine) |
 | Containers | Docker Compose |
 
 ---
@@ -134,55 +134,57 @@ Visual Shield includes the main features needed to upload videos, process them, 
 
 ### Quick start
 
-1. Clone or unzip the project folder
-2. Open a terminal in the `backend` folder
-3. Run:
+**Step 1 - Start the backend**
 
-```powershell
+Open a terminal, navigate to the `backend` folder, and run:
+
+```bash
+cd backend
 docker compose up -d --build
 ```
 
-4. Open a second terminal in the `frontend` folder
-5. Run:
+This single command starts all backend containers: Nginx, PHP-FPM, the background worker, MySQL, and phpMyAdmin. Composer dependencies are installed automatically inside the container and the MySQL schema is initialized automatically from the migration files on first boot.
 
-```powershell
-Copy-Item .env.example .env
-npm install
-npm run dev
+**Step 2 - Import the database**
+
+Once the containers are running, open phpMyAdmin at:
+
+```
+http://localhost:8080
 ```
 
-6. Open your browser and go to `http://localhost:5173`
-7. Register a new account through the frontend
-8. Upload a video and wait for the background worker to finish processing it
+Log in with:
 
-### Important setup note
+| Field | Value |
+|-------|-------|
+| Username | `root` |
+| Password | `root` |
 
-The backend has been simplified so that:
-
-- `docker compose up -d --build` starts the backend containers
-- Composer dependencies are installed automatically inside the backend app
-- MySQL tables are initialized automatically from the migration files on the first database boot
-
-So for the backend, there is no separate `composer install` step anymore and no manual first-time SQL import step anymore.
-
-The frontend is still a separate Vite application, so it still needs:
-
-- `npm install`
-- `npm run dev`
-
-### Optional database import
-
-If you want to inspect or import the exported database, there is also a root-level SQL dump at:
+Select (or create) the `visual_shield` database, go to the **Import** tab, and import the file located at:
 
 ```text
 database/visual_shield.sql
 ```
 
-This is optional. The normal backend startup already creates the tables automatically from the backend migration files on first boot.
+This file is in the root `database/` folder of the project, not inside `backend/`. Importing it loads existing records including user rows and analysis data.
 
-You would use the SQL dump only if you specifically want the exported database contents instead of starting from a clean local database.
+**Step 3 - Start the frontend**
 
-### Backend URLs
+Open a second terminal, navigate to the `frontend` folder, and run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Step 4 - Open the app**
+
+Go to `http://localhost:5173` in your browser.
+
+---
+
+### Service URLs
 
 | Service | URL |
 |---------|-----|
@@ -197,16 +199,16 @@ You would use the SQL dump only if you specifically want the exported database c
 | Container | Port | Purpose |
 |-----------|------|---------|
 | `nginx` | `8081` | Serves the backend API |
-| `php` | internal | Runs the PHP application |
+| `php` | internal | Runs the PHP-FPM application |
 | `worker` | internal | Processes queued video analysis jobs |
-| `mysql` | `3306` by default | Database server |
+| `mysql` | `3306` | Database server |
 | `phpmyadmin` | `8080` | Database management UI |
 
 ### Environment files
 
-Backend defaults already work for local development, so `backend/.env` is optional unless you want to override ports or credentials.
+Backend defaults already work for local development. A `backend/.env` file is optional and only needed if you want to override ports or credentials.
 
-Default backend values are:
+Default backend values:
 
 ```env
 MYSQL_ROOT_PASSWORD=root
@@ -222,7 +224,7 @@ JWT_SECRET=visual-shield-local-dev-secret
 JWT_ISSUER=visual-shield
 ```
 
-Frontend default value is:
+Frontend default value:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8081/api
@@ -230,7 +232,7 @@ VITE_API_BASE_URL=http://localhost:8081/api
 
 ### Common commands
 
-```powershell
+```bash
 # Backend: start
 cd backend
 docker compose up -d --build
@@ -263,39 +265,24 @@ npm run preview
 
 | Problem | Solution |
 |---------|----------|
-| Backend containers start but the database looks old | Run `docker compose down -v` inside `backend/`, then run `docker compose up -d --build` again |
-| Frontend cannot connect to the API | Check that the backend is running and that `VITE_API_BASE_URL` points to `http://localhost:8081/api` |
+| Backend containers start but the database looks old | Run `docker compose down -v` inside `backend/`, then `docker compose up -d --build`, then reimport `database/visual_shield.sql` |
+| Frontend cannot connect to the API | Check that the backend is running and that `VITE_API_BASE_URL` in `frontend/.env` points to `http://localhost:8081/api` |
 | Port already in use | Change the port in `backend/.env` or stop the conflicting local service |
-| Video analysis is not progressing | Check `docker compose logs -f worker` in the `backend/` folder |
-| `npm install` fails | Make sure you are using a supported Node.js version |
+| Video analysis is not progressing | Check `docker compose logs -f worker` inside the `backend/` folder |
+| `npm install` fails | Make sure you are using a supported Node.js version (`^20.19.0 \|\| >=22.12.0`) |
 
 ---
 
 ## Accounts and testing
 
-By default, the normal backend startup flow gives you a clean local database, so the simplest testing path is:
-
-- Register a new account from the frontend
-- New users are created with the `viewer` role by default
-- If you want to test the admin area, you can promote a user to `admin`
-- The `videos-to-use/` folder contains some default videos for quick and easy access during testing
-
-Test users:
+After importing the database you will have pre-existing user accounts available for testing:
 
 | Role | Username | Password |
 |------|----------|----------|
 | Viewer | `TestUser1` | `Password123!` |
 | Admin | `Admin` | `Admin123!` |
 
-There is also an exported database file in:
-
-```text
-database/visual_shield.sql
-```
-
-That export contains existing records, including user rows and analysis data. If you import that file, your database will no longer be a clean empty setup.
-
-For example, after registering a user, you can update their role in phpMyAdmin or run a query like this on the `visual_shield` database:
+If you prefer a clean database, skip the import step and register a new account from the frontend. New users are created with the `viewer` role by default. To promote a user to admin, run this query in phpMyAdmin on the `visual_shield` database:
 
 ```sql
 UPDATE users
@@ -303,66 +290,31 @@ SET role = 'admin'
 WHERE username = 'your_username';
 ```
 
-Default phpMyAdmin access for local development is:
-
-| Field | Value |
-|-------|-------|
-| URL | `http://localhost:8080` |
-| Username | `root` |
-| Password | `root` |
+The `videos-to-use/` folder contains some sample videos for quick testing.
 
 ---
 
 ## How the analysis works
 
-Here is the simplified workflow used by Visual Shield:
-
 1. A user uploads a video and selects a sampling rate
-2. The backend stores the file safely and creates a queued job
-3. The worker extracts frames using FFmpeg
-4. The analysis logic compares frames to calculate flash and motion metrics
-5. Results are saved in MySQL as analysis results, flagged segments, and datapoints
-6. The frontend displays the report with charts, segments, and exports
+2. The backend stores the file outside the public web root and creates a queued job
+3. The worker container picks up the job and extracts frames using FFmpeg
+4. The analysis logic compares consecutive frames to calculate flash and motion metrics
+5. Results are saved in MySQL as analysis results, flagged segments, and per-second datapoints
+6. The frontend displays the report with charts, segments, and export options
 
-The current backend configuration includes:
+Current backend analysis parameters:
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | Allowed sampling rates | `10, 15, 30, 60` fps | User-selectable analysis rates |
 | Max file size | `500 MB` | Maximum upload size |
-| Max total frames | `10000` | Cap on processed frames per video |
+| Max total frames | `10,000` | Cap on processed frames per video |
 | Flash threshold | `20` | Minimum luminance delta to count as a flash |
 | Flash danger frequency | `3/sec` | Warning threshold for dangerous flash frequency |
 | Motion threshold | `30` | Minimum pixel difference to count as motion |
 | Motion severity medium | `60` | Medium motion intensity threshold |
 | Motion severity high | `120` | High motion intensity threshold |
-
----
-
-## Database and design files
-
-I added two root-level folders to make supporting material easier to find.
-
-### Database folder
-
-The `database/` folder contains:
-
-```text
-database/visual_shield.sql
-```
-
-This is the exported database file for the project. It can be used if someone wants to inspect the database structure and data directly or import that exported state into MySQL through phpMyAdmin.
-
-### Figma design folder
-
-The `Figma-Design/` folder contains the design images for the project, including screens such as:
-
-- entrance
-- login
-- upload video
-- view report
-
-These designs were created by me for this project. They were not taken from the internet or copied from another source.
 
 ---
 
@@ -372,23 +324,31 @@ These designs were created by me for this project. They were not taken from the 
 visual-shield/
 |-- backend/
 |   |-- app/
-|   |   |-- public/              # API entry point and routes
-|   |   |-- cli/                 # Background worker
+|   |   |-- cli/                 # Background worker (worker.php)
+|   |   |-- public/              # API entry point (index.php) and routes
 |   |   |-- src/
-|   |   |   |-- Controllers/
-|   |   |   |-- Services/
-|   |   |   |-- Repositories/
-|   |   |   |-- Models/
-|   |   |   |-- DTOs/
 |   |   |   |-- Config/
+|   |   |   |-- Controllers/
+|   |   |   |-- DTOs/
+|   |   |   |-- Exceptions/
 |   |   |   |-- Framework/
+|   |   |   |-- Models/
+|   |   |   |-- Repositories/
+|   |   |   |-- Services/
 |   |   |   `-- Utils/
-|   |-- database/migrations/     # SQL schema initialization files
+|   |   `-- composer.json
+|   |-- database/
+|   |   `-- migrations/          # SQL schema files, auto-run on first MySQL boot
+|   |-- storage/
+|   |   `-- videos/              # Uploaded video files stored outside web root
 |   |-- docker-compose.yml
 |   |-- PHP.Dockerfile
+|   |-- nginx.conf
 |   `-- README.md
 |-- database/
-|   `-- visual_shield.sql        # Exported SQL database file
+|   `-- visual_shield.sql        # Exported SQL dump (import via phpMyAdmin)
+|-- docs/
+|   `-- Project-Proposal-VisualShield.pdf
 |-- Figma-Design/
 |   |-- Visual-Shield-web-application-Entrance.png
 |   |-- Visual-Shield-web-application-Login.png
@@ -396,29 +356,60 @@ visual-shield/
 |   `-- Visual-Shield-web-application-View-Report.png
 |-- frontend/
 |   |-- src/
-|   |   |-- api/
-|   |   |-- assets/
+|   |   |-- api/                 # API modules grouped by feature
+|   |   |-- assets/              # Global styles
 |   |   |-- components/
-|   |   |-- composables/
-|   |   |-- router/
-|   |   `-- utils/
+|   |   |   |-- atoms/
+|   |   |   |-- molecules/
+|   |   |   |-- organisms/
+|   |   |   |-- pages/
+|   |   |   `-- templates/
+|   |   |-- composables/         # Shared reactive state (useAuth, useToast, useTheme, useConfig)
+|   |   |-- router/              # Vue Router and auth guards
+|   |   `-- utils/               # Formatting, downloads, charts, API config
 |   |-- package.json
+|   |-- vite.config.js
 |   `-- README.md
-|-- AI-USAGE.md
+|-- videos-to-use/               # Sample test videos
+|-- AI-DISCLOUSURE.md
 `-- README.md
 ```
 
 ---
 
+## Database and design files
+
+### Database folder
+
+The `database/` folder at the root contains:
+
+```text
+database/visual_shield.sql
+```
+
+This is the exported database dump for the project. Import it through phpMyAdmin at `http://localhost:8080` to load existing users and analysis data. See the setup steps above for instructions.
+
+### Figma design folder
+
+The `Figma-Design/` folder contains design images for the project:
+
+- Entrance screen
+- Login screen
+- Upload video screen
+- View report screen
+
+These designs were created for this project.
+
+---
+
 ## Documentation
 
-Useful files in this repository:
-
-- [AI-USAGE.md](./AI-USAGE.md) for a summary of how AI was used during development
-- [backend/README.md](./backend/README.md) for backend-specific setup and architecture details
-- [database/visual_shield.sql](./database/visual_shield.sql) for the exported database
-- [frontend/README.md](./frontend/README.md) for frontend-specific setup and structure details
-- `Figma-Design/` for the original project design images created for this application
+- [AI-DISCLOUSURE.md](./AI-DISCLOUSURE.md) - summary of how AI was used during development
+- [backend/README.md](./backend/README.md) - backend-specific setup and architecture details
+- [frontend/README.md](./frontend/README.md) - frontend-specific setup and structure details
+- [database/visual_shield.sql](./database/visual_shield.sql) - exported database dump
+- [docs/Project-Proposal-VisualShield.pdf](./docs/Project-Proposal-VisualShield.pdf) - full project proposal
+- `Figma-Design/` - original design images created for this application
 
 ---
 

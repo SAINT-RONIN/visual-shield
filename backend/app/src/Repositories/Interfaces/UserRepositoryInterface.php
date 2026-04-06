@@ -84,4 +84,21 @@ interface UserRepositoryInterface
      * @return User|null Updated user, or null if the user does not exist.
      */
     public function updateRole(int $id, string $role): ?User;
+
+    /**
+     * Update a user's active status and return the updated record.
+     *
+     * @param int $id User ID to update.
+     * @param bool $isActive New active status.
+     * @return User|null Updated user, or null if the user does not exist.
+     */
+    public function updateStatus(int $id, bool $isActive): ?User;
+
+    /**
+     * Count active users with the given role.
+     *
+     * @param string $role Role name to count.
+     * @return int Number of active users with that role.
+     */
+    public function countActiveByRole(string $role): int;
 }

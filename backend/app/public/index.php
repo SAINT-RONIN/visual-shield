@@ -74,6 +74,8 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     // Admin
     $r->addRoute('GET', '/api/admin/users', ['adminController', 'listUsers']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/role', ['adminController', 'updateUserRole']);
+    $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/deactivate', ['adminController', 'deactivateUser']);
+    $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/activate', ['adminController', 'activateUser']);
 });
 
 $httpMethod = $_SERVER['REQUEST_METHOD'];

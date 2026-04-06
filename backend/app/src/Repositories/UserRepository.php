@@ -31,7 +31,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->db->prepare(
-            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
+            'SELECT id, username, password_hash, display_name, role, is_active, created_at, updated_at
              FROM users WHERE username = :username'
         );
         $stmt->execute(['username' => $username]);
@@ -51,7 +51,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     public function findById(int $id): ?User
     {
         $stmt = $this->db->prepare(
-            'SELECT id, username, password_hash, display_name, role, created_at, updated_at
+            'SELECT id, username, password_hash, display_name, role, is_active, created_at, updated_at
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -137,7 +137,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      */
     public function findAll(UserFilterDTO $filters): array
     {
-        $sql = 'SELECT id, username, password_hash, display_name, role, created_at, updated_at
+        $sql = 'SELECT id, username, password_hash, display_name, role, is_active, created_at, updated_at
                 FROM users
                 WHERE 1 = 1';
         $params = [];
@@ -213,5 +213,33 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $stmt->execute(['role' => $role, 'id' => $id]);
 
         return $this->findById($id);
+    }
+
+    /** Update a user's active status and return the updated user, or null if the ID does not exist. */
+    /**
+     * @param int $id
+     * @param bool $isActive
+     * @return ?User
+     */
+    public function updateStatus(int $id, bool $isActive): ?User
+    {
+        $stmt = $this->db->prepare('UPDATE users SET is_active = :isActive WHERE id = :id');
+        $stmt->execute(['isActive' => (int) $isActive, 'id' => $id]);
+
+        return $this->findById($id);
+    }
+
+    /**
+     * Count active users with the given role.
+     *
+     * @param string $role Role name to count.
+     * @return int Number of active users with that role.
+     */
+    public function countActiveByRole(string $role): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM users WHERE role = :role AND is_active = 1');
+        $stmt->execute(['role' => $role]);
+
+        return (int) $stmt->fetchColumn();
     }
 }

@@ -32,6 +32,7 @@ class User
         public readonly string $passwordHash,
         public readonly ?string $displayName,
         public readonly string $role,
+        public readonly bool $isActive,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {}
@@ -54,6 +55,7 @@ class User
             passwordHash: $row['password_hash'],
             displayName: $row['display_name'],
             role: $row['role'] ?? 'viewer',
+            isActive: (bool) ($row['is_active'] ?? true),
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at'],
         );
@@ -75,6 +77,7 @@ class User
             'username' => $this->username,
             'displayName' => $this->displayName,
             'role' => $this->role,
+            'isActive' => $this->isActive,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
         ];

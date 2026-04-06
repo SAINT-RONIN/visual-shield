@@ -7,31 +7,30 @@ The backend powers authentication, video uploads, background analysis, report ge
 - PHP 8.4 with Composer autoloading
 - FastRoute for HTTP routing
 - MySQL 8
-- Nginx + PHP-FPM
+- Nginx (Alpine) + PHP-FPM
 - FFmpeg and FFprobe for video processing
-- GD for frame analysis
+- GD library for frame-level image analysis
 - Docker Compose for local infrastructure
 
-## Main Responsibilities
+## Main responsibilities
 
 - Register, log in, and log out users with JWT bearer authentication
 - Store uploaded videos outside the public web root
-- Queue and process video analysis jobs in a worker container
+- Queue and process video analysis jobs in a background worker container
 - Detect flash frequency, luminance changes, and motion intensity
 - Serve report data, segment data, datapoints, JSON exports, and CSV exports
-- Provide admin endpoints for user management
+- Provide admin endpoints for user role management
 
-## Project Layout
+## Project layout
 
 ```text
 backend/
 |-- app/
-|   |-- cli/            # Background worker
-|   |-- public/         # API entry point and routes
+|   |-- cli/            # Background worker (worker.php)
+|   |-- public/         # API entry point (index.php) and route definitions
 |   |-- src/
 |   |   |-- Config/
 |   |   |-- Controllers/
-|   |   |-- Contracts/
 |   |   |-- DTOs/
 |   |   |-- Exceptions/
 |   |   |-- Framework/
@@ -41,50 +40,63 @@ backend/
 |   |   `-- Utils/
 |   `-- composer.json
 |-- database/
-|   `-- migrations/
+|   `-- migrations/     # SQL schema files, auto-run on first MySQL boot
 |-- storage/
-|   `-- videos/
+|   `-- videos/         # Uploaded video files stored outside web root
 |-- .env.example
 |-- docker-compose.yml
 |-- nginx.conf
 `-- PHP.Dockerfile
 ```
 
-## Local Setup
+## Local setup
 
-### 1. Optional: customize the environment
+### Step 1 - Start the backend
 
-```powershell
-Copy-Item .env.example .env
-```
+Open a terminal in the `backend` folder and run:
 
-You only need a `.env` file if you want to override the default local ports or database credentials. The `docker-compose.yml` file now includes sensible local defaults.
-
-### 2. Start the backend
-
-```powershell
+```bash
+cd backend
 docker compose up -d --build
 ```
 
-For a first-time setup, this one command now:
+This starts all backend services:
 
 - `nginx` on `http://localhost:8081`
 - `phpmyadmin` on `http://localhost:8080`
 - `mysql` on `localhost:3306`
-- `worker` for background analysis
-- installs PHP dependencies automatically inside the mounted `app/` folder
-- initializes the MySQL schema automatically from `database/migrations/` on the first database boot
+- `php` (PHP-FPM application server, internal)
+- `worker` (background analysis worker, internal)
 
-### 3. Verify the API
+Composer dependencies are installed automatically inside the container. The MySQL schema is initialized automatically from `database/migrations/` on the first database boot.
+
+### Step 2 - Import the database
+
+Open phpMyAdmin at `http://localhost:8080` and log in with:
+
+| Field | Value |
+|-------|-------|
+| Username | `root` |
+| Password | `root` |
+
+Select the `visual_shield` database, go to the **Import** tab, and import:
+
+```text
+database/visual_shield.sql
+```
+
+This file is in the root-level `database/` folder of the project (one level above `backend/`).
+
+### Step 3 - Verify the API
 
 ```text
 GET http://localhost:8081/api/health
 GET http://localhost:8081/api/health/db
 ```
 
-## Environment Variables
+## Environment variables
 
-Default local values are defined in `.env.example`.
+Default local values are defined in `.env.example`. A `.env` file is optional and only needed if you want to override ports or credentials.
 
 ```env
 MYSQL_ROOT_PASSWORD=root
@@ -100,7 +112,7 @@ JWT_SECRET=visual-shield-local-dev-secret
 JWT_ISSUER=visual-shield
 ```
 
-## API Overview
+## API overview
 
 Base URL:
 
@@ -115,6 +127,7 @@ Main route groups:
 - Users: `/users`, `/users/me`
 - Videos: `/videos`, `/videos/{id}`, `/videos/{id}/reanalyze`, `/videos/{id}/stream`
 - Reports: `/videos/{id}/report`, `/videos/{id}/report/json`, `/videos/{id}/report/csv`
+- Segments and datapoints: `/videos/{id}/segments`, `/videos/{id}/datapoints`
 - Admin: `/admin/users`, `/admin/users/{id}/role`
 - Health and config: `/health`, `/health/db`, `/config`
 
@@ -122,9 +135,9 @@ Routes are registered in `app/public/index.php`.
 
 ## Worker
 
-The `worker` service polls for queued videos and processes them continuously. If you want to watch it separately:
+The `worker` service polls for queued videos and processes them continuously. To watch its output:
 
-```powershell
+```bash
 docker compose logs -f worker
 ```
 
@@ -134,14 +147,15 @@ The backend follows a controller -> service -> repository flow.
 
 - Controllers handle HTTP input and output
 - Services contain validation and business logic
-- Repositories perform database queries
+- Repositories perform database queries using PDO prepared statements
 - DTOs and models move typed data between layers
-- Framework classes provide shared infrastructure such as routing, auth, and service wiring
+- Framework classes provide shared infrastructure: routing, JWT auth, and dependency wiring
 
 ## Notes
 
-- Uploaded videos are stored in `storage/videos/`
+- Uploaded videos are stored in `storage/videos/`, outside the public web root
 - The API returns JSON responses, including structured error responses
 - Authenticated requests use the `Authorization: Bearer <jwt>` header
-- Streaming is handled through the backend, not by exposing uploaded files directly
-- MySQL init scripts only run when the `mysql_data` volume is created for the first time. If you need a fresh local database, run `docker compose down -v` and then `docker compose up -d --build`
+- Video streaming is handled through the backend, not by exposing uploaded files directly
+- MySQL init scripts only run when the `mysql_data` volume is created for the first time
+- To reset the local database, run `docker compose down -v` then `docker compose up -d --build`, then reimport the SQL dump

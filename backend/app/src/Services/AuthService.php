@@ -122,7 +122,13 @@ class AuthService extends BaseService implements AuthServiceInterface
             return null;
         }
 
-        return $this->userRepo->findById($userId);
+        $user = $this->userRepo->findById($userId);
+
+        if (!$user || !$user->isActive) {
+            return null;
+        }
+
+        return $user;
     }
 
     //  Profile
@@ -202,6 +208,10 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         if (!$credentialsAreValid) {
             throw new UnauthorizedException('Invalid username or password');
+        }
+
+        if (!$user->isActive) {
+            throw new UnauthorizedException('This account has been deactivated');
         }
 
         return $user;
