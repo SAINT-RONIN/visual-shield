@@ -308,6 +308,8 @@ Current backend analysis parameters:
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | Allowed sampling rates | `10, 15, 30, 60` fps | User-selectable analysis rates |
+
+> **Note on sampling rates:** 60 fps could not be properly tested during development as it caused my system(Laptop) to glitch. I recommend to test with 15 to 30 fps. If you have a powerful laptop/pc then go ahead and test 60fps.
 | Max file size | `500 MB` | Maximum upload size |
 | Max total frames | `10,000` | Cap on processed frames per video |
 | Flash threshold | `20` | Minimum luminance delta to count as a flash |
