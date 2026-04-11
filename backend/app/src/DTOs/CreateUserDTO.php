@@ -17,10 +17,10 @@ final readonly class CreateUserDTO
     private const ASSIGNABLE_ROLES = ['admin', 'member'];
 
     public function __construct(
-        public string $username,
-        public string $password,
-        public ?string $displayName,
-        public string $role,
+        public readonly string $username,
+        public readonly string $password,
+        public readonly ?string $displayName,
+        public readonly string $role,
     ) {}
 
     // Throws ValidationException if any required field is missing or the role is not assignable.
