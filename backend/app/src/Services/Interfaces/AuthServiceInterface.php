@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
+use App\DTOs\ChangePasswordDTO;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
@@ -60,4 +61,13 @@ interface AuthServiceInterface
      * @return User Refreshed user profile after saving.
      */
     public function updateProfile(int $userId, UpdateProfileDTO $dto): User;
+
+    /**
+     * Change an authenticated user's own password after verifying their current one.
+     *
+     * @param int $userId Authenticated user ID.
+     * @param ChangePasswordDTO $dto Validated password change payload.
+     * @return void
+     */
+    public function changePassword(int $userId, ChangePasswordDTO $dto): void;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\Interfaces\AdminServiceInterface;
+use App\DTOs\AdminResetPasswordDTO;
 use App\DTOs\CreateUserDTO;
 use App\DTOs\UpdateUserRoleDTO;
 use App\DTOs\UserFilterDTO;
@@ -118,6 +119,22 @@ class AdminController extends BaseController
             $dto = CreateUserDTO::fromArray($this->getJsonBody());
             $user = $this->adminService->createUser($dto);
             $this->jsonResponse(['data' => $user->toApiArray()], 201);
+        });
+    }
+
+    /**
+     * Force-reset a user's password (admin only).
+     *
+     * @param int $id User ID whose password should be reset.
+     * @return void
+     */
+    public function resetUserPassword(int $id): void
+    {
+        $this->handleRequest(function () use ($id) {
+            $this->requireAdmin();
+            $dto = AdminResetPasswordDTO::fromArray($this->getJsonBody());
+            $this->adminService->resetUserPassword($id, $dto);
+            $this->jsonResponse(['message' => 'Password reset successfully'], 200);
         });
     }
 

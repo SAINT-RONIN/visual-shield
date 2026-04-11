@@ -34,3 +34,7 @@ export async function createUser(username, password, displayName, role) {
   const { data } = await api.post('/admin/users', { username, password, displayName, role })
   return data.data ?? data
 }
+
+export async function resetUserPassword(userId, newPassword) {
+  await api.patch(`/admin/users/${userId}/password`, { newPassword })
+}

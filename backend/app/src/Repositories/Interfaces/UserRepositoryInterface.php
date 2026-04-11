@@ -101,4 +101,13 @@ interface UserRepositoryInterface
      * @return int Number of active users with that role.
      */
     public function countActiveByRole(string $role): int;
+
+    /**
+     * Replace a user's stored password hash.
+     *
+     * @param int $id User ID to update.
+     * @param string $passwordHash New Argon2id password hash.
+     * @return void
+     */
+    public function updatePassword(int $id, string $passwordHash): void;
 }

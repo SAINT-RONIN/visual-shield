@@ -174,4 +174,11 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
         return (int) $stmt->fetchColumn();
     }
+
+    // Replaces the stored password hash; used for both self-service change and admin reset.
+    public function updatePassword(int $id, string $passwordHash): void
+    {
+        $stmt = $this->db->prepare('UPDATE users SET password_hash = :passwordHash WHERE id = :id');
+        $stmt->execute(['passwordHash' => $passwordHash, 'id' => $id]);
+    }
 }

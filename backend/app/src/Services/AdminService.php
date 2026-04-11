@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\AdminServiceInterface;
+use App\DTOs\AdminResetPasswordDTO;
 use App\DTOs\CreateUserDTO;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
@@ -100,5 +101,16 @@ class AdminService extends BaseService implements AdminServiceInterface
         $newUserId = $this->userRepository->create($dto->username, $hashedPassword, $dto->displayName, $dto->role);
 
         return $this->findOrFail($this->userRepository->findById($newUserId), 'User not found');
+    }
+
+    // Force-resets a user's password without requiring their current one; throws if the user does not exist.
+    public function resetUserPassword(int $id, AdminResetPasswordDTO $dto): User
+    {
+        $user = $this->findOrFail($this->userRepository->findById($id), 'User not found');
+
+        $hashedPassword = password_hash($dto->newPassword, PASSWORD_ARGON2ID);
+        $this->userRepository->updatePassword($user->id, $hashedPassword);
+
+        return $this->findOrFail($this->userRepository->findById($id), 'User not found');
     }
 }

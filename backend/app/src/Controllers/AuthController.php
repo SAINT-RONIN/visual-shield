@@ -8,6 +8,7 @@ use App\Services\Interfaces\AuthServiceInterface;
 use App\Framework\BaseController;
 use App\Framework\AuthMiddleware;
 use App\Framework\ServiceRegistry;
+use App\DTOs\ChangePasswordDTO;
 use App\DTOs\RegisterDTO;
 use App\DTOs\LoginDTO;
 use App\DTOs\UpdateProfileDTO;
@@ -104,6 +105,21 @@ class AuthController extends BaseController
             $dto = UpdateProfileDTO::fromArray($this->getJsonBody());
             $user = $this->authService->updateProfile($userId, $dto);
             $this->jsonResponse(['data' => $user->toApiArray()], 200);
+        });
+    }
+
+    /**
+     * Change the authenticated user's own password.
+     *
+     * @return void
+     */
+    public function changePassword(): void
+    {
+        $this->handleRequest(function () {
+            $userId = $this->getAuthenticatedUserId();
+            $dto = ChangePasswordDTO::fromArray($this->getJsonBody());
+            $this->authService->changePassword($userId, $dto);
+            $this->jsonResponse(['message' => 'Password changed successfully'], 200);
         });
     }
 }

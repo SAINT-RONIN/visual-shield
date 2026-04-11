@@ -2,7 +2,7 @@
 // Page: AdminPage is the route-level view for listing users and changing their roles.
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchUsers, updateUserRole, deactivateUser, activateUser, createUser } from '@/api/admin.js'
+import { fetchUsers, updateUserRole, deactivateUser, activateUser, createUser, resetUserPassword } from '@/api/admin.js'
 import { formatDateShort } from '@/utils/formatters.js'
 import { useAuth } from '@/composables/useAuth.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
@@ -31,6 +31,55 @@ const showCreateModal = ref(false)
 const creating = ref(false)
 const createError = ref('')
 const createForm = ref({ username: '', password: '', displayName: '', role: 'member' })
+
+// Reset password modal state
+const showResetModal = ref(false)
+const resettingPassword = ref(false)
+const resetError = ref('')
+const resetTargetUser = ref(null)
+const resetForm = ref({ newPassword: '', confirmPassword: '' })
+
+function openResetModal(user) {
+  resetTargetUser.value = user
+  resetForm.value = { newPassword: '', confirmPassword: '' }
+  resetError.value = ''
+  showResetModal.value = true
+}
+
+function closeResetModal() {
+  showResetModal.value = false
+  resetTargetUser.value = null
+}
+
+async function submitResetPassword() {
+  resetError.value = ''
+
+  if (!resetForm.value.newPassword) {
+    resetError.value = 'New password is required'
+    return
+  }
+
+  if (resetForm.value.newPassword.length < 8) {
+    resetError.value = 'Password must be at least 8 characters'
+    return
+  }
+
+  if (resetForm.value.newPassword !== resetForm.value.confirmPassword) {
+    resetError.value = 'Passwords do not match'
+    return
+  }
+
+  resettingPassword.value = true
+
+  try {
+    await resetUserPassword(resetTargetUser.value.id, resetForm.value.newPassword)
+    closeResetModal()
+  } catch (err) {
+    resetError.value = err.response?.data?.error?.message || 'Failed to reset password'
+  } finally {
+    resettingPassword.value = false
+  }
+}
 
 const roleSelectOptions = [
   { value: 'member', label: 'Member' },
@@ -166,6 +215,62 @@ async function changeRole(userId, newRole) {
 
 <template>
   <PageTemplate title="Admin Panel">
+
+    <!-- Reset Password Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showResetModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        @click.self="closeResetModal"
+      >
+        <div class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <h2 class="text-lg font-semibold text-heading mb-1">Reset Password</h2>
+          <p class="text-sm text-muted mb-5">
+            Setting a new password for <span class="text-heading font-medium">{{ resetTargetUser?.username }}</span>
+          </p>
+
+          <form class="flex flex-col gap-4" @submit.prevent="submitResetPassword">
+            <AppInput
+              v-model="resetForm.newPassword"
+              label="New Password"
+              type="password"
+              placeholder="At least 8 characters"
+              required
+            />
+            <AppInput
+              v-model="resetForm.confirmPassword"
+              label="Confirm New Password"
+              type="password"
+              placeholder="Repeat new password"
+              required
+            />
+
+            <AlertMessage type="error" :message="resetError" />
+
+            <div class="flex gap-3 pt-1">
+              <AppButton
+                type="button"
+                variant="secondary"
+                fullWidth
+                :disabled="resettingPassword"
+                @click="closeResetModal"
+              >
+                Cancel
+              </AppButton>
+              <AppButton
+                type="submit"
+                variant="primary"
+                fullWidth
+                :loading="resettingPassword"
+                :disabled="resettingPassword"
+              >
+                {{ resettingPassword ? 'Resetting…' : 'Reset Password' }}
+              </AppButton>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Create User Modal -->
     <Teleport to="body">
@@ -310,6 +415,14 @@ async function changeRole(userId, newRole) {
                     @click="changeStatus(user.id, true)"
                   >
                     {{ updatingStatus === user.id ? '...' : 'Activate' }}
+                  </AppButton>
+                  <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="updatingRole === user.id || updatingStatus === user.id"
+                    @click="openResetModal(user)"
+                  >
+                    Reset Password
                   </AppButton>
                 </div>
                 <p v-if="isLastAdmin(user)" class="mt-2 text-xs text-muted">

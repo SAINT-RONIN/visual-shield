@@ -51,6 +51,7 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/api/auth/logout', ['authController', 'logout']);
     $r->addRoute('GET', '/api/users/me', ['authController', 'getProfile']);
     $r->addRoute('PUT', '/api/users/me', ['authController', 'updateProfile']);
+    $r->addRoute('PATCH', '/api/users/me/password', ['authController', 'changePassword']);
     $r->addRoute('GET', '/api/users', ['adminController', 'listUsers']);
     $r->addRoute('PATCH', '/api/users/{id:\d+}', ['adminController', 'updateUserRole']);
 
@@ -77,6 +78,7 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/role', ['adminController', 'updateUserRole']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/deactivate', ['adminController', 'deactivateUser']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/activate', ['adminController', 'activateUser']);
+    $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/password', ['adminController', 'resetUserPassword']);
 });
 
 $httpMethod = $_SERVER['REQUEST_METHOD'];

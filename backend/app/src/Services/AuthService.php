@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Repositories\Interfaces\TokenRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
+use App\DTOs\ChangePasswordDTO;
 use App\DTOs\LoginDTO;
 use App\DTOs\LoginResult;
 use App\DTOs\RegisterDTO;
@@ -106,6 +107,19 @@ class AuthService extends BaseService implements AuthServiceInterface
         $this->userRepo->updateProfile($userId, $dto->displayName);
 
         return $this->findUserOrFail($userId);
+    }
+
+    // Verifies the current password before replacing it with the new one.
+    public function changePassword(int $userId, ChangePasswordDTO $dto): void
+    {
+        $user = $this->findUserOrFail($userId);
+
+        if (!password_verify($dto->currentPassword, $user->passwordHash)) {
+            throw new ValidationException('Current password is incorrect');
+        }
+
+        $hashedPassword = password_hash($dto->newPassword, PASSWORD_ARGON2ID);
+        $this->userRepo->updatePassword($userId, $hashedPassword);
     }
 
     //  Lookup helpers

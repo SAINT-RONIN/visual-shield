@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
+use App\DTOs\AdminResetPasswordDTO;
 use App\DTOs\CreateUserDTO;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
@@ -58,4 +59,13 @@ interface AdminServiceInterface
      * @return User The newly created user model.
      */
     public function createUser(CreateUserDTO $dto): User;
+
+    /**
+     * Force-reset any user's password without requiring their current one.
+     *
+     * @param int $id User ID whose password should be reset.
+     * @param AdminResetPasswordDTO $dto Validated new password payload.
+     * @return User The user model after the reset.
+     */
+    public function resetUserPassword(int $id, AdminResetPasswordDTO $dto): User;
 }
