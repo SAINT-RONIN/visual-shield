@@ -50,7 +50,7 @@ class UploadVideoDTO
         $rawRate = $postData['samplingRate'] ?? $postData['sampling_rate'] ?? 0;
         $rate = (int) $rawRate;
 
-        if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
+        if (!\in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             throw new ValidationException(
                 'Invalid sampling rate. Allowed values: ' . implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES)
             );

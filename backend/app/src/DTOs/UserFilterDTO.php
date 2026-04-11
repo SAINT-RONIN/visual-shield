@@ -27,18 +27,18 @@ final class UserFilterDTO
         $validSorts = ['created_at', 'username', 'role'];
         $validOrders = ['asc', 'desc'];
 
-        $role = isset($query['role']) && in_array($query['role'], $validRoles, true)
+        $role = isset($query['role']) && \in_array($query['role'], $validRoles, true)
             ? $query['role']
             : null;
 
         $searchRaw = isset($query['search']) ? trim((string) $query['search']) : '';
         $search = $searchRaw !== '' ? $searchRaw : null;
 
-        $sort = isset($query['sort']) && in_array($query['sort'], $validSorts, true)
+        $sort = isset($query['sort']) && \in_array($query['sort'], $validSorts, true)
             ? $query['sort']
             : 'created_at';
 
-        $order = isset($query['order']) && in_array($query['order'], $validOrders, true)
+        $order = isset($query['order']) && \in_array($query['order'], $validOrders, true)
             ? $query['order']
             : 'asc';
 

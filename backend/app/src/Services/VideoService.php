@@ -120,6 +120,26 @@ class VideoService extends BaseService implements VideoServiceInterface
     }
 
     /**
+     * This returns all videos across every user in a shape the admin panel
+     * can page through, with uploader info included for context.
+     *
+     * @param VideoFilterDTO $filters Validated filter, sort, and pagination options.
+     * @return PaginatedResultDTO Paginated collection of matching videos.
+     */
+    public function getAllForAdmin(VideoFilterDTO $filters): PaginatedResultDTO
+    {
+        $videos = $this->videoRepo->findAllForAdmin($filters);
+        $total = $this->videoRepo->countAllForAdmin($filters);
+
+        return new PaginatedResultDTO(
+            items: $videos,
+            total: $total,
+            limit: $filters->limit,
+            offset: $filters->offset,
+        );
+    }
+
+    /**
      * This updates a video's editable metadata after first checking that the
      * user actually owns the video they are trying to change.
      *
@@ -247,7 +267,7 @@ class VideoService extends BaseService implements VideoServiceInterface
         $fileInfo = new \finfo(FILEINFO_MIME_TYPE);
         $detectedMimeType = $fileInfo->file($temporaryFilePath);
 
-        if (!in_array($detectedMimeType, self::ALLOWED_MIME_TYPES, true)) {
+        if (!\in_array($detectedMimeType, self::ALLOWED_MIME_TYPES, true)) {
             throw new ValidationException('Invalid file type. Allowed: MP4, WebM');
         }
     }
@@ -277,7 +297,7 @@ class VideoService extends BaseService implements VideoServiceInterface
      */
     private function validateSamplingRate(int $samplingRate): void
     {
-        if (!in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
+        if (!\in_array($samplingRate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
             throw new ValidationException("Invalid sampling rate. Allowed: {$allowedRates}");
         }

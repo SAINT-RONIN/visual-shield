@@ -41,6 +41,22 @@ interface VideoRepositoryInterface
     public function countAllByUserId(int $userId, VideoFilterDTO $filters): int;
 
     /**
+     * Retrieve all videos across all users with optional filters (admin use).
+     *
+     * @param VideoFilterDTO $filters Validated list filters and pagination options.
+     * @return Video[] Matching video models, each enriched with uploader info.
+     */
+    public function findAllForAdmin(VideoFilterDTO $filters): array;
+
+    /**
+     * Count all videos across all users that match the supplied filters (admin use).
+     *
+     * @param VideoFilterDTO $filters Validated list filters and pagination options.
+     * @return int Number of matching videos.
+     */
+    public function countAllForAdmin(VideoFilterDTO $filters): int;
+
+    /**
      * Retrieve a single video owned by a specific user.
      *
      * @param int $id Video ID to load.

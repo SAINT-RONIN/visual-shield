@@ -31,6 +31,14 @@ interface VideoServiceInterface
     public function getAllForUser(int $userId, VideoFilterDTO $filters): PaginatedResultDTO;
 
     /**
+     * Get all videos across all users (admin use), with optional filtering, sorting, and pagination.
+     *
+     * @param VideoFilterDTO $filters Validated list filters and pagination options.
+     * @return PaginatedResultDTO Paginated collection of matching videos, each with uploader info.
+     */
+    public function getAllForAdmin(VideoFilterDTO $filters): PaginatedResultDTO;
+
+    /**
      * Update a video's metadata (title/original name).
      *
      * @param int $userId Authenticated owner of the video.

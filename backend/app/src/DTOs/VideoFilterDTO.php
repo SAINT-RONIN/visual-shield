@@ -22,6 +22,7 @@ final class VideoFilterDTO
         public readonly string $order = 'desc',
         public readonly int $limit = 20,
         public readonly int $offset = 0,
+        public readonly ?int $userId = null,
     ) {}
 
     // Invalid or missing values fall back to safe defaults — no injection risk.
@@ -31,18 +32,18 @@ final class VideoFilterDTO
         $validOrders = ['asc', 'desc'];
         $validStatuses = ['queued', 'processing', 'completed', 'failed'];
 
-        $status = isset($query['status']) && in_array($query['status'], $validStatuses, true)
+        $status = isset($query['status']) && \in_array($query['status'], $validStatuses, true)
             ? $query['status']
             : null;
 
         $searchRaw = isset($query['search']) ? trim($query['search']) : '';
         $search = $searchRaw !== '' ? $searchRaw : null;
 
-        $sort = isset($query['sort']) && in_array($query['sort'], $validSorts, true)
+        $sort = isset($query['sort']) && \in_array($query['sort'], $validSorts, true)
             ? $query['sort']
             : 'created_at';
 
-        $order = isset($query['order']) && in_array($query['order'], $validOrders, true)
+        $order = isset($query['order']) && \in_array($query['order'], $validOrders, true)
             ? $query['order']
             : 'desc';
 
@@ -52,6 +53,10 @@ final class VideoFilterDTO
         $rawOffset = isset($query['offset']) ? (int) $query['offset'] : 0;
         $offset = max(0, $rawOffset);
 
+        $userId = isset($query['userId']) && is_numeric($query['userId']) && (int) $query['userId'] > 0
+            ? (int) $query['userId']
+            : null;
+
         return new self(
             status: $status,
             search: $search,
@@ -59,6 +64,7 @@ final class VideoFilterDTO
             order: $order,
             limit: $limit,
             offset: $offset,
+            userId: $userId,
         );
     }
 }

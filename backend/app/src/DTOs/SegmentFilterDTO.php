@@ -29,19 +29,19 @@ final class SegmentFilterDTO
         $validSorts = ['start_time', 'end_time', 'segment_type', 'severity', 'metric_value'];
         $validOrders = ['asc', 'desc'];
 
-        $type = isset($query['type']) && in_array($query['type'], $validTypes, true)
+        $type = isset($query['type']) && \in_array($query['type'], $validTypes, true)
             ? $query['type']
             : null;
 
-        $severity = isset($query['severity']) && in_array($query['severity'], $validSeverities, true)
+        $severity = isset($query['severity']) && \in_array($query['severity'], $validSeverities, true)
             ? $query['severity']
             : null;
 
-        $sort = isset($query['segment_sort']) && in_array($query['segment_sort'], $validSorts, true)
+        $sort = isset($query['segment_sort']) && \in_array($query['segment_sort'], $validSorts, true)
             ? $query['segment_sort']
             : 'start_time';
 
-        $order = isset($query['segment_order']) && in_array($query['segment_order'], $validOrders, true)
+        $order = isset($query['segment_order']) && \in_array($query['segment_order'], $validOrders, true)
             ? $query['segment_order']
             : 'asc';
 

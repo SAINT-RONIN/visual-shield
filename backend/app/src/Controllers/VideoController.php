@@ -52,7 +52,9 @@ class VideoController extends BaseController
     }
 
     /**
-     * List all videos for the authenticated user with pagination and filters.
+     * List videos with pagination and filters.
+     *
+     * Admins receive all videos across every user; regular users see only their own.
      *
      * @return void
      */
@@ -60,8 +62,12 @@ class VideoController extends BaseController
     {
         $this->handleRequest(function () {
             $userId = $this->getAuthenticatedUserId();
+            $role = $this->getAuthenticatedUserRole();
             $filters = VideoFilterDTO::fromQuery($_GET);
-            $result = $this->videoService->getAllForUser($userId, $filters);
+
+            $result = $role === 'admin'
+                ? $this->videoService->getAllForAdmin($filters)
+                : $this->videoService->getAllForUser($userId, $filters);
 
             $this->jsonResponse([
                 'data' => array_map(fn(Video $video) => $video->toApiArray(), $result->items),

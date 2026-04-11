@@ -23,6 +23,9 @@ const confirmingDelete = ref(false)
       <div class="min-w-0">
         <h3 class="text-heading font-medium truncate">{{ video.originalName }}</h3>
         <p class="text-muted text-xs mt-0.5">{{ formatDate(video.createdAt) }}</p>
+        <p v-if="video.uploaderUsername" class="text-muted text-xs mt-0.5">
+          by {{ video.uploaderDisplayName || video.uploaderUsername }}
+        </p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
         <SeverityBadge v-if="video.riskLevel" :severity="video.riskLevel" />

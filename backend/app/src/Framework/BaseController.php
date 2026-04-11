@@ -145,7 +145,7 @@ class BaseController
     {
         $exceptionCode = $e->getCode();
 
-        if (in_array($exceptionCode, self::ALLOWED_HTTP_ERROR_CODES, true)) {
+        if (\in_array($exceptionCode, self::ALLOWED_HTTP_ERROR_CODES, true)) {
             return $exceptionCode;
         }
 

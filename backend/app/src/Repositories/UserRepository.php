@@ -106,8 +106,8 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
         $allowedSorts = ['created_at', 'username', 'role'];
         $allowedOrders = ['asc', 'desc'];
-        $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
-        $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
+        $sortCol = \in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
+        $orderDir = \in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
 
         $sql .= " ORDER BY {$sortCol} {$orderDir}";
         $sql .= ' LIMIT :limit OFFSET :offset';

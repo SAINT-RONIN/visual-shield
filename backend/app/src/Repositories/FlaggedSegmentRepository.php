@@ -79,8 +79,8 @@ class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentR
             // so interpolation here is safe â€” PDO cannot bind identifiers (column names).
             $allowedSorts = ['start_time', 'end_time', 'segment_type', 'severity', 'metric_value'];
             $allowedOrders = ['asc', 'desc'];
-            $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'start_time';
-            $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
+            $sortCol = \in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'start_time';
+            $orderDir = \in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
 
             $sql .= " ORDER BY {$sortCol} {$orderDir}";
         } else {

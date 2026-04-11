@@ -30,7 +30,7 @@ class ReanalyzeVideoDTO
         $rawRate = $body['samplingRate'] ?? $body['sampling_rate'] ?? self::DEFAULT_SAMPLING_RATE;
         $rate = (int) $rawRate;
 
-        if (!in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
+        if (!\in_array($rate, AnalysisConfig::ALLOWED_SAMPLING_RATES, true)) {
             $allowedRates = implode(', ', AnalysisConfig::ALLOWED_SAMPLING_RATES);
             throw new ValidationException("Invalid sampling rate. Allowed: {$allowedRates}");
         }

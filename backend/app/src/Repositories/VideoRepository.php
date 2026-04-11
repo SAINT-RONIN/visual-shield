@@ -58,8 +58,8 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         // so interpolation here is safe â€” PDO cannot bind identifiers (column names).
         $allowedSorts = ['created_at', 'original_name', 'status'];
         $allowedOrders = ['asc', 'desc'];
-        $sortCol = in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
-        $orderDir = in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'DESC';
+        $sortCol = \in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
+        $orderDir = \in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'DESC';
 
         $sql .= " ORDER BY v.{$sortCol} {$orderDir}";
         $sql .= ' LIMIT :limit OFFSET :offset';
@@ -82,6 +82,86 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
     {
         $sql = 'SELECT COUNT(*) FROM videos v WHERE v.user_id = :userId';
         $params = ['userId' => $userId];
+
+        if ($filters->status !== null) {
+            $sql .= ' AND v.status = :status';
+            $params['status'] = $filters->status;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND v.original_name LIKE :search';
+            $params['search'] = '%' . $filters->search . '%';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    // Same query as findAllByUserId but scoped to all users; JOINs users for uploader info.
+    /** @return Video[] */
+    public function findAllForAdmin(VideoFilterDTO $filters): array
+    {
+        $sql = 'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'high\') as high_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id AND fs.severity = \'medium\') as medium_segments,
+                    (SELECT COUNT(*) FROM flagged_segments fs WHERE fs.video_id = v.id) as total_segments,
+                    u.username as uploader_username,
+                    u.display_name as uploader_display_name
+             FROM videos v
+             LEFT JOIN analysis_results ar ON ar.video_id = v.id
+             LEFT JOIN users u ON u.id = v.user_id
+             WHERE 1 = 1';
+
+        $params = [];
+
+        if ($filters->userId !== null) {
+            $sql .= ' AND v.user_id = :userId';
+            $params['userId'] = $filters->userId;
+        }
+
+        if ($filters->status !== null) {
+            $sql .= ' AND v.status = :status';
+            $params['status'] = $filters->status;
+        }
+
+        if ($filters->search !== null) {
+            $sql .= ' AND v.original_name LIKE :search';
+            $params['search'] = '%' . $filters->search . '%';
+        }
+
+        $allowedSorts = ['created_at', 'original_name', 'status'];
+        $allowedOrders = ['asc', 'desc'];
+        $sortCol = \in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'created_at';
+        $orderDir = \in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'DESC';
+
+        $sql .= " ORDER BY v.{$sortCol} {$orderDir}";
+        $sql .= ' LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->bindValue('limit', $filters->limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $filters->offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $this->fetchAllHydrated($stmt, Video::fromRow(...));
+    }
+
+    // Same WHERE clauses as findAllForAdmin but returns only the count.
+    public function countAllForAdmin(VideoFilterDTO $filters): int
+    {
+        $sql = 'SELECT COUNT(*) FROM videos v WHERE 1 = 1';
+        $params = [];
+
+        if ($filters->userId !== null) {
+            $sql .= ' AND v.user_id = :userId';
+            $params['userId'] = $filters->userId;
+        }
 
         if ($filters->status !== null) {
             $sql .= ' AND v.status = :status';

@@ -1,7 +1,9 @@
 <script setup>
-// Page: DashboardPage is the route-level view for browsing the user's uploaded videos.
+// Page: DashboardPage is the route-level view for browsing uploaded videos.
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { fetchVideos as apiFetchVideos, deleteVideo, reanalyzeVideo } from '@/api/videos.js'
+import { fetchUsers } from '@/api/admin.js'
+import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
@@ -11,13 +13,18 @@ import EmptyState from '@/components/atoms/EmptyState.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
 import VideoCard from '@/components/organisms/VideoCard.vue'
 
+const { user } = useAuth()
 const { showToast } = useToast()
+
+const isAdmin = computed(() => user.value?.role === 'admin')
 
 const videos = ref([])
 const loading = ref(true)
 const filterLoading = ref(false)
 const error = ref('')
 const filterStatus = ref('all')
+const filterUserId = ref('all')
+const userOptions = ref([])
 let pollInterval = null
 
 // Pagination state
@@ -28,7 +35,8 @@ const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1)
 
 const videoCountLabel = computed(() => {
   const suffix = total.value !== 1 ? 's' : ''
-  return `${total.value} video${suffix}`
+  const scope = isAdmin.value ? ' total' : ''
+  return `${total.value} video${suffix}${scope}`
 })
 
 const filterOptions = [
@@ -46,6 +54,7 @@ const hasPendingVideos = computed(() =>
 async function fetchVideos() {
   const params = {}
   if (filterStatus.value !== 'all') params.status = filterStatus.value
+  if (isAdmin.value && filterUserId.value !== 'all') params.userId = filterUserId.value
   params.limit = limit.value
   params.offset = (page.value - 1) * limit.value
 
@@ -72,7 +81,18 @@ function stopPolling() {
 
 onMounted(async () => {
   try {
-    await fetchVideos()
+    const tasks = [fetchVideos()]
+    if (isAdmin.value) {
+      tasks.push(
+        fetchUsers().then(({ users }) => {
+          userOptions.value = [
+            { value: 'all', label: 'All Users' },
+            ...users.map((u) => ({ value: String(u.id), label: u.displayName || u.username })),
+          ]
+        })
+      )
+    }
+    await Promise.all(tasks)
   } finally {
     loading.value = false
   }
@@ -82,6 +102,19 @@ onMounted(async () => {
 onUnmounted(() => stopPolling())
 
 watch(filterStatus, async () => {
+  page.value = 1
+  filterLoading.value = true
+  error.value = ''
+  try {
+    await fetchVideos()
+  } finally {
+    filterLoading.value = false
+  }
+  if (hasPendingVideos.value) startPolling()
+  else stopPolling()
+})
+
+watch(filterUserId, async () => {
   page.value = 1
   filterLoading.value = true
   error.value = ''
@@ -130,10 +163,15 @@ async function handleReanalyze(id) {
 </script>
 
 <template>
-  <PageTemplate title="Your Videos" max-width="max-w-none">
+  <PageTemplate :title="isAdmin ? 'All Videos' : 'Your Videos'" max-width="max-w-none">
     <div class="flex items-center justify-between mb-6 -mt-2 gap-4 flex-wrap">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
         <p class="text-body text-sm">{{ videoCountLabel }}</p>
+        <AppSelect
+          v-if="isAdmin && userOptions.length > 1"
+          v-model="filterUserId"
+          :options="userOptions"
+        />
         <AppSelect v-if="videos.length > 0 || filterStatus !== 'all'" v-model="filterStatus" :options="filterOptions" />
         <span v-if="filterLoading" class="text-muted text-xs animate-pulse">Updating...</span>
       </div>
@@ -149,12 +187,16 @@ async function handleReanalyze(id) {
     <AlertMessage v-else-if="error" type="error" :message="error" />
 
     <EmptyState
-      v-else-if="videos.length === 0 && filterStatus === 'all'"
+      v-else-if="videos.length === 0 && filterStatus === 'all' && !isAdmin"
       title="No videos yet"
       description="Upload your first video to get started."
       action-label="Upload Video"
       action-to="/upload"
     />
+
+    <div v-else-if="videos.length === 0 && filterStatus === 'all' && isAdmin" class="text-center py-12">
+      <p class="text-muted text-sm">No videos have been uploaded yet.</p>
+    </div>
 
     <div v-else-if="videos.length === 0" class="text-center py-12">
       <p class="text-muted text-sm">No videos match the selected filter.</p>

@@ -25,7 +25,7 @@ final readonly class UpdateUserRoleDTO
     {
         $role = $data['role'] ?? '';
 
-        if (!in_array($role, self::ASSIGNABLE_ROLES, true)) {
+        if (!\in_array($role, self::ASSIGNABLE_ROLES, true)) {
             $allowedRoles = implode(', ', self::ASSIGNABLE_ROLES);
             throw new ValidationException("Invalid role. Allowed: {$allowedRoles}");
         }

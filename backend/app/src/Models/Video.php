@@ -37,6 +37,10 @@ class Video
         public readonly ?int $highSegments = null,
         public readonly ?int $mediumSegments = null,
         public readonly ?int $totalSegments = null,
+
+        // Enriched fields — present only when the query JOINs the users table (admin listing)
+        public readonly ?string $uploaderUsername = null,
+        public readonly ?string $uploaderDisplayName = null,
     ) {}
 
     // The only place that knows the column names; handles both base and enriched (JOINed) rows.
@@ -64,6 +68,10 @@ class Video
             highSegments: isset($row['high_segments']) ? (int) $row['high_segments'] : null,
             mediumSegments: isset($row['medium_segments']) ? (int) $row['medium_segments'] : null,
             totalSegments: isset($row['total_segments']) ? (int) $row['total_segments'] : null,
+
+            // Enriched fields — present only when the query JOINs the users table
+            uploaderUsername: $row['uploader_username'] ?? null,
+            uploaderDisplayName: $row['uploader_display_name'] ?? null,
         );
     }
 
@@ -86,6 +94,8 @@ class Video
                 : null,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
+            'uploaderUsername' => $this->uploaderUsername,
+            'uploaderDisplayName' => $this->uploaderDisplayName,
         ];
     }
 
