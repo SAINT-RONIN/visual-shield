@@ -19,20 +19,7 @@ use PDO;
 class VideoRepository extends BaseRepository implements VideoRepositoryInterface
 {
 
-    /**
-     * Insert a new video record after a successful upload.
-     *
-     * @return int The auto-incremented ID of the new video row.
-     */
-    /**
-     * @param int $userId
-     * @param string $originalName
-     * @param string $storedPath
-     * @param int $fileSize
-     * @param ?float $duration
-     * @param int $samplingRate
-     * @return int
-     */
+    // Inserts a new video record after a successful upload; returns the generated ID.
     public function create(int $userId, string $originalName, string $storedPath, int $fileSize, ?float $duration, int $samplingRate): int
     {
         $stmt = $this->db->prepare(
@@ -43,19 +30,8 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return (int) $this->db->lastInsertId();
     }
 
-    /**
-     * Fetch all videos for a user with enriched analysis and segment data.
-     *
-     * Used by the dashboard. LEFT JOINs analysis_results for headline
-     * metrics and sub-queries flagged_segments for segment counts.
-     *
-     * @return Video[] List of videos (newest first) with joined metrics.
-     */
-    /**
-     * @param int $userId
-     * @param VideoFilterDTO $filters
-     * @return array
-     */
+    // LEFT JOINs analysis_results and sub-queries flagged_segments for dashboard metrics.
+    /** @return Video[] */
     public function findAllByUserId(int $userId, VideoFilterDTO $filters): array
     {
         $sql = 'SELECT v.*, ar.highest_flash_frequency, ar.average_motion_intensity,
@@ -101,16 +77,7 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return $this->fetchAllHydrated($stmt, Video::fromRow(...));
     }
 
-    /**
-     * Count all videos for a user matching the given filters.
-     *
-     * Uses the same WHERE clauses as findAllByUserId but returns only the count.
-     */
-    /**
-     * @param int $userId
-     * @param VideoFilterDTO $filters
-     * @return int
-     */
+    // Same WHERE clauses as findAllByUserId but returns only the count.
     public function countAllByUserId(int $userId, VideoFilterDTO $filters): int
     {
         $sql = 'SELECT COUNT(*) FROM videos v WHERE v.user_id = :userId';
@@ -132,16 +99,7 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return (int) $stmt->fetchColumn();
     }
 
-    /**
-     * Fetch a single video owned by a specific user (no joined data).
-     *
-     * Used for ownership checks before actions like delete or re-analyse.
-     */
-    /**
-     * @param int $id
-     * @param int $userId
-     * @return ?Video
-     */
+    // No joined data — used for ownership checks before delete or re-analyse.
     public function findByIdAndUserId(int $id, int $userId): ?Video
     {
         $stmt = $this->db->prepare('SELECT * FROM videos WHERE id = ? AND user_id = ?');
@@ -150,16 +108,7 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
-    /**
-     * Fetch a single video by ID with enriched analysis and segment data.
-     *
-     * Used by the report page and after uploads/re-analysis to return
-     * the full video with headline metrics.
-     */
-    /**
-     * @param int $id
-     * @return ?Video
-     */
+    // Used by the report page and after uploads/re-analysis; returns the full video with headline metrics.
     public function findById(int $id): ?Video
     {
         $stmt = $this->db->prepare(
@@ -176,61 +125,35 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
-    /** Set the video's analysis status (e.g. queued, processing, completed, failed). */
-    /**
-     * @param int $id
-     * @param string $status
-     * @return void
-     */
+    // Sets the video's analysis status (queued, processing, completed, failed).
     public function updateStatus(int $id, string $status): void
     {
         $stmt = $this->db->prepare('UPDATE videos SET status = ? WHERE id = ?');
         $stmt->execute([$status, $id]);
     }
 
-    /** Store the effective sampling rate that was actually used during analysis. */
-    /**
-     * @param int $id
-     * @param int $effectiveRate
-     * @return void
-     */
+    // Stores the effective sampling rate that was actually used during analysis.
     public function updateEffectiveRate(int $id, int $effectiveRate): void
     {
         $stmt = $this->db->prepare('UPDATE videos SET effective_rate = ? WHERE id = ?');
         $stmt->execute([$effectiveRate, $id]);
     }
 
-    /** Update the progress percentage and status message for the frontend progress bar. */
-    /**
-     * @param int $id
-     * @param int $progress
-     * @param string $message
-     * @return void
-     */
+    // Updates the progress percentage and status message for the frontend progress bar.
     public function updateProgress(int $id, int $progress, string $message): void
     {
         $stmt = $this->db->prepare('UPDATE videos SET progress = ?, progress_message = ? WHERE id = ?');
         $stmt->execute([$progress, $message, $id]);
     }
 
-    /** Store an error message when analysis fails. */
-    /**
-     * @param int $id
-     * @param string $message
-     * @return void
-     */
+    // Stores an error message when analysis fails.
     public function updateError(int $id, string $message): void
     {
         $stmt = $this->db->prepare('UPDATE videos SET error_message = ? WHERE id = ?');
         $stmt->execute([$message, $id]);
     }
 
-    /** Reset a video's state so it re-enters the analysis queue. */
-    /**
-     * @param int $id
-     * @param int $samplingRate
-     * @return void
-     */
+    // Resets a video's state so it re-enters the analysis queue.
     public function resetForReanalysis(int $id, int $samplingRate): void
     {
         $stmt = $this->db->prepare(
@@ -253,23 +176,14 @@ class VideoRepository extends BaseRepository implements VideoRepositoryInterface
         return $this->fetchOneOrNull($stmt, Video::fromRow(...));
     }
 
-    /** Update a video's original name (title). */
-    /**
-     * @param int $id
-     * @param string $originalName
-     * @return void
-     */
+    // Updates a video's original name (title).
     public function updateOriginalName(int $id, string $originalName): void
     {
         $stmt = $this->db->prepare('UPDATE videos SET original_name = ? WHERE id = ?');
         $stmt->execute([$originalName, $id]);
     }
 
-    /** Delete a video record by primary key. Foreign-key cascades handle related rows. */
-    /**
-     * @param int $id
-     * @return void
-     */
+    // Deletes a video record by primary key; foreign-key cascades handle related rows.
     public function delete(int $id): void
     {
         $stmt = $this->db->prepare('DELETE FROM videos WHERE id = ?');

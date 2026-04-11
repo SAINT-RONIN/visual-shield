@@ -13,14 +13,6 @@ namespace App\Models;
  */
 class AnalysisDatapoint
 {
-    /**
-     * @param float $timePoint
-     * @param float $flashFrequency
-     * @param float $motionIntensity
-     * @param float $luminance
-     * @param bool $flashDetected
-     * @return void
-     */
     public function __construct(
         public readonly float $timePoint,
         public readonly float $flashFrequency,
@@ -29,11 +21,7 @@ class AnalysisDatapoint
         public readonly bool $flashDetected,
     ) {}
 
-    /** Build an AnalysisDatapoint from a raw database row. */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // Builds an AnalysisDatapoint from a raw database row.
     public static function fromRow(array $row): self
     {
         return new self(
@@ -45,10 +33,7 @@ class AnalysisDatapoint
         );
     }
 
-    /** Convert to a camelCase array for the API response. */
-    /**
-     * @return array
-     */
+    // Converts to a camelCase array for the API response.
     public function toApiArray(): array
     {
         return [

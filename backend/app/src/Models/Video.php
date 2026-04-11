@@ -16,28 +16,6 @@ use App\Utils\RiskLevel;
  */
 class Video
 {
-    /**
-     * @param // â”€â”€ Base fields (always present) â”€â”€ int $id
-     * @param int $userId
-     * @param string $originalName
-     * @param string $storedPath
-     * @param int $fileSize
-     * @param ?float $durationSeconds
-     * @param int $samplingRate
-     * @param ?int $effectiveRate
-     * @param string $status
-     * @param int $progress
-     * @param ?string $progressMessage
-     * @param ?string $errorMessage
-     * @param string $createdAt
-     * @param string $updatedAt
-     * @param // â”€â”€ Enriched fields (only present when JOINed with analysis data) â”€â”€ ?float $highestFlashFrequency
-     * @param ?float $averageMotionIntensity
-     * @param ?int $highSegments
-     * @param ?int $mediumSegments
-     * @param ?int $totalSegments
-     * @return void
-     */
     public function __construct(
         public readonly int $id,
         public readonly int $userId,
@@ -61,17 +39,7 @@ class Video
         public readonly ?int $totalSegments = null,
     ) {}
 
-    /**
-     * Build a Video from a raw database row.
-     *
-     * This is the only place that knows about the database column names.
-     * Handles both base rows (from findByIdAndUserId) and enriched rows
-     * (from findById/findAllByUserId with JOINed analysis metrics).
-     */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // The only place that knows the column names; handles both base and enriched (JOINed) rows.
     public static function fromRow(array $row): self
     {
         return new self(
@@ -99,15 +67,7 @@ class Video
         );
     }
 
-    /**
-     * Convert to a clean, camelCase array for the API response.
-     *
-     * Strips internal fields (userId, storedPath) that the frontend
-     * doesn't need. Includes a computed riskLevel for completed videos.
-     */
-    /**
-     * @return array
-     */
+    // Strips internal fields (userId, storedPath); includes computed riskLevel for completed videos.
     public function toApiArray(): array
     {
         return [
@@ -129,32 +89,13 @@ class Video
         ];
     }
 
-    /**
-     * Determine the effective sampling rate for analysis.
-     *
-     * If a previous analysis already computed an adjusted rate (to keep
-     * total frames under the cap), use that. Otherwise use the user's
-     * originally requested rate.
-     */
-    /**
-     * @return int
-     */
+    // Uses the previously computed adjusted rate if present, otherwise the user's requested rate.
     public function getEffectiveSamplingRate(): int
     {
         return $this->effectiveRate ?? $this->samplingRate;
     }
 
-    /**
-     * Return true only when the analysis JOIN data is actually present.
-     *
-     * All three fields being null means the Video was loaded without the
-     * analysis JOIN (e.g. findByIdAndUserId). In that case we must not
-     * call determineRiskLevel(), which would silently return 'safe' by
-     * substituting 0 for every null â€” a misleading result.
-     */
-    /**
-     * @return bool
-     */
+    // All three null means loaded without the JOIN — must not call determineRiskLevel() in that case.
     private function hasEnrichedAnalysisData(): bool
     {
         return $this->highestFlashFrequency !== null
@@ -162,10 +103,7 @@ class Video
             || $this->totalSegments !== null;
     }
 
-    /** Delegate risk calculation to the shared RiskLevel utility. */
-    /**
-     * @return string
-     */
+    // Delegates risk calculation to the shared RiskLevel utility.
     private function determineRiskLevel(): string
     {
         return RiskLevel::determine(

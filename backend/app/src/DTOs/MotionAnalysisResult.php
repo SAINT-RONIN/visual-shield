@@ -12,12 +12,6 @@ namespace App\DTOs;
  */
 class MotionAnalysisResult
 {
-    /**
-     * @param float $averageIntensity
-     * @param array $segments
-     * @param array $perSecondIntensities
-     * @return void
-     */
     public function __construct(
         public readonly float $averageIntensity,
         public readonly array $segments,

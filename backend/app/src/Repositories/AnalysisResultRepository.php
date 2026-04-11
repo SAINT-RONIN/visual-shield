@@ -23,20 +23,7 @@ use App\Models\AnalysisResult;
 class AnalysisResultRepository extends BaseRepository implements AnalysisResultRepositoryInterface
 {
 
-    /**
-     * Insert a new analysis-summary row for a video.
-     *
-     * Called once by AnalysisService after all frames have been processed
-     * and the detectors have returned their aggregate metrics.
-     *
-     * @param  int   $videoId            The video this result belongs to.
-     * @param  int   $totalFrames        Number of frames that were analysed.
-     * @param  int   $totalFlashEvents   Count of detected flash events.
-     * @param  float $highestFlashFreq   Peak flash frequency in Hz.
-     * @param  float $avgMotionIntensity Average motion intensity (0-100 scale).
-     * @param  int   $effectiveRate      Actual sampling rate used (fps).
-     * @return int   The auto-incremented ID of the new row.
-     */
+    // Called once by AnalysisService after all frames have been processed; returns the new row ID.
     public function create(
         int $videoId,
         int $totalFrames,
@@ -59,16 +46,7 @@ class AnalysisResultRepository extends BaseRepository implements AnalysisResultR
         return (int) $this->db->lastInsertId();
     }
 
-    /**
-     * Retrieve the analysis summary for a given video.
-     *
-     * Used by ReportService to build the report payload and by
-     * VideoRepository's dashboard queries (via JOIN) to show key
-     * metrics on each video card.
-     *
-     * @param  int                $videoId The video to look up.
-     * @return AnalysisResult|null The summary, or null if analysis has not completed.
-     */
+    // Returns null if analysis has not yet completed for the given video.
     public function findByVideoId(int $videoId): ?AnalysisResult
     {
         $stmt = $this->db->prepare(
@@ -81,15 +59,7 @@ class AnalysisResultRepository extends BaseRepository implements AnalysisResultR
         return $this->fetchOneOrNull($stmt, AnalysisResult::fromRow(...));
     }
 
-    /**
-     * Delete the analysis summary for a video.
-     *
-     * Called during re-analysis reset so that stale results are removed
-     * before the worker produces new ones.
-     *
-     * @param  int  $videoId The video whose result should be deleted.
-     * @return void
-     */
+    // Called during re-analysis reset to remove stale results before the worker produces new ones.
     public function deleteByVideoId(int $videoId): void
     {
         $stmt = $this->db->prepare('DELETE FROM analysis_results WHERE video_id = ?');

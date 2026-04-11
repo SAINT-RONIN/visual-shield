@@ -6,27 +6,16 @@ namespace App\DTOs;
 
 final readonly class FrameFlashTags
 {
-    /**
-     * @param array<int, int> $tags
-     * @return void
-     */
     public function __construct(
         /** @var array<int, int> */
         public array $tags,
     ) {}
 
-    /**
-     * @param int $frameIndex
-     * @return bool
-     */
     public function isFlash(int $frameIndex): bool
     {
         return ($this->tags[$frameIndex] ?? 0) === 1;
     }
 
-    /**
-     * @return int
-     */
     public function count(): int
     {
         return array_sum($this->tags);

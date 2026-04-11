@@ -12,15 +12,6 @@ namespace App\Models;
  */
 class AnalysisResult
 {
-    /**
-     * @param int $videoId
-     * @param int $totalFramesAnalyzed
-     * @param int $totalFlashEvents
-     * @param float $highestFlashFrequency
-     * @param float $averageMotionIntensity
-     * @param int $effectiveSamplingRate
-     * @return void
-     */
     public function __construct(
         public readonly int $videoId,
         public readonly int $totalFramesAnalyzed,
@@ -30,11 +21,7 @@ class AnalysisResult
         public readonly int $effectiveSamplingRate,
     ) {}
 
-    /** Build an AnalysisResult from a raw database row. */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // Builds an AnalysisResult from a raw database row.
     public static function fromRow(array $row): self
     {
         return new self(
@@ -47,10 +34,7 @@ class AnalysisResult
         );
     }
 
-    /** Convert to a camelCase array for the API response. */
-    /**
-     * @return array
-     */
+    // Converts to a camelCase array for the API response.
     public function toApiArray(): array
     {
         return [

@@ -13,14 +13,6 @@ namespace App\DTOs;
  */
 class SegmentData
 {
-    /**
-     * @param float $startTime
-     * @param float $endTime
-     * @param string $type
-     * @param string $severity
-     * @param float $metricValue
-     * @return void
-     */
     public function __construct(
         public readonly float $startTime,
         public readonly float $endTime,

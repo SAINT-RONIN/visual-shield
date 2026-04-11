@@ -13,14 +13,6 @@ namespace App\DTOs;
  */
 class DatapointData
 {
-    /**
-     * @param float $timePoint
-     * @param float $flashFrequency
-     * @param float $motionIntensity
-     * @param float $luminance
-     * @param bool $flashDetected
-     * @return void
-     */
     public function __construct(
         public readonly float $timePoint,
         public readonly float $flashFrequency,

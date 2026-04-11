@@ -16,23 +16,6 @@ use App\Config\AnalysisConfig;
  */
 class RiskLevel
 {
-    /**
-     * Determine risk level from flash frequency, motion intensity, and segment counts.
-     *
-     * @param float $flashFrequency    Peak flashes per second.
-     * @param float $motionIntensity   Average motion intensity (0-255 scale).
-     * @param int   $highSegments      Number of high-severity segments.
-     * @param int   $mediumSegments    Number of medium-severity segments.
-     * @param int   $totalSegments     Total number of flagged segments.
-     */
-    /**
-     * @param float $flashFrequency
-     * @param float $motionIntensity
-     * @param int $highSegments
-     * @param int $mediumSegments
-     * @param int $totalSegments
-     * @return string
-     */
     public static function determine(
         float $flashFrequency,
         float $motionIntensity,
@@ -69,11 +52,7 @@ class RiskLevel
 
     //  Per-metric risk colors
 
-    /** Risk color for the total number of flash events detected. */
-    /**
-     * @param int $count
-     * @return string
-     */
+    // Risk color for the total number of flash events detected.
     public static function colorForFlashCount(int $count): string
     {
         if ($count > AnalysisConfig::FLASH_COUNT_DANGER) {
@@ -87,11 +66,7 @@ class RiskLevel
         return 'safe';
     }
 
-    /** Risk color for the peak flash frequency in Hz. */
-    /**
-     * @param float $hz
-     * @return string
-     */
+    // Risk color for the peak flash frequency in Hz.
     public static function colorForFlashFrequency(float $hz): string
     {
         if ($hz > AnalysisConfig::FLASH_SEVERITY_HIGH) {
@@ -105,11 +80,7 @@ class RiskLevel
         return 'safe';
     }
 
-    /** Risk color for average motion intensity (0-255 scale). */
-    /**
-     * @param float $intensity
-     * @return string
-     */
+    // Risk color for average motion intensity (0-255 scale).
     public static function colorForMotionIntensity(float $intensity): string
     {
         if ($intensity > AnalysisConfig::MOTION_SEVERITY_HIGH) {

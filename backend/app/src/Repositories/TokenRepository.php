@@ -15,13 +15,7 @@ use App\Models\Token;
  */
 class TokenRepository extends BaseRepository implements TokenRepositoryInterface
 {
-    /** Persist a new active JWT session ID for a given user. */
-    /**
-     * @param int $userId
-     * @param string $token
-     * @param string $expiresAt
-     * @return void
-     */
+    // Persists a new active JWT session ID for a given user.
     public function store(int $userId, string $token, string $expiresAt): void
     {
         $stmt = $this->db->prepare(
@@ -30,11 +24,7 @@ class TokenRepository extends BaseRepository implements TokenRepositoryInterface
         $stmt->execute(['userId' => $userId, 'token' => $token, 'expiresAt' => $expiresAt]);
     }
 
-    /** Retrieve a stored JWT session only if it has not yet expired. */
-    /**
-     * @param string $token
-     * @return ?Token
-     */
+    // Retrieves a stored JWT session only if it has not yet expired.
     public function findValidToken(string $token): ?Token
     {
         $stmt = $this->db->prepare(
@@ -47,21 +37,14 @@ class TokenRepository extends BaseRepository implements TokenRepositoryInterface
         return $this->fetchOneOrNull($stmt, Token::fromRow(...));
     }
 
-    /** Delete a specific active JWT session. */
-    /**
-     * @param string $token
-     * @return void
-     */
+    // Deletes a specific active JWT session.
     public function deleteByToken(string $token): void
     {
         $stmt = $this->db->prepare('DELETE FROM auth_tokens WHERE token = :token');
         $stmt->execute(['token' => $token]);
     }
 
-    /** Purge expired JWT sessions as light housekeeping. */
-    /**
-     * @return void
-     */
+    // Purges expired JWT sessions as light housekeeping.
     public function deleteExpiredTokens(): void
     {
         $this->db->exec('DELETE FROM auth_tokens WHERE expires_at <= NOW()');

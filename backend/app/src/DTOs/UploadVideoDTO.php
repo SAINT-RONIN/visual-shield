@@ -26,30 +26,14 @@ use App\Exceptions\ValidationException;
  */
 class UploadVideoDTO
 {
-    /**
-     * @param UploadedFile $file
-     * @param int $samplingRate
-     * @return void
-     */
     public function __construct(
         public readonly UploadedFile $file,
         public readonly int $samplingRate,
     ) {}
 
-    /**
-     * Build an UploadVideoDTO from the raw $_FILES entry and $_POST data.
-     *
-     * Checks that a file was actually received, that the PHP upload
-     * succeeded (UPLOAD_ERR_OK), and that the requested sampling rate
-     * is in the allowed whitelist. Accepts both camelCase and snake_case
-     * key names for the sampling rate.
-     *
-     * @param array $fileData Raw $_FILES['video'] entry.
-     * @param array $postData Raw $_POST data containing samplingRate / sampling_rate.
-     * @return self            Validated, immutable DTO.
-     *
-     * @throws ValidationException If no file is received, upload failed, or sampling rate is invalid.
-     */
+    // Validates the $_FILES entry (UPLOAD_ERR_OK) and sampling rate whitelist.
+    // Accepts both camelCase and snake_case key names for the sampling rate.
+    // Throws ValidationException if no file received, upload failed, or rate invalid.
     public static function fromRequest(array $fileData, array $postData): self
     {
         if (empty($fileData)) {
@@ -75,12 +59,7 @@ class UploadVideoDTO
         return new self(UploadedFile::fromFilesArray($fileData), $rate);
     }
 
-    /**
-     * Map a PHP UPLOAD_ERR_* constant to a user-friendly error message.
-     *
-     * @param int $code One of the UPLOAD_ERR_* constants.
-     * @return string   Human-readable description of the upload failure.
-     */
+    // Maps a PHP UPLOAD_ERR_* constant to a human-readable error message.
     private static function describeUploadError(int $code): string
     {
         return match ($code) {

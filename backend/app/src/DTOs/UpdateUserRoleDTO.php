@@ -16,24 +16,11 @@ final readonly class UpdateUserRoleDTO
 {
     private const ASSIGNABLE_ROLES = ['admin', 'viewer'];
 
-    /**
-     * @param string $role
-     * @return void
-     */
     public function __construct(
         public string $role,
     ) {}
 
-    /**
-     * Build and validate an UpdateUserRoleDTO from a decoded JSON body.
-     *
-     * @param array $data Decoded request body (from BaseController::getJsonBody()).
-     * @throws ValidationException If the role is missing or not in the allowed list.
-     */
-    /**
-     * @param array $data
-     * @return self
-     */
+    // Throws ValidationException if the role is missing or not in the allowed list.
     public static function fromArray(array $data): self
     {
         $role = $data['role'] ?? '';

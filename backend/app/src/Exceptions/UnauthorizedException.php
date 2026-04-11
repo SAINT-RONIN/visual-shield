@@ -6,12 +6,6 @@ namespace App\Exceptions;
 
 class UnauthorizedException extends AppException
 {
-    /**
-     * @param string $message
-     * @param int $code
-     * @param ?\Throwable $previous
-     * @return void
-     */
     public function __construct(string $message = 'Unauthorized', int $code = 401, ?\Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);

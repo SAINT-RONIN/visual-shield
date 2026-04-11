@@ -13,14 +13,6 @@ namespace App\Models;
  */
 class FlaggedSegment
 {
-    /**
-     * @param float $startTime
-     * @param float $endTime
-     * @param string $type
-     * @param string $severity
-     * @param float $metricValue
-     * @return void
-     */
     public function __construct(
         public readonly float $startTime,
         public readonly float $endTime,
@@ -29,11 +21,7 @@ class FlaggedSegment
         public readonly float $metricValue,
     ) {}
 
-    /** Build a FlaggedSegment from a raw database row. */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // Builds a FlaggedSegment from a raw database row.
     public static function fromRow(array $row): self
     {
         return new self(
@@ -45,10 +33,7 @@ class FlaggedSegment
         );
     }
 
-    /** Convert to a camelCase array for the API response. */
-    /**
-     * @return array
-     */
+    // Converts to a camelCase array for the API response.
     public function toApiArray(): array
     {
         return [
@@ -60,10 +45,7 @@ class FlaggedSegment
         ];
     }
 
-    /** Convert to an ordered array for CSV row output. */
-    /**
-     * @return array
-     */
+    // Converts to an ordered array for CSV row output.
     public function toCsvRow(): array
     {
         return [

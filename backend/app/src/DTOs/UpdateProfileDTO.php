@@ -20,22 +20,11 @@ namespace App\DTOs;
  */
 class UpdateProfileDTO
 {
-    /**
-     * @param ?string $displayName
-     * @return void
-     */
     public function __construct(
         public readonly ?string $displayName
     ) {}
 
-    /**
-     * Build an UpdateProfileDTO from a raw associative array (decoded JSON body).
-     *
-     * Trims the displayName if present; passes null otherwise.
-     *
-     * @param array $data Raw request payload (e.g. from json_decode).
-     * @return self       Immutable DTO ready for the service layer.
-     */
+    // Trims displayName if present; passes null otherwise.
     public static function fromArray(array $data): self
     {
         $displayName = isset($data['displayName']) ? trim($data['displayName']) : null;

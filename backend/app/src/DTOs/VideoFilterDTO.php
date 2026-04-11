@@ -15,15 +15,6 @@ use App\Config\AnalysisConfig;
  */
 final class VideoFilterDTO
 {
-    /**
-     * @param ?string $status
-     * @param ?string $search
-     * @param string $sort
-     * @param string $order
-     * @param int $limit
-     * @param int $offset
-     * @return void
-     */
     public function __construct(
         public readonly ?string $status = null,
         public readonly ?string $search = null,
@@ -33,16 +24,7 @@ final class VideoFilterDTO
         public readonly int $offset = 0,
     ) {}
 
-    /**
-     * Build from raw query parameters ($_GET).
-     *
-     * Invalid or missing values fall back to safe defaults so callers
-     * never need to worry about injection or bad column names.
-     */
-    /**
-     * @param array $query
-     * @return self
-     */
+    // Invalid or missing values fall back to safe defaults — no injection risk.
     public static function fromQuery(array $query): self
     {
         $validSorts = ['created_at', 'original_name', 'status'];

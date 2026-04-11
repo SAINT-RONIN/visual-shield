@@ -9,21 +9,13 @@ use App\Exceptions\NotFoundException;
 
 class PathResolver
 {
-    /** Convert a relative stored_path to an absolute filesystem path. */
-    /**
-     * @param string $storedPath
-     * @return string
-     */
+    // Converts a relative stored_path to an absolute filesystem path.
     public static function resolve(string $storedPath): string
     {
         return AnalysisConfig::appRoot() . '/' . $storedPath;
     }
 
-    /** Resolve and verify the file exists, or throw NotFoundException. */
-    /**
-     * @param string $storedPath
-     * @return string
-     */
+    // Resolves the path and verifies the file exists, or throws NotFoundException.
     public static function resolveOrFail(string $storedPath): string
     {
         $fullPath = self::resolve($storedPath);

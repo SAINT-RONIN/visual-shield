@@ -13,13 +13,6 @@ namespace App\DTOs;
  */
 final class SegmentFilterDTO
 {
-    /**
-     * @param ?string $type
-     * @param ?string $severity
-     * @param string $sort
-     * @param string $order
-     * @return void
-     */
     public function __construct(
         public readonly ?string $type = null,
         public readonly ?string $severity = null,
@@ -27,16 +20,8 @@ final class SegmentFilterDTO
         public readonly string $order = 'asc',
     ) {}
 
-    /**
-     * Build from raw query parameters ($_GET).
-     *
-     * Note: the query param names use "segment_sort" and "segment_order"
-     * to avoid conflicts with any future top-level sort parameters.
-     */
-    /**
-     * @param array $query
-     * @return self
-     */
+    // Query param names use "segment_sort"/"segment_order" to avoid conflicts
+    // with any future top-level sort parameters.
     public static function fromQuery(array $query): self
     {
         $validTypes = ['flash', 'motion'];

@@ -9,14 +9,6 @@ namespace App\Models;
  */
 class Token
 {
-    /**
-     * @param int $id
-     * @param int $userId
-     * @param string $token
-     * @param string $expiresAt
-     * @param string $createdAt
-     * @return void
-     */
     public function __construct(
         public readonly int $id,
         public readonly int $userId,
@@ -25,11 +17,7 @@ class Token
         public readonly string $createdAt,
     ) {}
 
-    /** Build a Token from a raw database row. */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // Builds a Token from a raw database row.
     public static function fromRow(array $row): self
     {
         return new self(

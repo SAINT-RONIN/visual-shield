@@ -13,11 +13,6 @@ namespace App\DTOs;
  */
 class PerSecondFlash
 {
-    /**
-     * @param int $second
-     * @param float $frequency
-     * @return void
-     */
     public function __construct(
         public readonly int $second,
         public readonly float $frequency,

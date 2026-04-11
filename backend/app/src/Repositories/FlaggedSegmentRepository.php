@@ -27,17 +27,7 @@ use App\Models\FlaggedSegment;
 class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentRepositoryInterface
 {
 
-    /**
-     * Insert all flagged segments for a video in a single multi-row INSERT.
-     *
-     * Called by AnalysisService after the detectors have identified
-     * contiguous regions that exceed flash or motion thresholds. A no-op
-     * when the segments array is empty (i.e. the video passed all checks).
-     *
-     * @param  int           $videoId  The video these segments belong to.
-     * @param  SegmentData[] $segments Typed segment DTOs from the detectors.
-     * @return void
-     */
+    // Single multi-row INSERT; no-op when segments is empty (video passed all checks).
     public function createBatch(int $videoId, array $segments): void
     {
         if (empty($segments)) {
@@ -65,15 +55,8 @@ class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentR
         $stmt->execute($values);
     }
 
-    /**
-     * Retrieve all flagged segments for a video, ordered by start time.
-     *
-     * Used by ReportService to populate the SegmentTimeline and
-     * SegmentTable on the report page.
-     *
-     * @param  int              $videoId The video to query.
-     * @return FlaggedSegment[] List of segments sorted by start time.
-     */
+    // Used by ReportService to populate the SegmentTimeline and SegmentTable on the report page.
+    /** @return FlaggedSegment[] */
     public function findByVideoId(int $videoId, ?SegmentFilterDTO $filters = null): array
     {
         $sql = 'SELECT start_time, end_time, segment_type, severity, metric_value
@@ -110,15 +93,7 @@ class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentR
         return $this->fetchAllHydrated($stmt, FlaggedSegment::fromRow(...));
     }
 
-    /**
-     * Delete all flagged segments for a video.
-     *
-     * Called during re-analysis reset to clear stale segment data before
-     * the worker produces fresh results.
-     *
-     * @param  int  $videoId The video whose segments should be removed.
-     * @return void
-     */
+    // Called during re-analysis reset to clear stale segment data before fresh results are produced.
     public function deleteByVideoId(int $videoId): void
     {
         $stmt = $this->db->prepare('DELETE FROM flagged_segments WHERE video_id = ?');

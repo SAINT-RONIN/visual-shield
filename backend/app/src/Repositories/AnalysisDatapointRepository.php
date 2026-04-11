@@ -28,19 +28,7 @@ class AnalysisDatapointRepository extends BaseRepository implements AnalysisData
     /** @var int Number of rows inserted per prepared statement to balance query size and round-trips. */
     private const BATCH_SIZE = 50;
 
-    /**
-     * Insert all datapoints for a video in batched chunks within a transaction.
-     *
-     * Called by AnalysisService after the frame-by-frame detector pass is
-     * complete. The entire write is wrapped in a transaction so that a
-     * failure mid-way does not leave partial data in the table.
-     *
-     * @param  int             $videoId    The video these datapoints belong to.
-     * @param  DatapointData[] $datapoints Typed datapoint DTOs from AnalysisService.
-     * @return void
-     *
-     * @throws \Throwable Re-throws any exception after rolling back.
-     */
+    // Batched chunks inside a transaction — rolls back and re-throws on any failure.
     public function createBatch(int $videoId, array $datapoints): void
     {
         if (empty($datapoints)) {
@@ -60,15 +48,8 @@ class AnalysisDatapointRepository extends BaseRepository implements AnalysisData
         }
     }
 
-    /**
-     * Retrieve all datapoints for a video, ordered chronologically.
-     *
-     * Used by ReportService to supply the time-series arrays that feed
-     * the Chart.js line graphs on the report page.
-     *
-     * @param  int                 $videoId The video to query.
-     * @return AnalysisDatapoint[] List of datapoints sorted by time ascending.
-     */
+    // Ordered chronologically; feeds the Chart.js time-series graphs on the report page.
+    /** @return AnalysisDatapoint[] */
     public function findByVideoId(int $videoId): array
     {
         $stmt = $this->db->prepare(
@@ -80,31 +61,14 @@ class AnalysisDatapointRepository extends BaseRepository implements AnalysisData
         return $this->fetchAllHydrated($stmt, AnalysisDatapoint::fromRow(...));
     }
 
-    /**
-     * Delete all datapoints for a video.
-     *
-     * Called during re-analysis reset to clear stale time-series data
-     * before the worker produces a fresh set.
-     *
-     * @param  int  $videoId The video whose datapoints should be removed.
-     * @return void
-     */
+    // Called during re-analysis reset to clear stale time-series data before fresh results are produced.
     public function deleteByVideoId(int $videoId): void
     {
         $stmt = $this->db->prepare('DELETE FROM analysis_datapoints WHERE video_id = ?');
         $stmt->execute([$videoId]);
     }
 
-    /**
-     * Build and execute a multi-row INSERT for a single chunk of datapoints.
-     *
-     * Constructs a prepared statement with dynamic placeholders so that
-     * up to BATCH_SIZE rows are inserted in one round-trip to the database.
-     *
-     * @param  int             $videoId The owning video's ID (prepended to every row).
-     * @param  DatapointData[] $chunk   Subset of datapoints (max BATCH_SIZE items).
-     * @return void
-     */
+    // Dynamic placeholders; inserts up to BATCH_SIZE rows in one round-trip.
     private function insertChunk(int $videoId, array $chunk): void
     {
         $placeholders = [];

@@ -18,16 +18,7 @@ use PDO;
  */
 class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
-    /**
-     * Look up a user by their unique username.
-     *
-     * Used during login (to verify the password) and registration
-     * (to check for duplicates).
-     */
-    /**
-     * @param string $username
-     * @return ?User
-     */
+    // Used during login (password verification) and registration (duplicate check).
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->db->prepare(
@@ -39,15 +30,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->fetchOneOrNull($stmt, User::fromRow(...));
     }
 
-    /**
-     * Look up a user by their primary key.
-     *
-     * Used after token validation to load the authenticated user's profile.
-     */
-    /**
-     * @param int $id
-     * @return ?User
-     */
+    // Used after token validation to load the authenticated user's profile.
     public function findById(int $id): ?User
     {
         $stmt = $this->db->prepare(
@@ -59,18 +42,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->fetchOneOrNull($stmt, User::fromRow(...));
     }
 
-    /**
-     * Insert a new user record and return the generated ID.
-     *
-     * Called during registration after password hashing.
-     */
-    /**
-     * @param string $username
-     * @param string $passwordHash
-     * @param ?string $displayName
-     * @param string $role
-     * @return int
-     */
+    // Called during registration after password hashing; returns the generated ID.
     public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'viewer'): int
     {
         $stmt = $this->db->prepare(
@@ -87,16 +59,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return (int) $this->db->lastInsertId();
     }
 
-    /**
-     * Update a user's display name.
-     *
-     * Lets users change their visible name without affecting login credentials.
-     */
-    /**
-     * @param int $id
-     * @param ?string $displayName
-     * @return void
-     */
+    // Updates display name without affecting login credentials.
     public function updateProfile(int $id, ?string $displayName): void
     {
         $stmt = $this->db->prepare(
@@ -105,10 +68,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $stmt->execute(['displayName' => $displayName, 'id' => $id]);
     }
 
-    /** Count total number of users in the database. */
-    /**
-     * @return int
-     */
+    // Counts total number of users in the database.
     public function countAll(): int
     {
         $stmt = $this->db->query('SELECT COUNT(*) FROM users');
@@ -116,12 +76,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return (int) $stmt->fetchColumn();
     }
 
-    /**
-     * Count how many users currently have the given role.
-     *
-     * @param string $role Role name to count.
-     * @return int Number of matching users.
-     */
+    // Counts how many users currently have the given role.
     public function countByRole(string $role): int
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
@@ -131,10 +86,6 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     /** @return User[] */
-    /**
-     * @param UserFilterDTO $filters
-     * @return array
-     */
     public function findAll(UserFilterDTO $filters): array
     {
         $sql = 'SELECT id, username, password_hash, display_name, role, is_active, created_at, updated_at
@@ -174,11 +125,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->fetchAllHydrated($stmt, User::fromRow(...));
     }
 
-    /** Count users matching the current admin filters. */
-    /**
-     * @param UserFilterDTO $filters
-     * @return int
-     */
+    // Counts users matching the current admin filters.
     public function countAllFiltered(UserFilterDTO $filters): int
     {
         $sql = 'SELECT COUNT(*) FROM users WHERE 1 = 1';
@@ -201,12 +148,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return (int) $stmt->fetchColumn();
     }
 
-    /** Update a user's role and return the updated user, or null if the ID does not exist. */
-    /**
-     * @param int $id
-     * @param string $role
-     * @return ?User
-     */
+    // Updates a user's role; returns the updated user, or null if the ID does not exist.
     public function updateRole(int $id, string $role): ?User
     {
         $stmt = $this->db->prepare('UPDATE users SET role = :role WHERE id = :id');
@@ -215,12 +157,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->findById($id);
     }
 
-    /** Update a user's active status and return the updated user, or null if the ID does not exist. */
-    /**
-     * @param int $id
-     * @param bool $isActive
-     * @return ?User
-     */
+    // Updates a user's active status; returns the updated user, or null if the ID does not exist.
     public function updateStatus(int $id, bool $isActive): ?User
     {
         $stmt = $this->db->prepare('UPDATE users SET is_active = :isActive WHERE id = :id');
@@ -229,12 +166,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->findById($id);
     }
 
-    /**
-     * Count active users with the given role.
-     *
-     * @param string $role Role name to count.
-     * @return int Number of active users with that role.
-     */
+    // Counts active users with the given role.
     public function countActiveByRole(string $role): int
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM users WHERE role = :role AND is_active = 1');

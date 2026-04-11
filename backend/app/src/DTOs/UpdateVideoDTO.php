@@ -11,23 +11,11 @@ use App\Exceptions\ValidationException;
  */
 final class UpdateVideoDTO
 {
-    /**
-     * @param string $originalName
-     * @return void
-     */
     public function __construct(
         public readonly string $originalName,
     ) {}
 
-    /**
-     * Build from a decoded JSON body.
-     *
-     * @throws \InvalidArgumentException If the required field is missing or empty.
-     */
-    /**
-     * @param array $data
-     * @return self
-     */
+    // Throws ValidationException if originalName is missing or empty.
     public static function fromArray(array $data): self
     {
         if (empty($data['originalName']) || !is_string($data['originalName'])) {

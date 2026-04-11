@@ -16,16 +16,6 @@ namespace App\Models;
  */
 class User
 {
-    /**
-     * @param int $id
-     * @param string $username
-     * @param string $passwordHash
-     * @param ?string $displayName
-     * @param string $role
-     * @param string $createdAt
-     * @param string $updatedAt
-     * @return void
-     */
     public function __construct(
         public readonly int $id,
         public readonly string $username,
@@ -37,16 +27,7 @@ class User
         public readonly string $updatedAt,
     ) {}
 
-    /**
-     * Build a User from a raw database row (associative array).
-     *
-     * This is the only place that knows about the database column names.
-     * If column names ever change, only this method needs updating.
-     */
-    /**
-     * @param array $row
-     * @return self
-     */
+    // The only place that knows the database column names — change here if columns are renamed.
     public static function fromRow(array $row): self
     {
         return new self(
@@ -61,15 +42,7 @@ class User
         );
     }
 
-    /**
-     * Convert to a clean, camelCase array for the API response.
-     *
-     * Strips sensitive fields (passwordHash) so they never accidentally
-     * leak to the frontend.
-     */
-    /**
-     * @return array
-     */
+    // Strips sensitive fields (passwordHash) before sending to the frontend.
     public function toApiArray(): array
     {
         return [

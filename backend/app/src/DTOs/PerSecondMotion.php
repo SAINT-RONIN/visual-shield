@@ -13,11 +13,6 @@ namespace App\DTOs;
  */
 class PerSecondMotion
 {
-    /**
-     * @param int $second
-     * @param float $intensity
-     * @return void
-     */
     public function __construct(
         public readonly int $second,
         public readonly float $intensity,

@@ -17,16 +17,8 @@ class JwtService
     private const ALGORITHM = 'HS256';
     private const TOKEN_TYPE = 'JWT';
 
-    /**
-     * Issue a signed access token and return the token plus metadata needed
-     * for server-side session tracking.
-     *
-     * @return array{token: string, jti: string, expiresAt: string}
-     */
-    /**
-     * @param int $userId
-     * @return array
-     */
+    // Issues a signed access token and returns the token plus metadata for server-side session tracking.
+    /** @return array{token: string, jti: string, expiresAt: string} */
     public function issueAccessToken(int $userId): array
     {
         $issuedAt = time();
@@ -59,15 +51,8 @@ class JwtService
         ];
     }
 
-    /**
-     * Decode and verify an access token, returning its claims if valid.
-     *
-     * @return array<string, mixed>
-     */
-    /**
-     * @param string $token
-     * @return array
-     */
+    // Decodes and verifies an access token; throws RuntimeException if invalid or expired.
+    /** @return array<string, mixed> */
     public function decodeAccessToken(string $token): array
     {
         $segments = explode('.', $token);
@@ -97,11 +82,7 @@ class JwtService
         return $payload;
     }
 
-    /** Decode a base64url JSON segment into an associative array. */
-    /**
-     * @param string $segment
-     * @return array
-     */
+    // Decodes a base64url JSON segment into an associative array.
     private function decodeJsonSegment(string $segment): array
     {
         $decoded = $this->base64UrlDecode($segment);
@@ -114,11 +95,7 @@ class JwtService
         return $data;
     }
 
-    /** Validate the standard claims we rely on for access tokens. */
-    /**
-     * @param array $payload
-     * @return void
-     */
+    // Validates the standard claims (iss, sub, jti, iat, nbf, exp) for access tokens.
     private function validateClaims(array $payload): void
     {
         $issuedAt = $payload['iat'] ?? null;
@@ -148,21 +125,13 @@ class JwtService
         }
     }
 
-    /** Base64url-encode binary or string input without padding. */
-    /**
-     * @param string $value
-     * @return string
-     */
+    // Base64url-encodes binary or string input without padding.
     private function base64UrlEncode(string $value): string
     {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
-    /** Base64url-decode a JWT segment. */
-    /**
-     * @param string $value
-     * @return string
-     */
+    // Base64url-decodes a JWT segment.
     private function base64UrlDecode(string $value): string
     {
         $padding = strlen($value) % 4;

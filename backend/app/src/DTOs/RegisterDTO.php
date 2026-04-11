@@ -21,30 +21,14 @@ use App\Exceptions\ValidationException;
  */
 class RegisterDTO
 {
-    /**
-     * @param string $username
-     * @param string $password
-     * @param ?string $displayName
-     * @return void
-     */
     public function __construct(
         public readonly string $username,
         public readonly string $password,
         public readonly ?string $displayName = null
     ) {}
 
-    /**
-     * Build a RegisterDTO from a raw associative array (decoded JSON body).
-     *
-     * Validates that 'username' and 'password' keys exist as non-empty
-     * strings, trims the username and optional displayName, and returns
-     * an immutable instance ready for the service layer.
-     *
-     * @param array $data Raw request payload (e.g. from json_decode).
-     * @return self       Validated, immutable DTO.
-     *
-     * @throws ValidationException If username or password is missing/invalid.
-     */
+    // Validates 'username' and 'password' as non-empty strings, trims the username
+    // and optional displayName. Throws ValidationException if invalid.
     public static function fromArray(array $data): self
     {
         if (empty($data['username']) || !is_string($data['username'])) {

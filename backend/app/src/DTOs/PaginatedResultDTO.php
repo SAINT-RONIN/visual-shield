@@ -13,13 +13,6 @@ namespace App\DTOs;
  */
 final class PaginatedResultDTO
 {
-    /**
-     * @param array $items
-     * @param int $total
-     * @param int $limit
-     * @param int $offset
-     * @return void
-     */
     public function __construct(
         public readonly array $items,
         public readonly int $total,

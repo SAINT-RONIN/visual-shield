@@ -19,25 +19,12 @@ class ReanalyzeVideoDTO
     /** Default sampling rate when the user doesn't specify one. */
     private const DEFAULT_SAMPLING_RATE = 15;
 
-    /**
-     * @param int $samplingRate
-     * @return void
-     */
     public function __construct(
         public readonly int $samplingRate,
     ) {}
 
-    /**
-     * Build a ReanalyzeVideoDTO from the raw JSON request body.
-     *
-     * Accepts both camelCase ("samplingRate") and snake_case ("sampling_rate")
-     * key names. Falls back to 15fps if neither is provided.
-     *
-     * @param  array $body The decoded JSON request body.
-     * @return self  Validated, immutable DTO.
-     *
-     * @throws \InvalidArgumentException If the sampling rate isn't in the allowed list.
-     */
+    // Accepts both camelCase ("samplingRate") and snake_case ("sampling_rate") key names.
+    // Falls back to 15fps if neither is provided. Throws ValidationException if invalid.
     public static function fromArray(array $body): self
     {
         $rawRate = $body['samplingRate'] ?? $body['sampling_rate'] ?? self::DEFAULT_SAMPLING_RATE;

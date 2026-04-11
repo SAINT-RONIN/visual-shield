@@ -18,13 +18,6 @@ use App\Utils\RiskLevel;
  */
 class ReportDTO
 {
-    /**
-     * @param Video $video
-     * @param ?AnalysisResult $analysisResult
-     * @param array $segments
-     * @param array $datapoints
-     * @return void
-     */
     public function __construct(
         public readonly Video $video,
         public readonly ?AnalysisResult $analysisResult,
@@ -32,15 +25,7 @@ class ReportDTO
         public readonly array $datapoints,
     ) {}
 
-    /**
-     * Count segment severities and delegate to the shared RiskLevel utility.
-     *
-     * This is not serialisation â€” it is pure domain computation over the
-     * typed segment models. The controller calls this to assemble the summary.
-     */
-    /**
-     * @return string
-     */
+    // Pure domain computation over the typed segment models; not serialisation.
     public function calculateRiskLevel(): string
     {
         $highSegments = 0;

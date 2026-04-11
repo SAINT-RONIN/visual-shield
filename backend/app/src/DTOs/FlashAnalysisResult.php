@@ -12,13 +12,6 @@ namespace App\DTOs;
  */
 class FlashAnalysisResult
 {
-    /**
-     * @param int $totalEvents
-     * @param float $highestFrequency
-     * @param array $segments
-     * @param array $perSecondFrequencies
-     * @return void
-     */
     public function __construct(
         public readonly int $totalEvents,
         public readonly float $highestFrequency,

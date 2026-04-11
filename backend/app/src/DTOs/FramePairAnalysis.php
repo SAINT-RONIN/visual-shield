@@ -13,12 +13,6 @@ namespace App\DTOs;
  */
 class FramePairAnalysis
 {
-    /**
-     * @param float $luminance1
-     * @param float $luminance2
-     * @param float $motionIntensity
-     * @return void
-     */
     public function __construct(
         public readonly float $luminance1,
         public readonly float $luminance2,
