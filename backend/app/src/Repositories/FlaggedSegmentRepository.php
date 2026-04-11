@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Interfaces\FlaggedSegmentRepositoryInterface;
-use App\DTOs\SegmentData;
 use App\DTOs\SegmentFilterDTO;
 use App\Models\FlaggedSegment;
 
@@ -80,7 +79,7 @@ class FlaggedSegmentRepository extends BaseRepository implements FlaggedSegmentR
             $allowedSorts = ['start_time', 'end_time', 'segment_type', 'severity', 'metric_value'];
             $allowedOrders = ['asc', 'desc'];
             $sortCol = \in_array($filters->sort, $allowedSorts, true) ? $filters->sort : 'start_time';
-            $orderDir = \in_array($filters->order, $allowedOrders, true) ? strtoupper($filters->order) : 'ASC';
+            $orderDir = \in_array($filters->order, $allowedOrders, true) ? \strtoupper($filters->order) : 'ASC';
 
             $sql .= " ORDER BY {$sortCol} {$orderDir}";
         } else {

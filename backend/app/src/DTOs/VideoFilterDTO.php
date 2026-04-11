@@ -53,7 +53,7 @@ final class VideoFilterDTO
         $rawOffset = isset($query['offset']) ? (int) $query['offset'] : 0;
         $offset = max(0, $rawOffset);
 
-        $userId = isset($query['userId']) && is_numeric($query['userId']) && (int) $query['userId'] > 0
+        $userId = isset($query['userId']) && \is_numeric($query['userId']) && (int) $query['userId'] > 0
             ? (int) $query['userId']
             : null;
 
