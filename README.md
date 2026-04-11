@@ -96,7 +96,7 @@ Visual Shield includes the main features needed to upload videos, process them, 
 ### Admin features
 
 - View a list of all users
-- Change a user's role between `viewer` and `admin`
+- Change a user's role between `member` and `admin`
 
 ### Security and technical safeguards
 
@@ -286,7 +286,7 @@ After importing the database you will have pre-existing user accounts available 
 
 | Role | Username | Password |
 |------|----------|----------|
-| Viewer | `TestUser1` | `Password123!` |
+| Member | `TestUser1` | `Password123!` |
 | Admin | `Admin` | `Admin123!` |
 
 To promote a user to admin, run this query in phpMyAdmin on the `visual_shield` database:

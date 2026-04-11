@@ -23,7 +23,7 @@ final class UserFilterDTO
     // Builds a validated filter DTO from raw query parameters.
     public static function fromQuery(array $query): self
     {
-        $validRoles = ['admin', 'viewer'];
+        $validRoles = ['admin', 'member'];
         $validSorts = ['created_at', 'username', 'role'];
         $validOrders = ['asc', 'desc'];
 

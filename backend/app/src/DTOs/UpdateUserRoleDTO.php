@@ -14,7 +14,7 @@ use App\Exceptions\ValidationException;
  */
 final readonly class UpdateUserRoleDTO
 {
-    private const ASSIGNABLE_ROLES = ['admin', 'viewer'];
+    private const ASSIGNABLE_ROLES = ['admin', 'member'];
 
     public function __construct(
         public string $role,

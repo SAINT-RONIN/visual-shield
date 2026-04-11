@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
+use App\DTOs\CreateUserDTO;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
 use App\Models\User;
@@ -49,4 +50,12 @@ interface AdminServiceInterface
      * @return User Updated user model after activation.
      */
     public function activateUser(int $id): User;
+
+    /**
+     * Create a new user account with an explicitly assigned role.
+     *
+     * @param CreateUserDTO $dto Validated user creation payload.
+     * @return User The newly created user model.
+     */
+    public function createUser(CreateUserDTO $dto): User;
 }

@@ -73,6 +73,7 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
 
     // Admin
     $r->addRoute('GET', '/api/admin/users', ['adminController', 'listUsers']);
+    $r->addRoute('POST', '/api/admin/users', ['adminController', 'createUser']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/role', ['adminController', 'updateUserRole']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/deactivate', ['adminController', 'deactivateUser']);
     $r->addRoute('PATCH', '/api/admin/users/{id:\d+}/activate', ['adminController', 'activateUser']);

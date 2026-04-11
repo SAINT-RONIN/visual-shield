@@ -43,7 +43,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     }
 
     // Called during registration after password hashing; returns the generated ID.
-    public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'viewer'): int
+    public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'member'): int
     {
         $stmt = $this->db->prepare(
             'INSERT INTO users (username, password_hash, display_name, role)

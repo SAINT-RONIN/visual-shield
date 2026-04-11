@@ -187,7 +187,7 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `display_name` varchar(100) DEFAULT NULL,
-  `role` varchar(20) NOT NULL DEFAULT 'viewer',
+  `role` varchar(20) NOT NULL DEFAULT 'member',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -199,8 +199,8 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password_hash`, `display_name`, `role`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$argon2id$v=19$m=65536,t=4,p=1$c1EzREJ3eWdSc3B6bWNDRw$jniTKxQn8+wzRsyGgPFqoveTKihZ71FZpEeBy9Mo5xA', 'Administrator', 'admin', 1, '2026-04-04 19:13:43', '2026-04-04 19:23:35'),
-(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'viewer', 1, '2026-04-04 20:04:20', '2026-04-04 20:04:20'),
-(4, 'kian@test', '$argon2id$v=19$m=65536,t=4,p=1$TEVLNFExczcuL25BL29tRw$R8MD+51z86czNgKiLV72+IQkKwDDxIoItufWqUj8lVE', 'kian', 'viewer', 1, '2026-04-06 14:17:44', '2026-04-06 14:17:44');
+(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'member', 1, '2026-04-04 20:04:20', '2026-04-04 20:04:20'),
+(4, 'kian@test', '$argon2id$v=19$m=65536,t=4,p=1$TEVLNFExczcuL25BL29tRw$R8MD+51z86czNgKiLV72+IQkKwDDxIoItufWqUj8lVE', 'kian', 'member', 1, '2026-04-06 14:17:44', '2026-04-06 14:17:44');
 
 -- --------------------------------------------------------
 

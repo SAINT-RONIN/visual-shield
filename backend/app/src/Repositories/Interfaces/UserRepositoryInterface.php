@@ -34,7 +34,7 @@ interface UserRepositoryInterface
      * @param string $role Initial role assigned to the user.
      * @return int Newly created user ID.
      */
-    public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'viewer'): int;
+    public function create(string $username, string $passwordHash, ?string $displayName, string $role = 'member'): int;
 
     /**
      * Update a user's editable profile fields.

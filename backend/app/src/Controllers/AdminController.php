@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\Interfaces\AdminServiceInterface;
+use App\DTOs\CreateUserDTO;
 use App\DTOs\UpdateUserRoleDTO;
 use App\DTOs\UserFilterDTO;
 use App\Framework\BaseController;
@@ -102,6 +103,21 @@ class AdminController extends BaseController
             $this->requireAdmin();
             $user = $this->adminService->activateUser($id);
             $this->jsonResponse(['data' => $user->toApiArray()]);
+        });
+    }
+
+    /**
+     * Create a new user account (admin only).
+     *
+     * @return void
+     */
+    public function createUser(): void
+    {
+        $this->handleRequest(function () {
+            $this->requireAdmin();
+            $dto = CreateUserDTO::fromArray($this->getJsonBody());
+            $user = $this->adminService->createUser($dto);
+            $this->jsonResponse(['data' => $user->toApiArray()], 201);
         });
     }
 

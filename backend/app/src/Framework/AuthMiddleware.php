@@ -71,7 +71,7 @@ class AuthMiddleware
      */
     public static function getAuthenticatedUserRole(): string
     {
-        return self::$authenticatedUserRole ?? 'viewer';
+        return self::$authenticatedUserRole ?? 'member';
     }
 
     /**

@@ -39,8 +39,8 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         $hashedPassword = password_hash($dto->password, PASSWORD_ARGON2ID);
 
-        // First user becomes admin, all others are viewers
-        $role = $this->userRepo->countAll() === 0 ? 'admin' : 'viewer';
+        // First user becomes admin, all others are members
+        $role = $this->userRepo->countAll() === 0 ? 'admin' : 'member';
 
         $newUserId = $this->userRepo->create($dto->username, $hashedPassword, $dto->displayName, $role);
 

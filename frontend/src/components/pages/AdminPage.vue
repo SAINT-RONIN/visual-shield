@@ -2,11 +2,13 @@
 // Page: AdminPage is the route-level view for listing users and changing their roles.
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchUsers, updateUserRole, deactivateUser, activateUser } from '@/api/admin.js'
+import { fetchUsers, updateUserRole, deactivateUser, activateUser, createUser } from '@/api/admin.js'
 import { formatDateShort } from '@/utils/formatters.js'
 import { useAuth } from '@/composables/useAuth.js'
 import PageTemplate from '@/components/templates/PageTemplate.vue'
 import AppButton from '@/components/atoms/AppButton.vue'
+import AppInput from '@/components/atoms/AppInput.vue'
+import AppSelect from '@/components/atoms/AppSelect.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import AlertMessage from '@/components/atoms/AlertMessage.vue'
 import RoleBadge from '@/components/atoms/RoleBadge.vue'
@@ -22,7 +24,62 @@ const updatingRole = ref(null)
 const updatingStatus = ref(null)
 const adminCount = ref(0)
 
-const roleOptions = ['admin', 'viewer']
+const roleOptions = ['admin', 'member']
+
+// Create user modal state
+const showCreateModal = ref(false)
+const creating = ref(false)
+const createError = ref('')
+const createForm = ref({ username: '', password: '', displayName: '', role: 'member' })
+
+const roleSelectOptions = [
+  { value: 'member', label: 'Member' },
+  { value: 'admin', label: 'Admin' },
+]
+
+function openCreateModal() {
+  createForm.value = { username: '', password: '', displayName: '', role: 'member' }
+  createError.value = ''
+  showCreateModal.value = true
+}
+
+function closeCreateModal() {
+  showCreateModal.value = false
+}
+
+async function submitCreateUser() {
+  createError.value = ''
+
+  if (!createForm.value.username.trim()) {
+    createError.value = 'Username is required'
+    return
+  }
+
+  if (!createForm.value.password) {
+    createError.value = 'Password is required'
+    return
+  }
+
+  creating.value = true
+
+  try {
+    const newUser = await createUser(
+      createForm.value.username.trim(),
+      createForm.value.password,
+      createForm.value.displayName.trim() || null,
+      createForm.value.role,
+    )
+    users.value.push(newUser)
+    if (newUser.role === 'admin') {
+      adminCount.value += 1
+    }
+    closeCreateModal()
+  } catch (err) {
+    createError.value = err.response?.data?.error?.message || 'Failed to create user'
+  } finally {
+    creating.value = false
+  }
+}
 
 onMounted(async () => {
   try {
@@ -105,12 +162,73 @@ async function changeRole(userId, newRole) {
     updatingRole.value = null
   }
 }
-
-
 </script>
 
 <template>
   <PageTemplate title="Admin Panel">
+
+    <!-- Create User Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showCreateModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        @click.self="closeCreateModal"
+      >
+        <div class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <h2 class="text-lg font-semibold text-heading mb-5">Create User</h2>
+
+          <form class="flex flex-col gap-4" @submit.prevent="submitCreateUser">
+            <AppInput
+              v-model="createForm.username"
+              label="Username"
+              placeholder="e.g. jdoe"
+              required
+            />
+            <AppInput
+              v-model="createForm.displayName"
+              label="Display Name"
+              placeholder="e.g. Jane Doe (optional)"
+            />
+            <AppInput
+              v-model="createForm.password"
+              label="Password"
+              type="password"
+              placeholder="Enter a password"
+              required
+            />
+            <AppSelect
+              v-model="createForm.role"
+              label="Role"
+              :options="roleSelectOptions"
+            />
+
+            <AlertMessage type="error" :message="createError" />
+
+            <div class="flex gap-3 pt-1">
+              <AppButton
+                type="button"
+                variant="secondary"
+                fullWidth
+                :disabled="creating"
+                @click="closeCreateModal"
+              >
+                Cancel
+              </AppButton>
+              <AppButton
+                type="submit"
+                variant="primary"
+                fullWidth
+                :loading="creating"
+                :disabled="creating"
+              >
+                {{ creating ? 'Creating…' : 'Create User' }}
+              </AppButton>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
     <div v-if="loading" class="flex items-center justify-center py-20">
       <Spinner size="lg" />
     </div>
@@ -123,16 +241,18 @@ async function changeRole(userId, newRole) {
       <p class="text-muted text-sm">You do not have permission to view this page.</p>
     </div>
 
-    <AlertMessage v-else-if="error && users.length === 0" type="error" :message="error" />
+    <template v-else>
+      <div class="flex items-center justify-end mb-4">
+        <AppButton variant="primary" @click="openCreateModal">Create User</AppButton>
+      </div>
 
-    <div v-else-if="users.length === 0" class="text-center py-12">
-      <p class="text-muted text-sm">No users found.</p>
-    </div>
+      <AlertMessage v-if="error" type="error" :message="error" class="mb-4" />
 
-    <div v-else>
-      <AlertMessage v-if="error" type="error" :message="error" />
+      <div v-if="users.length === 0" class="text-center py-12">
+        <p class="text-muted text-sm">No users found.</p>
+      </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-line bg-surface">
+      <div v-else class="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-line text-left text-muted">
@@ -168,7 +288,7 @@ async function changeRole(userId, newRole) {
                     :key="role"
                     variant="secondary"
                     size="sm"
-                    :disabled="updatingRole === user.id || updatingStatus === user.id || (role === 'viewer' && isLastAdmin(user))"
+                    :disabled="updatingRole === user.id || updatingStatus === user.id || (role === 'member' && isLastAdmin(user))"
                     @click="changeRole(user.id, role)"
                   >
                     {{ updatingRole === user.id ? '...' : `Make ${role}` }}
@@ -200,6 +320,7 @@ async function changeRole(userId, newRole) {
           </tbody>
         </table>
       </div>
-    </div>
+    </template>
+
   </PageTemplate>
 </template>

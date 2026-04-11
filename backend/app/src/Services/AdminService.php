@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\AdminServiceInterface;
+use App\DTOs\CreateUserDTO;
 use App\DTOs\PaginatedResultDTO;
 use App\DTOs\UserFilterDTO;
 use App\Exceptions\ValidationException;
@@ -86,5 +87,18 @@ class AdminService extends BaseService implements AdminServiceInterface
         }
 
         return $this->findOrFail($this->userRepository->updateStatus($id, true), 'User not found');
+    }
+
+    // Creates a new user with an explicitly assigned role; throws ValidationException if the username is taken.
+    public function createUser(CreateUserDTO $dto): User
+    {
+        if ($this->userRepository->findByUsername($dto->username)) {
+            throw new ValidationException('Username is already taken');
+        }
+
+        $hashedPassword = password_hash($dto->password, PASSWORD_ARGON2ID);
+        $newUserId = $this->userRepository->create($dto->username, $hashedPassword, $dto->displayName, $dto->role);
+
+        return $this->findOrFail($this->userRepository->findById($newUserId), 'User not found');
     }
 }

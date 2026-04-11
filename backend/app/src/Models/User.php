@@ -35,7 +35,7 @@ class User
             username: $row['username'],
             passwordHash: $row['password_hash'],
             displayName: $row['display_name'],
-            role: $row['role'] ?? 'viewer',
+            role: $row['role'] ?? 'member',
             isActive: (bool) ($row['is_active'] ?? true),
             createdAt: $row['created_at'],
             updatedAt: $row['updated_at'],
