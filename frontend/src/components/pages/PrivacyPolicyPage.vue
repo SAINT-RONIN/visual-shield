@@ -89,6 +89,7 @@ import PageTemplate from '@/components/templates/PageTemplate.vue'
                 <td class="px-4 py-2.5">To display the file in your dashboard</td>
               </tr>
               <tr class="border-b border-line last:border-0">
+                <td class="px-4 py-2.5">File size and duration</td>
                 <td class="px-4 py-2.5">To display metadata in reports</td>
               </tr>
               <tr class="border-b border-line last:border-0">
