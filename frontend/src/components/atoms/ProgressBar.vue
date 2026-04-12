@@ -24,16 +24,20 @@ defineProps({
 .progress-bar {
   appearance: none;
   border: none;
-  background-color: transparent;
+  background-color: var(--color-surface-alt);
+  border-radius: 9999px;
 }
 .progress-bar::-webkit-progress-bar {
-  @apply bg-surface-alt rounded-full;
+  background-color: var(--color-surface-alt);
+  border-radius: 9999px;
 }
 .progress-bar::-webkit-progress-value {
-  @apply bg-primary rounded-full;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
   transition: width 0.3s;
 }
 .progress-bar::-moz-progress-bar {
-  @apply bg-primary rounded-full;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
 }
 </style>

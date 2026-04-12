@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql
--- Generation Time: Apr 06, 2026 at 07:47 PM
+-- Generation Time: Apr 12, 2026 at 07:00 PM
 -- Server version: 8.0.45
 -- PHP Version: 8.3.26
 
@@ -79,20 +79,43 @@ INSERT INTO `analysis_datapoints` (`id`, `video_id`, `time_point`, `flash_freque
 (85, 6, 22, 0, 11.01, 77.36, 0),
 (86, 6, 23, 0, 21.22, 78.65, 0),
 (87, 6, 24, 0, 23.8, 78.44, 0),
-(88, 7, 0, 0, 18.1, 169.78, 0),
-(89, 7, 1, 0, 17.26, 169.53, 0),
-(90, 8, 0, 0, 9.87, 40.38, 0),
-(91, 8, 1, 4, 31.2, 118.97, 1),
-(92, 8, 2, 7, 46.5, 111.33, 1),
-(93, 8, 3, 12, 95.99, 111.06, 1),
-(94, 8, 4, 7, 81.03, 92.09, 1),
-(95, 8, 5, 4, 86.69, 84.14, 1),
-(96, 8, 6, 11, 126.72, 114.14, 1),
-(97, 8, 7, 1, 20.61, 123.31, 0),
-(98, 8, 8, 1, 12.63, 74.7, 0),
-(99, 8, 9, 1, 11.04, 41.72, 0),
-(100, 8, 10, 5, 56.02, 153.32, 1),
-(101, 8, 11, 4, 34.91, 33.64, 1);
+(222, 8, 0, 0, 9.87, 40.38, 0),
+(223, 8, 1, 4, 31.2, 118.97, 1),
+(224, 8, 2, 7, 46.5, 111.33, 1),
+(225, 8, 3, 12, 95.99, 111.06, 1),
+(226, 8, 4, 7, 81.03, 92.09, 1),
+(227, 8, 5, 4, 86.69, 84.14, 1),
+(228, 8, 6, 11, 126.72, 114.14, 1),
+(229, 8, 7, 1, 20.61, 123.31, 0),
+(230, 8, 8, 1, 12.63, 74.7, 0),
+(231, 8, 9, 1, 11.04, 41.72, 0),
+(232, 8, 10, 5, 56.02, 153.32, 1),
+(233, 8, 11, 4, 34.91, 33.64, 1),
+(354, 11, 0, 1, 11.33, 188.96, 0),
+(355, 11, 1, 1, 26.4, 140.8, 0),
+(356, 11, 2, 0, 3.16, 18.63, 0),
+(357, 11, 3, 1, 32.18, 47.29, 0),
+(358, 11, 4, 1, 10.16, 190.1, 0),
+(359, 11, 5, 1, 26.31, 153.24, 0),
+(360, 11, 6, 3, 19.23, 143.57, 1),
+(361, 11, 7, 2, 9.6, 104.48, 0),
+(362, 11, 8, 4, 26.51, 92.88, 1),
+(363, 11, 9, 1, 14.23, 147.27, 0),
+(364, 11, 10, 0, 5.49, 151.28, 0),
+(365, 11, 11, 1, 7.67, 193.74, 0),
+(366, 11, 12, 1, 17.7, 157.18, 0),
+(367, 11, 13, 2, 15.87, 184.15, 0),
+(368, 11, 14, 0, 13.11, 103.92, 0),
+(369, 11, 15, 1, 15.59, 141.58, 0),
+(370, 11, 16, 0, 19.93, 132.74, 0),
+(371, 11, 17, 1, 14.73, 59.73, 0),
+(372, 11, 18, 0, 16.99, 23.71, 0),
+(373, 11, 19, 1, 17.3, 85.18, 0),
+(374, 11, 20, 1, 15.28, 60.19, 0),
+(375, 11, 21, 1, 24.63, 61.1, 0),
+(376, 11, 22, 0, 11.01, 77.36, 0),
+(377, 11, 23, 0, 21.22, 78.65, 0),
+(378, 11, 24, 0, 23.8, 78.44, 0);
 
 -- --------------------------------------------------------
 
@@ -118,8 +141,8 @@ CREATE TABLE `analysis_results` (
 INSERT INTO `analysis_results` (`id`, `video_id`, `total_frames_analyzed`, `total_flash_events`, `highest_flash_frequency`, `average_motion_intensity`, `effective_sampling_rate`, `created_at`) VALUES
 (1, 1, 703, 84, 19, 18.88, 60, '2026-04-04 19:27:38'),
 (2, 6, 364, 25, 4, 16.78, 15, '2026-04-04 20:27:28'),
-(3, 7, 23, 0, 0, 17.68, 15, '2026-04-06 15:27:07'),
-(4, 8, 176, 61, 12, 51.1, 15, '2026-04-06 17:38:54');
+(6, 8, 176, 61, 12, 51.1, 15, '2026-04-06 19:58:34'),
+(8, 11, 364, 25, 4, 16.78, 15, '2026-04-12 18:24:27');
 
 -- --------------------------------------------------------
 
@@ -134,14 +157,6 @@ CREATE TABLE `auth_tokens` (
   `expires_at` datetime NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `auth_tokens`
---
-
-INSERT INTO `auth_tokens` (`id`, `user_id`, `token`, `expires_at`, `created_at`) VALUES
-(22, 1, '0c0f89c367c87e0fbfe777c171bd2308ab8d07fa2b94a2f84a9762cd3c1aafc6', '2026-04-07 15:04:22', '2026-04-06 15:04:22'),
-(24, 1, 'bbb391c89e0b869759a6dc3266ab72efe8a689ccd8e19ca216a7e350e62a9337', '2026-04-07 18:08:17', '2026-04-06 18:08:17');
 
 -- --------------------------------------------------------
 
@@ -171,10 +186,13 @@ INSERT INTO `flagged_segments` (`id`, `video_id`, `start_time`, `end_time`, `seg
 (4, 6, 6, 7, 'flash', 'low', 3, '2026-04-04 20:27:28'),
 (5, 6, 8, 9, 'flash', 'low', 4, '2026-04-04 20:27:28'),
 (6, 6, 3, 4, 'motion', 'low', 32.18, '2026-04-04 20:27:28'),
-(7, 8, 1, 7, 'flash', 'high', 12, '2026-04-06 17:38:54'),
-(8, 8, 10, 12, 'flash', 'low', 5, '2026-04-06 17:38:54'),
-(9, 8, 1, 7, 'motion', 'high', 126.72, '2026-04-06 17:38:54'),
-(10, 8, 10, 12, 'motion', 'low', 56.02, '2026-04-06 17:38:54');
+(11, 8, 1, 7, 'flash', 'high', 12, '2026-04-06 19:58:34'),
+(12, 8, 10, 12, 'flash', 'low', 5, '2026-04-06 19:58:34'),
+(13, 8, 1, 7, 'motion', 'high', 126.72, '2026-04-06 19:58:34'),
+(14, 8, 10, 12, 'motion', 'low', 56.02, '2026-04-06 19:58:34'),
+(15, 11, 6, 7, 'flash', 'low', 3, '2026-04-12 18:24:27'),
+(16, 11, 8, 9, 'flash', 'low', 4, '2026-04-12 18:24:27'),
+(17, 11, 3, 4, 'motion', 'low', 32.18, '2026-04-12 18:24:27');
 
 -- --------------------------------------------------------
 
@@ -187,7 +205,7 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `display_name` varchar(100) DEFAULT NULL,
-  `role` varchar(20) NOT NULL DEFAULT 'member',
+  `role` varchar(20) NOT NULL DEFAULT 'viewer',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -199,8 +217,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password_hash`, `display_name`, `role`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$argon2id$v=19$m=65536,t=4,p=1$c1EzREJ3eWdSc3B6bWNDRw$jniTKxQn8+wzRsyGgPFqoveTKihZ71FZpEeBy9Mo5xA', 'Administrator', 'admin', 1, '2026-04-04 19:13:43', '2026-04-04 19:23:35'),
-(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'member', 1, '2026-04-04 20:04:20', '2026-04-04 20:04:20'),
-(4, 'kian@test', '$argon2id$v=19$m=65536,t=4,p=1$TEVLNFExczcuL25BL29tRw$R8MD+51z86czNgKiLV72+IQkKwDDxIoItufWqUj8lVE', 'kian', 'member', 1, '2026-04-06 14:17:44', '2026-04-06 14:17:44');
+(3, 'TestUser1', '$argon2id$v=19$m=65536,t=4,p=1$Y1JtQmxRZ1VraDlzcGgubA$kscmQjq9nKLXz3fOWWDf2FBr1AFlkjbn37+Jl//rX6Y', 'TestUser1', 'viewer', 1, '2026-04-04 20:04:20', '2026-04-06 19:53:10'),
+(4, 'kian@test', '$argon2id$v=19$m=65536,t=4,p=1$TEVLNFExczcuL25BL29tRw$R8MD+51z86czNgKiLV72+IQkKwDDxIoItufWqUj8lVE', 'kian', 'viewer', 1, '2026-04-06 14:17:44', '2026-04-06 14:17:44'),
+(5, 'Axel', '$argon2id$v=19$m=65536,t=4,p=1$WkNxSnpKZk1UYjZsZzl0Wg$hZ8zyM6Tml0XwF3u3Bx+rYDzRYXDQ+lS26vORx9hGWs', 'Axel Doe', 'member', 1, '2026-04-12 18:22:02', '2026-04-12 18:22:02');
 
 -- --------------------------------------------------------
 
@@ -232,8 +251,8 @@ CREATE TABLE `videos` (
 INSERT INTO `videos` (`id`, `user_id`, `original_name`, `stored_path`, `file_size`, `duration_seconds`, `status`, `sampling_rate`, `effective_rate`, `created_at`, `updated_at`, `progress`, `progress_message`, `error_message`) VALUES
 (1, 1, 'Pokémon - Cyber Soldier Porygon_Electric Soldier Porygon - Seizure Scene Clip [1997] - VideoMaster78 (240p, h264).mp4', 'storage/videos/d8224abf33dce786e17c6f746962c5d7.mp4', 353510, 11.807, 'completed', 60, 60, '2026-04-04 19:27:02', '2026-04-04 19:27:43', 100, 'Completed', NULL),
 (6, 1, 'hero-video-compressed.mp4', 'storage/videos/f70ffb2f6e51c6315fcaff208c7f3011.mp4', 9657230, 24.32, 'completed', 15, 15, '2026-04-04 20:19:23', '2026-04-04 20:27:31', 100, 'Completed', NULL),
-(7, 1, 'b9ba864e-8f4a-4273-84f6-f160f098a95a.mp4', 'storage/videos/4e470d9324a77637911f84c56e2d80f9.mp4', 158230, 1.5, 'completed', 15, 15, '2026-04-06 15:27:04', '2026-04-06 15:27:07', 100, 'Completed', NULL),
-(8, 1, 'Pokémon - Cyber Soldier Porygon_Electric Soldier Porygon - Seizure Scene Clip [1997] - VideoMaster78 (240p, h264).mp4', 'storage/videos/5b4ff1decf54f514df3780b5344fd383.mp4', 353510, 11.807, 'completed', 15, 15, '2026-04-06 17:38:44', '2026-04-06 17:38:55', 100, 'Completed', NULL);
+(8, 1, 'Pokémon - Cyber Soldier Porygon_Electric Soldier Porygon - Seizure Scene Clip [1997] - VideoMaster78 (240p, h264).mp4', 'storage/videos/5b4ff1decf54f514df3780b5344fd383.mp4', 353510, 11.807, 'completed', 15, 15, '2026-04-06 17:38:44', '2026-04-06 19:58:39', 100, 'Completed', NULL),
+(11, 5, 'hero-video-compressed.mp4', 'storage/videos/cedc49b1af70b790f5e41ec21bc74088.mp4', 9657230, 24.32, 'completed', 15, 15, '2026-04-12 18:22:42', '2026-04-12 18:24:30', 100, 'Completed', NULL);
 
 --
 -- Indexes for dumped tables
@@ -290,37 +309,37 @@ ALTER TABLE `videos`
 -- AUTO_INCREMENT for table `analysis_datapoints`
 --
 ALTER TABLE `analysis_datapoints`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=379;
 
 --
 -- AUTO_INCREMENT for table `analysis_results`
 --
 ALTER TABLE `analysis_results`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `auth_tokens`
 --
 ALTER TABLE `auth_tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `flagged_segments`
 --
 ALTER TABLE `flagged_segments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `videos`
 --
 ALTER TABLE `videos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables

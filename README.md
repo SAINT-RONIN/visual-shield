@@ -294,7 +294,7 @@ After importing the database you will have pre-existing user accounts available 
 
 | Role | Username | Password |
 |------|----------|----------|
-| Member | `TestUser1` | `Password123!` |
+| Member | `Axel` | `Password123!` |
 | Admin | `Admin` | `Admin123!` |
 
 To promote a user to admin, run this query in phpMyAdmin on the `visual_shield` database:
@@ -409,7 +409,7 @@ This is the exported database dump for the project. Import it through phpMyAdmin
 
 ### Figma design folder
 
-The `Figma-Design/` folder contains design images for the project:
+The `Figma-Design/` folder contains design images for the project (Design is bound to change. It was just a guide):
 
 - Entrance screen
 - Login screen
@@ -438,6 +438,28 @@ Visual Shield is an accessibility-support tool, not a medical certification syst
 - It helps identify visual patterns that may deserve attention
 - It does not guarantee that a video is safe for every viewer
 - It should be treated as a technical screening tool to support review, not replace human judgment
+
+---
+
+## Interface accessibility
+
+The frontend is built with semantic HTML5 and full keyboard navigation support.
+
+### Semantic HTML
+
+Generic `<div>` and `<span>` elements have been replaced with meaningful HTML5 elements throughout. Structural elements such as `<main>`, `<header>`, `<footer>`, `<nav>`, `<article>`, `<section>`, `<aside>`, and `<dialog>` are used to describe the role of each region to browsers and assistive technologies. Form controls use `<fieldset>` and `<legend>` to group related options, metadata uses `<dl>`/`<dt>`/`<dd>`, and file upload uses a `<label>` wrapping the input so the entire drop zone activates the file picker natively. Progress bars use the native `<progress>` element and video playback timestamps use `<time>`.
+
+### Keyboard navigation
+
+Every interactive element — buttons, links, navigation items, sort controls, filter toggles, the video player overlay, and the file drop zone — is fully reachable and operable by keyboard alone using Tab, Shift+Tab, and Enter/Space. Focus rings are shown only on keyboard focus (not mouse clicks) using the CSS `focus-visible` selector so they do not affect the visual design for pointer users. ARIA attributes (`aria-label`, `aria-expanded`, `aria-sort`, `aria-live`) are applied where native semantics are not sufficient. The toast notification region uses `aria-live="polite"` and individual alerts use `role="alert"` with `aria-live="assertive"`.
+
+See [frontend/README.md](./frontend/README.md) for the full component-level breakdown.
+
+---
+
+## Privacy
+
+A GDPR-aligned privacy policy is provided in [PRIVACY_POLICY.md](./PRIVACY_POLICY.md). It covers what data is collected, the lawful basis for processing, data retention, user rights, and contact information.
 
 ---
 

@@ -8,6 +8,7 @@ import { useConfig } from '@/composables/useConfig.js'
 import { setUnauthorizedHandler } from '@/utils/api.js'
 import Header from '@/components/organisms/Header.vue'
 import ToastContainer from '@/components/molecules/ToastContainer.vue'
+import SiteFooter from '@/components/molecules/SiteFooter.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -56,5 +57,6 @@ async function handleLogout() {
   <main class="pt-14">
     <RouterView />
   </main>
+  <SiteFooter />
   <ToastContainer />
 </template>

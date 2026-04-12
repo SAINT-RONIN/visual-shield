@@ -7,6 +7,7 @@ import UploadPage from '@/components/pages/UploadPage.vue'
 import ReportPage from '@/components/pages/ReportPage.vue'
 import ProfilePage from '@/components/pages/ProfilePage.vue'
 import AdminPage from '@/components/pages/AdminPage.vue'
+import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +55,11 @@ const router = createRouter({
       name: 'admin',
       component: AdminPage,
       meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: PrivacyPolicyPage,
     },
   ],
 })
