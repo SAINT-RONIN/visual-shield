@@ -12,7 +12,7 @@ defineProps({
 <template>
   <button
     :disabled="loading || disabled"
-    class="rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    class="rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
     :class="[
       size === 'sm' ? 'px-3 py-1 text-sm' : 'px-4 py-2',
       variant === 'primary' && 'bg-primary hover:bg-primary-hover text-heading',

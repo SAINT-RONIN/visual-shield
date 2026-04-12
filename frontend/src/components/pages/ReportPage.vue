@@ -137,7 +137,7 @@ async function handleExport(format) {
 
     <AlertMessage v-else-if="error" type="error" :message="error" />
 
-    <div v-else-if="report" class="space-y-6 lg:space-y-8">
+    <article v-else-if="report" class="space-y-6 lg:space-y-8">
       <ReportHeader
         :video="report.video"
         :risk-level="report.summary.overallRiskLevel"
@@ -154,7 +154,7 @@ async function handleExport(format) {
 
       <StatsPanel :summary="statsSummary" />
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FlashFrequencyChart
           v-if="report.charts.flashFrequency.length"
           :data="report.charts.flashFrequency"
@@ -163,7 +163,7 @@ async function handleExport(format) {
           v-if="report.charts.motionIntensity.length"
           :data="report.charts.motionIntensity"
         />
-      </div>
+      </section>
       <LuminanceChart
         v-if="report.charts.luminance.length"
         :data="report.charts.luminance"
@@ -175,13 +175,14 @@ async function handleExport(format) {
       />
 
       <!-- Segment filter bar -->
-      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+      <section class="flex flex-wrap items-center gap-2 sm:gap-3">
         <!-- Type filters -->
-        <div class="inline-flex rounded-xl bg-surface-alt p-0.5">
+        <fieldset class="inline-flex rounded-xl bg-surface-alt p-0.5 border-0">
+          <legend class="sr-only">Filter by type</legend>
           <button
             v-for="f in typeFilters"
             :key="f.key"
-            class="rounded-xl px-3 py-1.5 text-sm font-medium transition-colors"
+            class="rounded-xl px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             :class="activeTypeFilter === f.key
               ? 'bg-surface text-heading shadow-sm border border-line'
               : 'text-muted hover:text-heading border border-transparent'"
@@ -189,14 +190,15 @@ async function handleExport(format) {
           >
             {{ f.label }}
           </button>
-        </div>
+        </fieldset>
 
         <!-- Severity filters -->
-        <div class="inline-flex rounded-xl bg-surface-alt p-0.5">
+        <fieldset class="inline-flex rounded-xl bg-surface-alt p-0.5 border-0">
+          <legend class="sr-only">Filter by severity</legend>
           <button
             v-for="f in severityFilters"
             :key="f.key"
-            class="rounded-xl px-3 py-1.5 text-sm font-medium transition-colors"
+            class="rounded-xl px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             :class="activeSeverityFilter === f.key
               ? 'bg-surface text-heading shadow-sm border border-line'
               : 'text-muted hover:text-heading border border-transparent'"
@@ -204,7 +206,7 @@ async function handleExport(format) {
           >
             {{ f.label }}
           </button>
-        </div>
+        </fieldset>
 
         <!-- Active filter count / loading indicator -->
         <span v-if="filterLoading" class="text-xs text-muted animate-pulse">Updating...</span>
@@ -214,7 +216,7 @@ async function handleExport(format) {
         >
           Showing {{ report.segments.length }} of {{ totalSegmentCount }} segments
         </span>
-      </div>
+      </section>
 
       <SegmentTable
         :segments="report.segments"
@@ -224,6 +226,6 @@ async function handleExport(format) {
       />
 
       <ExportButtons :exporting="exporting" @export="handleExport" />
-    </div>
+    </article>
   </PageTemplate>
 </template>

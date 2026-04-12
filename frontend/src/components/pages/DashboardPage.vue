@@ -175,7 +175,7 @@ async function handleReanalyze(id) {
         <AppSelect v-if="videos.length > 0 || filterStatus !== 'all'" v-model="filterStatus" :options="filterOptions" />
         <span v-if="filterLoading" class="text-muted text-xs animate-pulse">Updating...</span>
       </div>
-      <router-link to="/upload">
+      <router-link to="/upload" class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded-lg">
         <AppButton>Upload Video</AppButton>
       </router-link>
     </div>
@@ -194,13 +194,13 @@ async function handleReanalyze(id) {
       action-to="/upload"
     />
 
-    <div v-else-if="videos.length === 0 && filterStatus === 'all' && isAdmin" class="text-center py-12">
-      <p class="text-muted text-sm">No videos have been uploaded yet.</p>
-    </div>
+    <p v-else-if="videos.length === 0 && filterStatus === 'all' && isAdmin" class="text-center py-12 text-muted text-sm">
+      No videos have been uploaded yet.
+    </p>
 
-    <div v-else-if="videos.length === 0" class="text-center py-12">
-      <p class="text-muted text-sm">No videos match the selected filter.</p>
-    </div>
+    <p v-else-if="videos.length === 0" class="text-center py-12 text-muted text-sm">
+      No videos match the selected filter.
+    </p>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <VideoCard
@@ -213,7 +213,7 @@ async function handleReanalyze(id) {
     </div>
 
     <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+    <nav v-if="totalPages > 1" aria-label="Pagination" class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
       <AppButton
         variant="secondary"
         size="sm"
@@ -222,7 +222,7 @@ async function handleReanalyze(id) {
       >
         Previous
       </AppButton>
-      <span class="text-body text-sm">Page {{ page }} of {{ totalPages }}</span>
+      <span class="text-body text-sm" aria-live="polite">Page {{ page }} of {{ totalPages }}</span>
       <AppButton
         variant="secondary"
         size="sm"
@@ -231,6 +231,6 @@ async function handleReanalyze(id) {
       >
         Next
       </AppButton>
-    </div>
+    </nav>
   </PageTemplate>
 </template>

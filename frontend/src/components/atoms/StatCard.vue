@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="bg-surface rounded-2xl p-5 border border-line" :style="{ '--stat-color': color }">
+  <article class="bg-surface rounded-2xl p-5 border border-line" :style="{ '--stat-color': color }">
     <div class="flex items-center justify-between mb-3">
       <span class="text-muted text-xs">{{ label }}</span>
       <div class="stat-icon-bg flex h-8 w-8 items-center justify-center rounded-lg">
@@ -20,7 +20,7 @@ defineProps({
     <p class="stat-value text-xl sm:text-2xl md:text-3xl font-semibold">
       {{ value }}
     </p>
-  </div>
+  </article>
 </template>
 
 <style scoped>

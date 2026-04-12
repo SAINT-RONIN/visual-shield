@@ -48,7 +48,7 @@ function handleSubmit() {
         placeholder="Enter username"
         @input="errors.username = ''"
       />
-      <span v-if="errors.username" class="text-error text-sm mt-1 block">{{ errors.username }}</span>
+      <p v-if="errors.username" class="text-error text-sm mt-1">{{ errors.username }}</p>
     </div>
     <div>
       <AppInput
@@ -58,7 +58,7 @@ function handleSubmit() {
         placeholder="Enter password"
         @input="errors.password = ''"
       />
-      <span v-if="errors.password" class="text-error text-sm mt-1 block">{{ errors.password }}</span>
+      <p v-if="errors.password" class="text-error text-sm mt-1">{{ errors.password }}</p>
     </div>
     <AlertMessage :message="error" />
     <AppButton type="submit" :loading="loading" full-width>

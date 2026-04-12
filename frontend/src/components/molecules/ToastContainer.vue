@@ -7,7 +7,7 @@ const { toasts, removeToast } = useToast()
 </script>
 
 <template>
-  <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
+  <section class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80" aria-label="Notifications" aria-live="polite">
     <TransitionGroup
       enter-active-class="transition duration-300 ease-out"
       enter-from-class="translate-x-full opacity-0"
@@ -25,5 +25,5 @@ const { toasts, removeToast } = useToast()
         @dismiss="removeToast"
       />
     </TransitionGroup>
-  </div>
+  </section>
 </template>

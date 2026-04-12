@@ -11,7 +11,7 @@ defineEmits(['navigate'])
 <template>
   <router-link
     :to="to"
-    class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors"
+    class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
     :class="active
       ? 'bg-primary/10 text-primary'
       : 'text-body hover:bg-surface-alt hover:text-heading'"

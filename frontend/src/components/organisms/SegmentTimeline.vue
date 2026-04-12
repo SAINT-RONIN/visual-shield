@@ -43,7 +43,7 @@ function capitalize(str) {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-line bg-surface p-3 sm:p-4 md:p-5">
+  <section class="rounded-2xl border border-line bg-surface p-3 sm:p-4 md:p-5">
     <h3 class="mb-4 text-heading font-semibold">Segment Timeline</h3>
 
     <div class="relative overflow-x-auto">
@@ -79,17 +79,17 @@ function capitalize(str) {
       </div>
 
       <!-- Legend -->
-      <div class="mt-3 flex gap-5 text-[0.7rem]">
-        <span class="flex items-center gap-1.5 text-muted">
-          <span class="h-2 w-2 rounded-sm bg-error" /> High
-        </span>
-        <span class="flex items-center gap-1.5 text-muted">
-          <span class="h-2 w-2 rounded-sm bg-warning" /> Medium
-        </span>
-        <span class="flex items-center gap-1.5 text-muted">
-          <span class="h-2 w-2 rounded-sm bg-warning" /> Low
-        </span>
-      </div>
+      <ul class="mt-3 flex gap-5 text-[0.7rem] list-none p-0 m-0">
+        <li class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm bg-error" aria-hidden="true" /> High
+        </li>
+        <li class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm bg-warning" aria-hidden="true" /> Medium
+        </li>
+        <li class="flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-sm bg-warning/60" aria-hidden="true" /> Low
+        </li>
+      </ul>
     </div>
-  </div>
+  </section>
 </template>

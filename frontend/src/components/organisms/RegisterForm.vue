@@ -63,7 +63,7 @@ function handleSubmit() {
         placeholder="Choose a username"
         @input="errors.username = ''"
       />
-      <span v-if="errors.username" class="text-error text-sm mt-1 block">{{ errors.username }}</span>
+      <p v-if="errors.username" class="text-error text-sm mt-1">{{ errors.username }}</p>
     </div>
     <div>
       <AppInput
@@ -72,7 +72,7 @@ function handleSubmit() {
         placeholder="Your display name (optional)"
         @input="errors.displayName = ''"
       />
-      <span v-if="errors.displayName" class="text-error text-sm mt-1 block">{{ errors.displayName }}</span>
+      <p v-if="errors.displayName" class="text-error text-sm mt-1">{{ errors.displayName }}</p>
     </div>
     <div>
       <AppInput
@@ -82,7 +82,7 @@ function handleSubmit() {
         placeholder="Create a password"
         @input="errors.password = ''"
       />
-      <span v-if="errors.password" class="text-error text-sm mt-1 block">{{ errors.password }}</span>
+      <p v-if="errors.password" class="text-error text-sm mt-1">{{ errors.password }}</p>
     </div>
     <div>
       <AppInput
@@ -92,7 +92,7 @@ function handleSubmit() {
         placeholder="Confirm your password"
         @input="errors.confirmPassword = ''"
       />
-      <span v-if="errors.confirmPassword" class="text-error text-sm mt-1 block">{{ errors.confirmPassword }}</span>
+      <p v-if="errors.confirmPassword" class="text-error text-sm mt-1">{{ errors.confirmPassword }}</p>
     </div>
     <AlertMessage :message="error" />
     <AppButton type="submit" :loading="loading" full-width>

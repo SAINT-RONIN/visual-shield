@@ -33,7 +33,7 @@ const samplingRate = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+  <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     <StatCard
       label="Total Flash Events"
       :value="summary.totalFlashEvents"
@@ -81,5 +81,5 @@ const samplingRate = computed(() => {
         </svg>
       </template>
     </StatCard>
-  </div>
+  </section>
 </template>

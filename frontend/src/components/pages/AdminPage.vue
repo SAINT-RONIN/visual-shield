@@ -223,7 +223,7 @@ async function changeRole(userId, newRole) {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
         @click.self="closeResetModal"
       >
-        <div class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl">
+        <dialog open class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl m-0">
           <h2 class="text-lg font-semibold text-heading mb-1">Reset Password</h2>
           <p class="text-sm text-muted mb-5">
             Setting a new password for <span class="text-heading font-medium">{{ resetTargetUser?.username }}</span>
@@ -268,7 +268,7 @@ async function changeRole(userId, newRole) {
               </AppButton>
             </div>
           </form>
-        </div>
+        </dialog>
       </div>
     </Teleport>
 
@@ -279,7 +279,7 @@ async function changeRole(userId, newRole) {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
         @click.self="closeCreateModal"
       >
-        <div class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl">
+        <dialog open class="bg-surface border border-line rounded-2xl w-full max-w-md p-6 shadow-xl m-0">
           <h2 class="text-lg font-semibold text-heading mb-5">Create User</h2>
 
           <form class="flex flex-col gap-4" @submit.prevent="submitCreateUser">
@@ -330,7 +330,7 @@ async function changeRole(userId, newRole) {
               </AppButton>
             </div>
           </form>
-        </div>
+        </dialog>
       </div>
     </Teleport>
 
@@ -347,15 +347,13 @@ async function changeRole(userId, newRole) {
     </div>
 
     <template v-else>
-      <div class="flex items-center justify-end mb-4">
+      <header class="flex items-center justify-end mb-4">
         <AppButton variant="primary" @click="openCreateModal">Create User</AppButton>
-      </div>
+      </header>
 
       <AlertMessage v-if="error" type="error" :message="error" class="mb-4" />
 
-      <div v-if="users.length === 0" class="text-center py-12">
-        <p class="text-muted text-sm">No users found.</p>
-      </div>
+      <p v-if="users.length === 0" class="text-center py-12 text-muted text-sm">No users found.</p>
 
       <div v-else class="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table class="w-full text-sm">

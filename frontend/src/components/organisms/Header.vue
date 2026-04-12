@@ -28,7 +28,7 @@ function handleLogout() {
   <header class="fixed top-0 left-0 right-0 z-50 bg-surface border-b border-line">
     <div class="px-4 md:px-6 lg:px-8 xl:px-10 h-14 flex items-center justify-between">
       <!-- Logo -->
-      <router-link to="/dashboard" class="inline-flex items-center gap-2 text-lg font-bold text-heading">
+      <router-link to="/dashboard" class="inline-flex items-center gap-2 text-lg font-bold text-heading rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1">
         <ShieldMark size="sm" />
         <span>Visual Shield</span>
       </router-link>
@@ -61,7 +61,7 @@ function handleLogout() {
       <!-- Auth Links (logged out) -->
       <div v-if="!isLoggedIn" class="hidden md:flex items-center gap-2">
         <ThemeToggle />
-        <router-link to="/login" class="flex items-center gap-2 text-sm text-body hover:text-heading transition-colors">
+        <router-link to="/login" class="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-body hover:text-heading transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg>
           Log In
         </router-link>
@@ -78,7 +78,9 @@ function handleLogout() {
         <ThemeToggle />
         <button
           @click="mobileMenuOpen = !mobileMenuOpen"
-          class="text-body hover:text-heading"
+          class="text-body hover:text-heading rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+          :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+          :aria-expanded="mobileMenuOpen"
         >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -89,7 +91,7 @@ function handleLogout() {
     </div>
 
     <!-- Mobile Menu -->
-    <div v-if="mobileMenuOpen" class="md:hidden border-t border-line bg-surface px-4 py-3 space-y-2">
+    <nav v-if="mobileMenuOpen" class="md:hidden border-t border-line bg-surface px-4 py-3 space-y-2">
       <template v-if="isLoggedIn">
         <NavLink to="/dashboard" :active="currentRoute === 'dashboard'" class="block" @navigate="mobileMenuOpen = false">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
@@ -109,7 +111,7 @@ function handleLogout() {
         </NavLink>
         <button
           @click="handleLogout"
-          class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-body hover:bg-surface-alt hover:text-heading rounded-lg transition-colors"
+          class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-body hover:bg-surface-alt hover:text-heading rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
           Logout
@@ -125,6 +127,6 @@ function handleLogout() {
           Register
         </NavLink>
       </template>
-    </div>
+    </nav>
   </header>
 </template>

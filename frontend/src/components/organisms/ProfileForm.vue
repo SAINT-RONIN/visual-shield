@@ -41,7 +41,7 @@ function handleSave() {
     <Spinner size="lg" />
   </div>
 
-  <div v-else class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-6">
+  <section v-else class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-6">
     <div>
       <label class="block text-sm text-body mb-1">Username</label>
       <p class="text-heading">{{ user?.username }}</p>
@@ -53,15 +53,15 @@ function handleSave() {
         placeholder="Enter display name"
         @input="errors.displayName = ''"
       />
-      <span v-if="errors.displayName" class="text-error text-sm mt-1 block">{{ errors.displayName }}</span>
+      <p v-if="errors.displayName" class="text-error text-sm mt-1">{{ errors.displayName }}</p>
     </div>
     <AlertMessage :message="error" />
     <AppButton :loading="saving" @click="handleSave">
       {{ saving ? 'Saving...' : 'Save Changes' }}
     </AppButton>
-  </div>
+  </section>
 
-  <div class="mt-4 text-sm text-muted">
+  <footer class="mt-4 text-sm text-muted">
     <p>Member since {{ formatDateShort(user?.createdAt) }}</p>
-  </div>
+  </footer>
 </template>

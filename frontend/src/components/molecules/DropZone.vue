@@ -10,7 +10,6 @@ defineProps({
 
 const emit = defineEmits(['select'])
 const dragging = ref(false)
-const fileInput = ref(null)
 
 function handleFileSelect(e) {
   const file = e.target.files[0]
@@ -25,16 +24,14 @@ function handleDrop(e) {
 </script>
 
 <template>
-  <div
+  <label
     @dragover.prevent="dragging = true"
     @dragleave="dragging = false"
     @drop.prevent="handleDrop"
-    @click="fileInput.click()"
-    class="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors"
+    class="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:border-primary"
     :class="dragging ? 'border-primary bg-primary/10' : 'border-line-strong hover:border-body'"
   >
     <input
-      ref="fileInput"
       type="file"
       :accept="accept"
       class="hidden"
@@ -48,5 +45,5 @@ function handleDrop(e) {
       Drag & drop a video file or <span class="text-link">browse</span>
     </p>
     <p class="text-muted text-xs mt-1">{{ hint }}</p>
-  </div>
+  </label>
 </template>

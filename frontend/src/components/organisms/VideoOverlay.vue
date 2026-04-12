@@ -764,7 +764,7 @@ watch(() => props.charts, () => draw(), { deep: true })
 </script>
 
 <template>
-  <div
+  <section
     class="overlay-card"
     :style="{
       '--vo-bg': overlayColors.videoBg,
@@ -824,7 +824,7 @@ watch(() => props.charts, () => draw(), { deep: true })
       <canvas ref="canvasRef" class="overlay-canvas" />
 
       <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Custom Controls Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
-      <div
+      <footer
         class="controls-bar"
         :class="{ visible: controlsVisible || !playing }"
         @mouseenter="onControlsEnter"
@@ -860,9 +860,9 @@ watch(() => props.charts, () => draw(), { deep: true })
             <div class="volume-dot" :style="{ left: (muted ? 0 : volume * 100) + '%' }" />
           </div>
 
-          <span class="time-display">
+          <time class="time-display">
             {{ formatTime(currentTime) }} / {{ formatTime(videoDuration) }}
-          </span>
+          </time>
 
           <div class="ctrl-spacer" />
 
@@ -871,12 +871,12 @@ watch(() => props.charts, () => draw(), { deep: true })
             <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
           </button>
         </div>
-      </div>
+      </footer>
     </div>
     </div>
 
-    <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Toggle & slider bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
-    <div class="toggle-bar">
+    <!--Ã¢â€â‚¬Ã¢â€â‚¬ Toggle & slider bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ -->
+    <div class="toggle-bar" role="toolbar" aria-label="Overlay controls">
       <!-- Graph toggles -->
       <button
         v-for="(graph, index) in graphs"
@@ -904,7 +904,7 @@ watch(() => props.charts, () => draw(), { deep: true })
       </button>
 
       <!-- Separator -->
-      <span class="toggle-sep" />
+      <hr class="toggle-sep" />
 
       <!-- Graphs opacity slider -->
       <div class="slider-group">
@@ -936,7 +936,7 @@ watch(() => props.charts, () => draw(), { deep: true })
         <span class="slider-value">{{ Math.round(gridOpacity * 100) }}%</span>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
@@ -1107,6 +1107,11 @@ watch(() => props.charts, () => draw(), { deep: true })
   background: var(--vo-ctrl-bg-subtle);
 }
 
+.ctrl-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .ctrl-btn svg {
   width: 1.25rem;
   height: 1.25rem;
@@ -1195,6 +1200,11 @@ watch(() => props.charts, () => draw(), { deep: true })
   background: color-mix(in srgb, var(--gc) 6%, transparent);
 }
 
+.toggle-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .toggle-btn.active {
   border-color: color-mix(in srgb, var(--gc) 50%, transparent);
   background: color-mix(in srgb, var(--gc) 10%, transparent);
@@ -1229,6 +1239,7 @@ watch(() => props.charts, () => draw(), { deep: true })
   background: var(--color-line-strong);
   margin: 0 0.125rem;
   flex-shrink: 0;
+  border: none;
 }
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬ Opacity slider groups Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */

@@ -15,7 +15,7 @@ const formattedDate = computed(() => formatDate(props.video.uploadedAt))
 </script>
 
 <template>
-  <div class="bg-surface rounded-xl p-4 md:p-6 border border-line">
+  <header class="bg-surface rounded-xl p-4 md:p-6 border border-line">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
         <h2 class="text-lg md:text-xl lg:text-2xl font-bold text-heading">{{ video.originalName }}</h2>
@@ -27,5 +27,5 @@ const formattedDate = computed(() => formatDate(props.video.uploadedAt))
       </div>
       <SeverityBadge :severity="riskLevel" />
     </div>
-  </div>
+  </header>
 </template>

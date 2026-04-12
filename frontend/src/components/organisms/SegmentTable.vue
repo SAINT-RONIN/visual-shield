@@ -33,10 +33,10 @@ const columns = [
 </script>
 
 <template>
-  <div class="rounded-2xl border border-line bg-surface">
-    <div class="border-b border-line p-3 sm:p-4 md:p-5">
+  <section class="rounded-2xl border border-line bg-surface">
+    <header class="border-b border-line p-3 sm:p-4 md:p-5">
       <h3 class="text-heading font-semibold text-sm sm:text-base">Flagged Segments</h3>
-    </div>
+    </header>
 
     <div v-if="!hasSegments" class="text-success text-sm py-6 text-center">
       No risk segments detected
@@ -49,10 +49,13 @@ const columns = [
             <th
               v-for="col in columns"
               :key="col.key"
-              class="cursor-pointer px-5 py-3 transition-colors hover:text-heading font-medium text-xs"
-              @click="handleSort(col.key)"
+              class="px-5 py-3 font-medium text-xs"
             >
-              <span class="flex items-center gap-1.5">
+              <button
+                class="flex items-center gap-1.5 transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded"
+                :aria-sort="isActiveSort(col.key) ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'"
+                @click="handleSort(col.key)"
+              >
                 {{ col.label }}
                 <!-- Sort icon: inactive -->
                 <svg
@@ -65,6 +68,7 @@ const columns = [
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
                   <path d="m7 15 5 5 5-5" />
                   <path d="m7 9 5-5 5 5" />
@@ -80,6 +84,7 @@ const columns = [
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
                   <path d="m18 15-6-6-6 6" />
                 </svg>
@@ -94,10 +99,11 @@ const columns = [
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
-              </span>
+              </button>
             </th>
           </tr>
         </thead>
@@ -152,5 +158,5 @@ const columns = [
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 </template>

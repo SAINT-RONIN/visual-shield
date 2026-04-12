@@ -55,10 +55,10 @@ function handleUpload() {
 </script>
 
 <template>
-  <div class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-6">
+  <section class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-6">
     <div>
       <DropZone :file-name="fileName" @select="handleFileSelect" />
-      <span v-if="errors.file" class="text-error text-sm mt-2 block">{{ errors.file }}</span>
+      <p v-if="errors.file" class="text-error text-sm mt-2">{{ errors.file }}</p>
     </div>
     <AppSelect v-model="samplingRate" label="Sampling Rate (fps)" :options="rateOptions" />
     <ProgressBar v-if="uploading" :value="progress" label="Uploading..." />
@@ -66,5 +66,5 @@ function handleUpload() {
     <AppButton :loading="uploading" :disabled="!file" full-width @click="handleUpload">
       {{ uploading ? 'Uploading...' : 'Upload Video' }}
     </AppButton>
-  </div>
+  </section>
 </template>

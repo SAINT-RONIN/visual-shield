@@ -48,7 +48,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-4">
+  <section class="bg-surface border border-line rounded-xl p-4 md:p-5 lg:p-6 space-y-4">
     <h2 class="text-sm font-semibold text-heading">Change Password</h2>
 
     <AppInput
@@ -78,5 +78,5 @@ function handleSubmit() {
     <AppButton :loading="saving" :disabled="saving" @click="handleSubmit">
       {{ saving ? 'Saving...' : 'Change Password' }}
     </AppButton>
-  </div>
+  </section>
 </template>

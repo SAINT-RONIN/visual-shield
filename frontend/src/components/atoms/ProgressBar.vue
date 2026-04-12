@@ -12,11 +12,28 @@ defineProps({
       <span class="text-body">{{ label }}</span>
       <span class="text-heading">{{ value }}%</span>
     </div>
-    <div class="w-full bg-surface-alt rounded-full h-2">
-      <div
-        class="bg-primary h-2 rounded-full transition-all"
-        :style="{ width: value + '%' }"
-      ></div>
-    </div>
+    <progress
+      class="progress-bar w-full h-2 rounded-full"
+      :value="value"
+      max="100"
+    >{{ value }}%</progress>
   </div>
 </template>
+
+<style scoped>
+.progress-bar {
+  appearance: none;
+  border: none;
+  background-color: transparent;
+}
+.progress-bar::-webkit-progress-bar {
+  @apply bg-surface-alt rounded-full;
+}
+.progress-bar::-webkit-progress-value {
+  @apply bg-primary rounded-full;
+  transition: width 0.3s;
+}
+.progress-bar::-moz-progress-bar {
+  @apply bg-primary rounded-full;
+}
+</style>

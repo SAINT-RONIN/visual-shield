@@ -11,7 +11,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+  <section class="flex flex-col items-center justify-center py-16 px-4 text-center">
     <h3 class="text-lg font-semibold text-heading mb-2">{{ title }}</h3>
     <p v-if="description" class="text-sm text-muted mb-6 max-w-sm">{{ description }}</p>
     <RouterLink
@@ -21,5 +21,5 @@ defineProps({
     >
       {{ actionLabel }}
     </RouterLink>
-  </div>
+  </section>
 </template>

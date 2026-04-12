@@ -8,7 +8,7 @@ const { isDark, toggleTheme } = useTheme()
 <template>
   <button
     @click="toggleTheme"
-    class="relative w-9 h-9 flex items-center justify-center rounded-lg text-body hover:text-heading hover:bg-surface-hover transition-colors cursor-pointer"
+    class="relative w-9 h-9 flex items-center justify-center rounded-lg text-body hover:text-heading hover:bg-surface-hover transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
     :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
   >
     <!-- Sun icon (shown in dark mode Ã¢â‚¬â€ click to go light) -->
