@@ -96,7 +96,10 @@ Visual Shield includes the main features needed to upload videos, process them, 
 ### Admin features
 
 - View a list of all users
+- Create new user accounts
 - Change a user's role between `member` and `admin`
+- Deactivate and reactivate user accounts
+- Reset a user's password
 
 ### Security and technical safeguards
 
@@ -112,6 +115,7 @@ Visual Shield includes the main features needed to upload videos, process them, 
 - `/api/session`
 - `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`
 - `/api/users`, `/api/users/me`
+- `/api/users/me/password`
 - `/api/videos`
 - `/api/videos/{id}`
 - `/api/videos/{id}/reanalyze`
@@ -123,6 +127,8 @@ Visual Shield includes the main features needed to upload videos, process them, 
 - `/api/videos/{id}/datapoints`
 - `/api/admin/users`
 - `/api/admin/users/{id}/role`
+- `/api/admin/users/{id}/deactivate`, `/api/admin/users/{id}/activate`
+- `/api/admin/users/{id}/password`
 - `/api/config`
 - `/api/health`
 - `/api/health/db`
@@ -356,7 +362,7 @@ visual-shield/
 |   |   |   `-- Utils/
 |   |   `-- composer.json
 |   |-- database/
-|   |   `-- migrations/          # SQL schema files, auto-run on first MySQL boot
+|   |   `-- migrations/          # Reserved for future migration files (currently empty)
 |   |-- storage/
 |   |   `-- videos/              # Uploaded video files stored outside web root
 |   |-- docker-compose.yml
@@ -459,7 +465,7 @@ See [frontend/README.md](./frontend/README.md) for the full component-level brea
 
 ## Privacy
 
-A GDPR-aligned privacy policy is provided in [PRIVACY_POLICY.md](./PRIVACY_POLICY.md). It covers what data is collected, the lawful basis for processing, data retention, user rights, and contact information.
+A GDPR-aligned privacy policy is available at the `/privacy` route within the application. It covers what data is collected, the lawful basis for processing, data retention, and user rights.
 
 ---
 
