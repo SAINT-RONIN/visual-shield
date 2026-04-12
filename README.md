@@ -154,7 +154,15 @@ This single command starts all backend containers: Nginx, PHP-FPM, the backgroun
 
 > **IMPORTANT:** You must import the database before using the app. Skipping this step will cause the application to fail.
 
-Once the containers are running, open phpMyAdmin at:
+**Option A — CLI (recommended, run from the `backend/` folder):**
+
+```bash
+docker exec -i backend-mysql-1 mysql -u root -proot visual_shield < ../database/visual_shield.sql
+```
+
+**Option B — phpMyAdmin:**
+
+Open phpMyAdmin at:
 
 ```
 http://localhost:8080
