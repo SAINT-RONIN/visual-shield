@@ -154,7 +154,7 @@ cd backend
 docker compose up -d --build
 ```
 
-This single command starts all backend containers: Nginx, PHP-FPM, the background worker, MySQL, and phpMyAdmin. Composer dependencies are installed automatically inside the container and the MySQL schema is initialized automatically from the migration files on first boot.
+This single command starts all backend containers: Nginx, PHP-FPM, the background worker, MySQL, and phpMyAdmin. Composer dependencies are installed automatically inside the container.
 
 **Step 2 - Import the database (required)**
 
@@ -179,7 +179,7 @@ Log in with:
 | Field | Value |
 |-------|-------|
 | Username | `root` |
-| Password | `Secret123@` |
+| Password | `root` |
 
 Select the `visual_shield` database, go to the **Import** tab, and import the file located at:
 
